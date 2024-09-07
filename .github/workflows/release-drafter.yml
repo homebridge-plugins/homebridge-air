@@ -3,7 +3,7 @@ name: Release Drafter
 on:
   push:
     branches: [latest]
-  pull_request: # required for autolabeler
+  pull_request_target: # required for autolabeler
     types: [opened, reopened, synchronize]
   workflow_dispatch:
 
