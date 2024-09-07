@@ -1,4 +1,3 @@
-
 <span align="center">
 
 <a href="https://github.com/homebridge/verified/blob/master/verified-plugins.json"><img alt="homebridge-verified" src="https://raw.githubusercontent.com/donavanbecker/homebridge-air/latest/branding/Homebridge_x_Air.svg?sanitize=true" width="350px"></a>
@@ -10,7 +9,7 @@
 <a href="https://discord.gg/8fpZA4S"><img title="discord-air" src="https://badgen.net/discord/online-members/8fpZA4S?icon=discord&label=discord" ></a>
 <a href="https://paypal.me/donavanbecker"><img title="donate" src="https://badgen.net/badge/donate/paypal/yellow" ></a>
 
-<p>The Homebridge <a href="https://airnow.gove">Air</a> 
+<p>The Homebridge <a href="https://airnow.gov">Air</a>
 plugin allows you monitor the current AirQuality for your Zip Code from HomeKit and Siri.
 </p>
 
@@ -23,7 +22,7 @@ plugin allows you monitor the current AirQuality for your Zip Code from HomeKit 
 
 ## Configuration
 
-1. Login / create an account at https://airnow.gove/
+1. Login / create an account at https://airnow.gov/
 
 <p align="center">
 
@@ -37,4 +36,4 @@ plugin allows you monitor the current AirQuality for your Zip Code from HomeKit 
 
 ## Supported Air Quality Features
 
-This plugin will create an AirQualitySensor element. The Home app works well, but the Eve app seems to show more measurements. Measurements retrieved are PM2.5, PM10, & O3 for AirNow. Aqicn adds NO2, SO2, CO...  
+This plugin will create an AirQualitySensor element. The Home app works well, but the Eve app seems to show more measurements. Measurements retrieved are PM2.5, PM10, & O3 for AirNow. Aqicn adds NO2, SO2, CO...
