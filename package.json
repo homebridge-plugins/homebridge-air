@@ -1,0 +1,84 @@
+{
+  "name": "homebridge-air",
+  "displayName": "Air Quality",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "The AirNow plugin allows you to monitor the current AirQuality for your Zip Code from HomeKit and Siri.",
+  "author": {
+    "name": "donavanbecker",
+    "url": "https://github.com/donavanbecker"
+  },
+  "license": "ISC",
+  "funding": [
+    {
+      "type": "Paypal",
+      "url": "https://www.paypal.me/donavanbecker"
+    },
+    {
+      "type": "GitHub",
+      "url": "https://github.com/sponsors/donavanbecker"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/donavanbecker/homebridge-air.git"
+  },
+  "bugs": {
+    "url": "https://github.com/donavanbecker/homebridge-air/issues"
+  },
+  "keywords": [
+    "homebridge-plugin",
+    "air",
+    "Air Quality"
+  ],
+  "main": "dist/index.js",
+  "engines": {
+    "homebridge": "^1.8.4 || ^2.0.0 || ^2.0.0-beta.11 || ^2.0.0-alpha.10",
+    "node": "^18 || ^20 || ^22"
+  },
+  "scripts": {
+    "check": "npm install && npm outdated",
+    "update": "ncu -u && npm update && npm install",
+    "lint": "eslint src/**/*.ts",
+    "watch": "npm run build && npm run plugin-ui && npm link && nodemon",
+    "plugin-ui": "rsync ./src/homebridge-ui/public/index.html ./dist/homebridge-ui/public/",
+    "build": "npm run clean && tsc && npm run plugin-ui",
+    "prepublishOnly": "npm run lint && npm run build && npm run plugin-ui ",
+    "postpublish": "npm run clean",
+    "clean": "shx rm -rf ./dist",
+    "test": "npm run lint",
+    "docs": "typedoc",
+    "lint-docs": "typedoc --emit none --treatWarningsAsErrors"
+  },
+  "dependencies": {
+    "@homebridge/plugin-ui-utils": "^1.0.3",
+    "rxjs": "^7.8.1",
+    "striptags": "^3.0.1",
+    "undici": "^6.19.8"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^3.3.2",
+    "@types/aes-js": "^3.1.4",
+    "@types/debug": "^4.1.12",
+    "@types/fs-extra": "^11.0.4",
+    "@types/jest": "^29.5.12",
+    "@types/mdast": "^4.0.4",
+    "@types/node": "^22.5.4",
+    "@types/semver": "^7.5.8",
+    "@types/source-map-support": "^0.5.10",
+    "@vitest/coverage-v8": "^2.0.5",
+    "eslint": "^9.9.1",
+    "eslint-plugin-format": "^0.1.2",
+    "homebridge": "^1.8.4",
+    "homebridge-config-ui-x": "4.57.1",
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.4",
+    "npm-check-updates": "^17.1.1",
+    "shx": "^0.3.4",
+    "ts-node": "^10.9.2",
+    "typedoc": "^0.26.6",
+    "typescript": "^5.5.4",
+    "typescript-axios-wb": "^1.0.3",
+    "vitest": "^2.0.5"
+  }
+}

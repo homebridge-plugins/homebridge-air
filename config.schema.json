@@ -1,0 +1,197 @@
+{
+  "pluginAlias": "Air",
+  "pluginType": "platform",
+  "singular": true,
+  "customUi": false,
+  "customUiPath": "./dist/homebridge-ui",
+  "headerDisplay": "<p align='center'><img width='250px' src='https://raw.githubusercontent.com/donavanbecker/homebridge-air/latest/branding/Homebridge_x_Air.svg'></p>\n\nThe **Homebridge Air** plugin allows you monitor the current AirQuality for your Zip Code from HomeKit and Siri.",
+  "footerDisplay": "Your AirNow apiKey was linked. Please raise any issues on our [project page](https://github.com/donavanbecker/homebridge-air/issues).\n\nIf you would like to have other features, fill out [Feature Request Form](https://github.com/donavanbecker/homebridge-air/issues/new?assignees=&labels=&template=feature_request.md).",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "title": "Name",
+        "default": "Air",
+        "required": true
+      },
+      "devices": {
+        "type": "array",
+        "items": {
+          "title": "Devices",
+          "type": "object",
+          "properties": {
+            "provider": {
+              "title": "Provider",
+              "type": "string",
+              "required": true,
+              "x-schema-form": {
+                "type": "email"
+              },
+              "default": "airnow",
+              "oneOf": [
+                {
+                  "title": "Air Now",
+                  "enum": [
+                    "airnow"
+                  ]
+                }
+              ]
+            },
+            "apiKey": {
+              "title": "Air Now API Key",
+              "type": "string",
+              "required": true,
+              "x-schema-form": {
+                "type": "email"
+              }
+            },
+            "locationName": {
+              "title": "Location Name",
+              "type": "string",
+              "required": true
+            },
+            "zipCode": {
+              "title": "Zip Code",
+              "type": "string",
+              "required": true
+            },
+            "distance": {
+              "title": "Distance",
+              "type": "string",
+              "required": true
+            },
+            "firmware": {
+              "title": "Firmware Override",
+              "type": "string",
+              "placeholder": "1.2.8"
+            },
+            "refreshRate": {
+              "title": "Device Refresh Rate",
+              "type": "number",
+              "minimum": 1800,
+              "placeholder": 1800,
+              "description": "Indicates the number of seconds between polls of the AirNow service."
+            },
+            "logging": {
+              "title": "Device Logging Override Setting",
+              "type": "string",
+              "required": true,
+              "default": "",
+              "oneOf": [
+                {
+                  "title": "Default Logging",
+                  "enum": [
+                    ""
+                  ]
+                },
+                {
+                  "title": "Standard Logging",
+                  "enum": [
+                    "standard"
+                  ]
+                },
+                {
+                  "title": "No Logging",
+                  "enum": [
+                    "none"
+                  ]
+                },
+                {
+                  "title": "Debug Logging",
+                  "enum": [
+                    "debug"
+                  ]
+                }
+              ]
+            },
+            "delete": {
+              "title": "Delete",
+              "type": "button",
+              "style": "danger",
+              "onClick": "delete"
+            }
+          }
+        }
+      },
+      "refreshRate": {
+        "title": "Refresh Rate",
+        "type": "number",
+        "minimum": 1800,
+        "placeholder": 1800,
+        "description": "Indicates the number of seconds between polls of the AirNow service."
+      },
+      "logging": {
+        "title": "Plugin Logging Setting",
+        "type": "string",
+        "required": true,
+        "default": "",
+        "oneOf": [
+          {
+            "title": "Default Logging",
+            "enum": [
+              ""
+            ]
+          },
+          {
+            "title": "Standard Logging",
+            "enum": [
+              "standard"
+            ]
+          },
+          {
+            "title": "No Logging",
+            "enum": [
+              "none"
+            ]
+          },
+          {
+            "title": "Debug Logging",
+            "enum": [
+              "debug"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "layout": [
+    {
+      "key": "devices",
+      "notitle": false,
+      "type": "tabarray",
+      "title": "{{ value.locationName || 'New Location (Zip Code)' }}",
+      "expandable": true,
+      "expanded": false,
+      "orderable": false,
+      "items": [
+        "devices[].provider",
+        "devices[].apiKey",
+        "devices[].locationName",
+        "devices[].zipCode",
+        "devices[].distance",
+        "devices[].firmware",
+        "devices[].refreshRate",
+        "devices[].logging",
+        "devices[].delete"
+      ]
+    },
+    {
+      "type": "fieldset",
+      "title": "Advanced Settings",
+      "expandable": true,
+      "expanded": false,
+      "items": [
+        {
+          "type": "help",
+          "helpvalue": "<h5>Refresh Rate</h5><em class='primary-text'>Refresh Rate indicates the number of seconds between polls of the AirNow service.</em>"
+        },
+        {
+          "key": "refreshRate",
+          "notitle": true
+        },
+        "logging"
+      ]
+    }
+  ]
+}
