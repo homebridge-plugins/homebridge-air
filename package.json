@@ -2,7 +2,7 @@
   "name": "homebridge-air",
   "displayName": "Air Quality",
   "type": "module",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "The AirNow plugin allows you to monitor the current AirQuality for your Zip Code from HomeKit and Siri.",
   "author": {
     "name": "donavanbecker",
@@ -53,7 +53,7 @@
   "dependencies": {
     "@homebridge/plugin-ui-utils": "^1.0.3",
     "rxjs": "^7.8.1",
-    "striptags": "^3.0.1",
+    "striptags": "^3.2.0",
     "undici": "^6.19.8"
   },
   "devDependencies": {
@@ -67,7 +67,7 @@
     "@types/semver": "^7.5.8",
     "@types/source-map-support": "^0.5.10",
     "@vitest/coverage-v8": "^2.0.5",
-    "eslint": "^9.9.1",
+    "eslint": "^9.10.0",
     "eslint-plugin-format": "^0.1.2",
     "homebridge": "^1.8.4",
     "homebridge-config-ui-x": "4.57.1",

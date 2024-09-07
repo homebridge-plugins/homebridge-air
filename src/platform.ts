@@ -156,7 +156,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
         existingAccessory.context.device = device
         existingAccessory.displayName = await this.validateAndCleanDisplayName(device.locationName, 'locationName', device.locationName)
         existingAccessory.context.serialNumber = device.zipCode
-        existingAccessory.context.model = `Forecast by Zip Code`
+        existingAccessory.context.model = `Current Observation by Zip Code`
         existingAccessory.context.FirmwareRevision = device.firmware ?? await this.getVersion()
         this.api.updatePlatformAccessories([existingAccessory])
         // Restore accessory
@@ -177,7 +177,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
       accessory.context.device = device
       accessory.displayName = await this.validateAndCleanDisplayName(device.locationName, 'locationName', device.locationName)
       accessory.context.serialNumber = device.zipCode
-      accessory.context.model = `Forecast by Zip Code`
+      accessory.context.model = `Current Observation by Zip Code`
       accessory.context.FirmwareRevision = device.firmware ?? await this.getVersion()
       // the accessory does not yet exist, so we need to create it
       await this.infoLog(`Adding new accessory: ${device.locationName}`)
