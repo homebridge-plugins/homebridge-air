@@ -1,0 +1,11 @@
+name: Changelog to Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  changerelease:
+      uses: donavanbecker/.github/.github/workflows/changerelease.yml@latest
+      secrets:
+          token: ${{ secrets.GITHUB_TOKEN }}
