@@ -1,5 +1,5 @@
 <p class="text-center">
-  <img src="https://raw.githubusercontent.com/donavanbecker/homebridge-air/latest/branding/Homebridge_x_Air.svg"
+  <img src="https://raw.githubusercontent.com/homebridge-plugins/homebridge-air/latest/branding/Homebridge_x_Air.svg"
     alt="homebridge-air logo" style="width: 40%" />
 </p>
 <div id="pageIntro" style="display: none">
@@ -16,6 +16,7 @@
   </div>
 </div>
 <div id="menuWrapper" class="btn-group w-100 mb-0" role="group" aria-label="UI Menu" style="display: none">
+  <button type="button" class="btn btn-primary" id="menuLocation">Location</button>
   <button type="button" class="btn btn-primary" id="menuSettings">Settings</button>
   <button type="button" class="btn btn-primary" id="menuDevices">Devices</button>
   <button type="button" class="btn btn-primary mr-0" id="menuHome">Support</button>
@@ -23,6 +24,19 @@
 <div id="disabledBanner" class="alert alert-secondary mb-0 mt-3" role="alert" style="display: none">
   Plugin is currently disabled
   <button id="disabledEnable" type="button" class="btn btn-link p-0 m-0 float-right">Enable</button>
+</div>
+<div id="pageLocation" style="display: none;">
+  <button type="button" class="btn btn-primary mb-3" id="getLocation">Use Current Location</button>
+  <div class="mb-2">
+    <label for="latitudeField">Latitude:</label>
+    <input type="text" id="latitudeField" name="latitude">
+    <button type="button" class="btn btn-outline-secondary btn-sm" id="copyLatitude">Copy</button>
+  </div>
+  <div>
+    <label for="longitudeField">Longitude:</label>
+    <input type="text" id="longitudeField" name="longitude">
+    <button type="button" class="btn btn-outline-secondary btn-sm" id="copyLongitude">Copy</button>
+  </div>
 </div>
 <div id="pageDevices" class="mt-4" style="display: none">
   <div id="deviceInfo">
@@ -61,38 +75,38 @@
   <h5>Setup</h5>
   <ul>
     <li>
-      <a href="https://github.com/donavanbecker/homebridge-air/wiki" target="_blank">Wiki Home</a>
+      <a href="https://github.com/homebridge-plugins/homebridge-air/wiki" target="_blank">Wiki Home</a>
     </li>
     <li>
-      <a href="https://github.com/donavanbecker/homebridge-air/wiki/Configuration" target="_blank">Configuration</a>
+      <a href="https://github.com/homebridge-plugins/homebridge-air/wiki/Configuration" target="_blank">Configuration</a>
     </li>
     <li>
-      <a href="https://github.com/donavanbecker/homebridge-air/wiki/Beta-Version" target="_blank">Beta Version</a>
+      <a href="https://github.com/homebridge-plugins/homebridge-air/wiki/Beta-Version" target="_blank">Beta Version</a>
     </li>
     <li>
-      <a href="https://github.com/donavanbecker/homebridge-air/wiki/Node-Version" target="_blank">Node Version</a>
+      <a href="https://github.com/homebridge-plugins/homebridge-air/wiki/Node-Version" target="_blank">Node Version</a>
     </li>
     <li>
-      <a href="https://github.com/donavanbecker/homebridge-air/wiki/Uninstallation" target="_blank">Uninstallation</a>
+      <a href="https://github.com/homebridge-plugins/homebridge-air/wiki/Uninstallation" target="_blank">Uninstallation</a>
     </li>
   </ul>
   <h5>Features</h5>
   <ul>
     <li>
-      <a href="https://github.com/donavanbecker/homebridge-air/wiki/Supported-Devices" target="_blank">Supported
+      <a href="https://github.com/homebridge-plugins/homebridge-air/wiki/Supported-Devices" target="_blank">Supported
         Devices</a>
     </li>
     <li>
-      <a href="https://github.com/donavanbecker/homebridge-air/wiki/Fan-Modes" target="_blank">Fan Modes</a>
+      <a href="https://github.com/homebridge-plugins/homebridge-air/wiki/Fan-Modes" target="_blank">Fan Modes</a>
     </li>
   </ul>
   <h5>Help/About</h5>
   <ul>
     <li>
-      <a href="https://github.com/donavanbecker/homebridge-air/issues/new/choose" target="_blank">Support Request</a>
+      <a href="https://github.com/homebridge-plugins/homebridge-air/issues/new/choose" target="_blank">Support Request</a>
     </li>
     <li>
-      <a href="https://github.com/donavanbecker/homebridge-air/blob/latest/CHANGELOG.md" target="_blank">Changelog</a>
+      <a href="https://github.com/homebridge-plugins/homebridge-air/blob/latest/CHANGELOG.md" target="_blank">Changelog</a>
     </li>
     <li>
       <a href="https://github.com/sponsors/donavanbecker" target="_blank">About Me</a>
@@ -109,27 +123,32 @@
   (async () => {
     try {
       const currentConfig = await homebridge.getPluginConfig();
-      showIntro = () => {
+
+      const showIntro = () => {
         const introLink = document.getElementById('introLink');
         introLink.addEventListener('click', () => {
           homebridge.showSpinner();
           document.getElementById('pageIntro').style.display = 'none';
           document.getElementById('menuWrapper').style.display = 'inline-flex';
-          showSettings();
+          showLocation();
           homebridge.hideSpinner();
         });
         document.getElementById('menuWrapper').style.display = 'none';
         document.getElementById('pageIntro').style.display = 'block';
       };
-      showDevices = async () => {
+
+      const showDevices = async () => {
         homebridge.showSpinner();
         homebridge.hideSchemaForm();
         document.getElementById('menuHome').classList.remove('btn-elegant');
         document.getElementById('menuHome').classList.add('btn-primary');
         document.getElementById('menuDevices').classList.add('btn-elegant');
         document.getElementById('menuDevices').classList.remove('btn-primary');
+        document.getElementById('menuLocation').classList.remove('btn-elegant');
+        document.getElementById('menuLocation').classList.add('btn-primary');
         document.getElementById('menuSettings').classList.remove('btn-elegant');
         document.getElementById('menuSettings').classList.add('btn-primary');
+        document.getElementById('pageLocation').style.display = 'none';
         document.getElementById('pageSupport').style.display = 'none';
         document.getElementById('pageDevices').style.display = 'block';
         const cachedAccessories =
@@ -149,7 +168,7 @@
           option.value = a.UUID;
           deviceSelect.add(option);
         });
-        showDeviceInfo = async (UUID) => {
+        const showDeviceInfo = async (UUID) => {
           homebridge.showSpinner();
           const thisAcc = cachedAccessories.find((x) => x.UUID === UUID);
           const context = thisAcc.context;
@@ -171,36 +190,120 @@
         }
         homebridge.hideSpinner();
       };
-      showSupport = () => {
+
+      const showSupport = () => {
         homebridge.showSpinner();
         homebridge.hideSchemaForm();
         document.getElementById('menuHome').classList.add('btn-elegant');
         document.getElementById('menuHome').classList.remove('btn-primary');
         document.getElementById('menuDevices').classList.remove('btn-elegant');
         document.getElementById('menuDevices').classList.add('btn-primary');
+        document.getElementById('menuLocation').classList.remove('btn-elegant');
+        document.getElementById('menuLocation').classList.add('btn-primary');
         document.getElementById('menuSettings').classList.remove('btn-elegant');
         document.getElementById('menuSettings').classList.add('btn-primary');
+        document.getElementById('pageLocation').style.display = 'none';
         document.getElementById('pageSupport').style.display = 'block';
         document.getElementById('pageDevices').style.display = 'none';
         homebridge.hideSpinner();
       };
-      showSettings = () => {
+
+      const showLocation = () => {
+        document.getElementById('getLocation').addEventListener('click', () => {
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((position) => {
+              const latitude = position.coords.latitude;
+              const longitude = position.coords.longitude;
+
+              // Assign the latitude and longitude to the input fields
+              document.getElementById('latitudeField').value = latitude;
+              document.getElementById('longitudeField').value = longitude;
+
+              homebridge.toast.success('Location fetched successfully.', 'Success');
+            }, (error) => {
+              let errorMessage = 'Error getting location: ';
+              switch (error.code) {
+                case error.PERMISSION_DENIED:
+                  errorMessage += 'User denied the request for Geolocation.';
+                  break;
+                case error.POSITION_UNAVAILABLE:
+                  errorMessage += 'Location information is unavailable.';
+                  break;
+                case error.TIMEOUT:
+                  errorMessage += 'The request to get user location timed out.';
+                  break;
+                case error.UNKNOWN_ERROR:
+                  errorMessage += 'An unknown error occurred.';
+                  break;
+              }
+              console.error(errorMessage, error);
+              homebridge.toast.error(errorMessage, 'Error');
+            });
+          } else {
+            homebridge.toast.error('Geolocation is not supported by this browser.', 'Error');
+          }
+        });
+
+        document.getElementById('copyLatitude').addEventListener('click', () => {
+          const latitude = document.getElementById('latitudeField').value;
+          navigator.clipboard.writeText(latitude).then(() => {
+            homebridge.toast.success('Latitude copied to clipboard.', 'Success');
+          }).catch((error) => {
+            console.error('Error copying latitude:', error);
+            homebridge.toast.error('Error copying latitude: ' + error.message, 'Error');
+          });
+        });
+
+        document.getElementById('copyLongitude').addEventListener('click', () => {
+          const longitude = document.getElementById('longitudeField').value;
+          navigator.clipboard.writeText(longitude).then(() => {
+            homebridge.toast.success('Longitude copied to clipboard.', 'Success');
+          }).catch((error) => {
+            console.error('Error copying longitude:', error);
+            homebridge.toast.error('Error copying longitude: ' + error.message, 'Error');
+          });
+        });
+
+        homebridge.showSpinner();
+        homebridge.hideSchemaForm();
+        document.getElementById('menuHome').classList.remove('btn-elegant');
+        document.getElementById('menuHome').classList.add('btn-primary');
+        document.getElementById('menuDevices').classList.remove('btn-elegant');
+        document.getElementById('menuDevices').classList.add('btn-primary');
+        document.getElementById('menuLocation').classList.add('btn-elegant');
+        document.getElementById('menuLocation').classList.remove('btn-primary');
+        document.getElementById('menuSettings').classList.remove('btn-elegant');
+        document.getElementById('menuSettings').classList.add('btn-primary');
+        document.getElementById('pageLocation').style.display = 'block';
+        document.getElementById('pageSupport').style.display = 'none';
+        document.getElementById('pageDevices').style.display = 'none';
+        homebridge.hideSpinner();
+      };
+
+      document.getElementById('menuLocation').addEventListener('click', showLocation);
+
+      const showSettings = () => {
         homebridge.showSpinner();
         document.getElementById('menuHome').classList.remove('btn-elegant');
         document.getElementById('menuHome').classList.add('btn-primary');
         document.getElementById('menuDevices').classList.remove('btn-elegant');
         document.getElementById('menuDevices').classList.add('btn-primary');
+        document.getElementById('menuLocation').classList.remove('btn-elegant');
+        document.getElementById('menuLocation').classList.add('btn-primary');
         document.getElementById('menuSettings').classList.add('btn-elegant');
         document.getElementById('menuSettings').classList.remove('btn-primary');
+        document.getElementById('pageLocation').style.display = 'none';
         document.getElementById('pageSupport').style.display = 'none';
         document.getElementById('pageDevices').style.display = 'none';
         homebridge.showSchemaForm();
         homebridge.hideSpinner();
       };
-      showDisabledBanner = () => {
+
+      const showDisabledBanner = () => {
         document.getElementById('disabledBanner').style.display = 'block';
       };
-      enablePlugin = async () => {
+
+      const enablePlugin = async () => {
         homebridge.showSpinner();
         document.getElementById('disabledBanner').style.display = 'none';
         currentConfig[0].disablePlugin = false;
@@ -208,13 +311,16 @@
         await homebridge.savePluginConfig();
         homebridge.hideSpinner();
       };
-      menuHome.addEventListener('click', () => showSupport());
-      menuDevices.addEventListener('click', () => showDevices());
-      menuSettings.addEventListener('click', () => showSettings());
-      disabledEnable.addEventListener('click', () => enablePlugin());
+
+      document.getElementById('menuHome').addEventListener('click', () => showSupport());
+      document.getElementById('menuDevices').addEventListener('click', () => showDevices());
+      document.getElementById('menuLocation').addEventListener('click', () => showLocation());
+      document.getElementById('menuSettings').addEventListener('click', () => showSettings());
+      document.getElementById('disabledEnable').addEventListener('click', () => enablePlugin());
+
       if (currentConfig.length) {
         document.getElementById('menuWrapper').style.display = 'inline-flex';
-        showSettings();
+        showLocation(); // Set Location as the default tab
         if (currentConfig[0].disablePlugin) {
           showDisabledBanner();
         }

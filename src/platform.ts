@@ -4,10 +4,10 @@
  */
 import type { API, DynamicPlatformPlugin, HAP, Logging, PlatformAccessory } from 'homebridge'
 
-import type { AirPlatformConfig, devicesConfig } from './settings.js'
+import type { AirPlatformConfig, devicesConfig, options } from './settings.js'
 
 import { readFileSync } from 'node:fs'
-import process from 'node:process'
+import process, { argv } from 'node:process'
 
 import { AirQualitySensor } from './devices/airqualitysensor.js'
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js'
@@ -25,7 +25,10 @@ export class AirPlatform implements DynamicPlatformPlugin {
   public config!: AirPlatformConfig
 
   platformConfig!: AirPlatformConfig
-  platformLogging!: AirPlatformConfig['logging']
+  platformLogging!: options['logging']
+  platformRefreshRate!: options['refreshRate']
+  platformPushRate!: options['pushRate']
+  platformUpdateRate!: options['updateRate']
   debugMode!: boolean
   version!: string
 
@@ -46,14 +49,16 @@ export class AirPlatform implements DynamicPlatformPlugin {
     // Plugin options into our config variables.
     this.config = {
       platform: PLATFORM_NAME,
+      name: config.name,
       devices: config.devices as devicesConfig[],
       refreshRate: config.refreshRate as number,
       logging: config.logging as string,
     }
 
-    // Plugin options into our config variables.
-    this.platformConfigOptions()
-    this.platformLogs()
+    // Plugin Configuration
+    this.getPlatformLogSettings()
+    this.getPlatformRateSettings()
+    this.getPlatformConfigSettings()
     this.getVersion()
 
     // Finish initializing the platform
@@ -80,8 +85,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
       try {
         await this.discoverDevices()
       } catch (e: any) {
-        await this.errorLog(`Failed to Discover Devices ${JSON.stringify(e.message)}`)
-        this.debugErrorLog(`Failed to Discover, Error: ${e}`)
+        await this.errorLog(`Failed to Discover Devices ${JSON.stringify(e.message ?? e)}`)
       }
     })
   }
@@ -118,8 +122,17 @@ export class AirPlatform implements DynamicPlatformPlugin {
         if (!deviceConfig.apiKey) {
           await this.errorLog('Missing Your AirNow ApiKey')
         }
-        if (!deviceConfig.zipCode) {
-          await this.errorLog('Missing your Zip Code')
+        if (deviceConfig.zipCode || deviceConfig.city) {
+          if (!deviceConfig.zipCode || !deviceConfig.city) {
+            const missing = !deviceConfig.zipCode ? 'Zip Code' : 'City'
+            await this.errorLog(`Missing your ${missing}`)
+          }
+        }
+        if (deviceConfig.latitude || deviceConfig.longitude) {
+          if (!deviceConfig.latitude || !deviceConfig.longitude) {
+            const missing = !deviceConfig.latitude ? 'Latitude' : 'Longitude'
+            await this.errorLog(`Missing your ${missing}`)
+          }
         }
       }
     } else {
@@ -133,9 +146,22 @@ export class AirPlatform implements DynamicPlatformPlugin {
    */
   async discoverDevices() {
     try {
-      for (const device of this.config.devices!) {
-        await this.infoLog(`Discovered ${device.locationName}`)
-        this.createAirQualitySensor(device)
+      if (this.config.devices) {
+        for (const device of this.config.devices) {
+          device.city = device.city ? device.city : 'Unknown'
+          device.zipCode = device.zipCode ? device.zipCode : '00000'
+          device.provider = device.provider ? device.provider : 'Unknown'
+          if (device.latitude && device.longitude) {
+            try {
+              device.latitude = Number.parseFloat(Number.parseFloat(device.latitude.toString()).toFixed(6))
+              device.longitude = Number.parseFloat(Number.parseFloat(device.longitude.toString()).toFixed(6))
+            } catch {
+              await this.errorLog('Latitude and Longitude must be a number')
+            }
+          }
+          await this.debugLog(`Discovered ${device.city}`)
+          this.createAirQualitySensor(device)
+        }
       }
     } catch {
       await this.errorLog('discoverDevices, No Device Config')
@@ -143,7 +169,9 @@ export class AirPlatform implements DynamicPlatformPlugin {
   }
 
   private async createAirQualitySensor(device: any) {
-    const uuid = this.api.hap.uuid.generate(device.locationName + device.apiKey + device.zipCode)
+    // generate a unique id for the accessory
+    const uuidString = (device.latitude && device.longitude) ? (`${device.latitude}` + `${device.longitude}` + `${device.provider}`) : (`${device.zipCode}` + `${device.city}` + `${device.provider}`)
+    const uuid = this.api.hap.uuid.generate(uuidString)
 
     // see if an accessory with the same uuid has already been registered and restored from
     // the cached devices we stored in the `configureAccessory` method above
@@ -151,12 +179,12 @@ export class AirPlatform implements DynamicPlatformPlugin {
 
     if (existingAccessory) {
       // the accessory already exists
-      if (!device.delete) {
+      if (!device.hide_device) {
         // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
         existingAccessory.context.device = device
-        existingAccessory.displayName = await this.validateAndCleanDisplayName(device.locationName, 'locationName', device.locationName)
+        existingAccessory.displayName = await this.validateAndCleanDisplayName(device.city, 'city', device.city)
         existingAccessory.context.serialNumber = device.zipCode
-        existingAccessory.context.model = `Forecast by Zip Code`
+        existingAccessory.context.model = device.provider === 'airnow' ? 'AirNow' : device.provider === 'aqicn' ? 'Aqicn' : 'Unknown'
         existingAccessory.context.FirmwareRevision = device.firmware ?? await this.getVersion()
         this.api.updatePlatformAccessories([existingAccessory])
         // Restore accessory
@@ -164,33 +192,33 @@ export class AirPlatform implements DynamicPlatformPlugin {
         // create the accessory handler for the restored accessory
         // this is imported from `platformAccessory.ts`
         new AirQualitySensor(this, existingAccessory, device)
-        await this.debugLog(`${device.locationName} uuid: ${device.locationName + device.apiKey + device.zipCode}`)
+        await this.debugLog(`${device.city} uuid: ${uuidString}`)
       } else {
         this.unregisterPlatformAccessories(existingAccessory)
       }
-    } else if (!device.delete) {
+    } else if (!device.hide_device && !existingAccessory) {
       // create a new accessory
-      const accessory = new this.api.platformAccessory(device.locationName, uuid)
+      const accessory = new this.api.platformAccessory(device.city, uuid)
 
       // store a copy of the device object in the `accessory.context`
       // the `context` property can be used to store any data about the accessory you may need
       accessory.context.device = device
-      accessory.displayName = await this.validateAndCleanDisplayName(device.locationName, 'locationName', device.locationName)
+      accessory.displayName = await this.validateAndCleanDisplayName(device.city, 'city', device.city)
       accessory.context.serialNumber = device.zipCode
-      accessory.context.model = `Forecast by Zip Code`
+      accessory.context.model = device.provider === 'airnow' ? 'AirNow' : device.provider === 'aqicn' ? 'Aqicn' : 'Unknown'
       accessory.context.FirmwareRevision = device.firmware ?? await this.getVersion()
       // the accessory does not yet exist, so we need to create it
-      await this.infoLog(`Adding new accessory: ${device.locationName}`)
+      await this.infoLog(`Adding new accessory: ${device.city}`)
       // create the accessory handler for the newly create accessory
       // this is imported from `platformAccessory.ts`
       new AirQualitySensor(this, accessory, device)
-      await this.debugLog(`${device.locationName} uuid: ${device.locationName + device.apiKey + device.zipCode}`)
+      await this.debugLog(`${device.city} uuid: ${uuidString}`)
 
       // link the accessory to your platform
       this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory])
       this.accessories.push(accessory)
     } else {
-      this.debugErrorLog(`Unable to Register new device: ${JSON.stringify(device.locationName)}`)
+      this.debugErrorLog(`Unable to Register new device: ${JSON.stringify(device.city)}`)
     }
   }
 
@@ -200,55 +228,60 @@ export class AirPlatform implements DynamicPlatformPlugin {
     await this.warnLog(`Removing existing accessory from cache: ${existingAccessory.displayName}`)
   }
 
-  async platformConfigOptions() {
-    const platformConfig: AirPlatformConfig['options'] = {}
+  async getPlatformLogSettings() {
+    this.debugMode = argv.includes('-D') ?? argv.includes('--debug')
+    this.platformLogging = (this.config.options?.logging === 'debug' || this.config.options?.logging === 'standard'
+      || this.config.options?.logging === 'none')
+      ? this.config.options.logging
+      : this.debugMode ? 'debugMode' : 'standard'
+    const logging = this.config.options?.logging ? 'Platform Config' : this.debugMode ? 'debugMode' : 'Default'
+    await this.debugLog(`Using ${logging} Logging: ${this.platformLogging}`)
+  }
+
+  async getPlatformRateSettings() {
+    // RefreshRate
+    this.platformRefreshRate = this.config.options?.refreshRate ? this.config.options.refreshRate : undefined
+    const refreshRate = this.config.options?.refreshRate ? 'Using Platform Config refreshRate' : 'Platform Config refreshRate Not Set'
+    await this.debugLog(`${refreshRate}: ${this.platformRefreshRate}`)
+    // UpdateRate
+    this.platformUpdateRate = this.config.options?.updateRate ? this.config.options.updateRate : undefined
+    const updateRate = this.config.options?.updateRate ? 'Using Platform Config updateRate' : 'Platform Config updateRate Not Set'
+    await this.debugLog(`${updateRate}: ${this.platformUpdateRate}`)
+    // PushRate
+    this.platformPushRate = this.config.options?.pushRate ? this.config.options.pushRate : undefined
+    const pushRate = this.config.options?.pushRate ? 'Using Platform Config pushRate' : 'Platform Config pushRate Not Set'
+    await this.debugLog(`${pushRate}: ${this.platformPushRate}`)
+  }
+
+  async getPlatformConfigSettings() {
     if (this.config.options) {
-      if (this.config.logging) {
-        platformConfig.logging = this.config.logging
+      const platformConfig: AirPlatformConfig = {
+        platform: 'Air',
       }
-      if (this.config.refreshRate) {
-        platformConfig.refreshRate = this.config.refreshRate
-      }
+      platformConfig.logging = this.config.options.logging ? this.config.options.logging : undefined
+      platformConfig.refreshRate = this.config.options.refreshRate ? this.config.options.refreshRate : undefined
+      platformConfig.updateRate = this.config.options.updateRate ? this.config.options.updateRate : undefined
+      platformConfig.pushRate = this.config.options.pushRate ? this.config.options.pushRate : undefined
       if (Object.entries(platformConfig).length !== 0) {
-        this.debugLog(`Platform Config: ${JSON.stringify(platformConfig)}`)
+        await this.debugLog(`Platform Config: ${JSON.stringify(platformConfig)}`)
       }
       this.platformConfig = platformConfig
     }
   }
 
-  async platformLogs() {
-    this.debugMode = process.argv.includes('-D') || process.argv.includes('--debug')
-    this.platformLogging = this.config.options?.logging ?? 'standard'
-    if (this.config.options?.logging === 'debug' || this.config.options?.logging === 'standard' || this.config.options?.logging === 'none') {
-      this.platformLogging = this.config.options.logging
-      if (await this.loggingIsDebug()) {
-        this.debugWarnLog(`Using Config Logging: ${this.platformLogging}`)
-      }
-    } else if (this.debugMode) {
-      this.platformLogging = 'debugMode'
-      if (await this.loggingIsDebug()) {
-        this.debugWarnLog(`Using ${this.platformLogging} Logging`)
-      }
-    } else {
-      this.platformLogging = 'standard'
-      if (await this.loggingIsDebug()) {
-        this.debugWarnLog(`Using ${this.platformLogging} Logging`)
-      }
-    }
-    if (this.debugMode) {
-      this.platformLogging = 'debugMode'
-    }
-  }
-
-  async getVersion() {
-    const json = JSON.parse(
-      readFileSync(
-        new URL('../package.json', import.meta.url),
-        'utf-8',
-      ),
-    )
-    await this.debugLog(`Plugin Version: ${json.version}`)
-    this.version = json.version
+  /**
+   * Asynchronously retrieves the version of the plugin from the package.json file.
+   *
+   * This method reads the package.json file located in the parent directory,
+   * parses its content to extract the version, and logs the version using the debug logger.
+   * The extracted version is then assigned to the `version` property of the class.
+   *
+   * @returns {Promise<void>} A promise that resolves when the version has been retrieved and logged.
+   */
+  async getVersion(): Promise<void> {
+    const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf-8'))
+    this.debugLog(`Plugin Version: ${version}`)
+    this.version = version
   }
 
   /**
@@ -344,10 +377,10 @@ export class AirPlatform implements DynamicPlatformPlugin {
 
   async debugLog(...log: any[]): Promise<void> {
     if (await this.enablingPlatformLogging()) {
-      if (this.platformLogging === 'debug') {
-        this.log.info('[DEBUG]', String(...log))
-      } else if (this.platformLogging === 'debugMode') {
+      if (this.platformLogging === 'debugMode') {
         this.log.debug(String(...log))
+      } else if (this.platformLogging === 'debug') {
+        this.log.info('[DEBUG]', String(...log))
       }
     }
   }

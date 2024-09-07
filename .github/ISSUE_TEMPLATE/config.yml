@@ -4,5 +4,5 @@ contact_links:
     url: https://discord.gg/8fpZA4S
     about: Please ask and answer questions here.
   - name: Homebridge-air - Pull Requests
-    url: https://github.com/donavanbecker/homebridge-air/pulls
+    url: https://github.com/homebridge-plugins/homebridge-air/pulls
     about: Please report security vulnerabilities here.

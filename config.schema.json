@@ -2,10 +2,10 @@
   "pluginAlias": "Air",
   "pluginType": "platform",
   "singular": true,
-  "customUi": false,
+  "customUi": true,
   "customUiPath": "./dist/homebridge-ui",
-  "headerDisplay": "<p align='center'><img width='250px' src='https://raw.githubusercontent.com/donavanbecker/homebridge-air/latest/branding/Homebridge_x_Air.svg'></p>\n\nThe **Homebridge Air** plugin allows you monitor the current AirQuality for your Zip Code from HomeKit and Siri.",
-  "footerDisplay": "Your AirNow apiKey was linked. Please raise any issues on our [project page](https://github.com/donavanbecker/homebridge-air/issues).\n\nIf you would like to have other features, fill out [Feature Request Form](https://github.com/donavanbecker/homebridge-air/issues/new?assignees=&labels=&template=feature_request.md).",
+  "headerDisplay": "<p align='center'><img width='250px' src='https://raw.githubusercontent.com/homebridge-plugins/homebridge-air/latest/branding/Homebridge_x_Air.svg'></p>\n\nThe **Homebridge Air** plugin allows you monitor the current AirQuality for your Zip Code from HomeKit and Siri.",
+  "footerDisplay": "Your AirNow apiKey was linked. Please raise any issues on our [project page](https://github.com/homebridge-plugins/homebridge-air/issues).\n\nIf you would like to have other features, fill out [Feature Request Form](https://github.com/homebridge-plugins/homebridge-air/issues/new?assignees=&labels=&template=feature_request.md).",
   "schema": {
     "type": "object",
     "properties": {
@@ -25,59 +25,106 @@
               "title": "Provider",
               "type": "string",
               "required": true,
-              "x-schema-form": {
-                "type": "email"
-              },
               "default": "airnow",
               "oneOf": [
                 {
                   "title": "Air Now",
+                  "description": "AirNow is a U.S. government agency that provides air quality data for the United States.",
                   "enum": [
                     "airnow"
+                  ]
+                },
+                {
+                  "title": "Aqicn",
+                  "description": "Aqicn is a global air quality data provider.",
+                  "enum": [
+                    "aqicn"
                   ]
                 }
               ]
             },
             "apiKey": {
-              "title": "Air Now API Key",
+              "title": "API Key",
               "type": "string",
               "required": true,
               "x-schema-form": {
                 "type": "email"
               }
             },
-            "locationName": {
-              "title": "Location Name",
+            "city": {
+              "title": "City",
               "type": "string",
-              "required": true
+              "required": false,
+              "condition": {
+                "functionBody": "return (model.devices && model.devices[arrayIndices].apiKey);"
+              }
+            },
+            "latitude": {
+              "title": "Latitude",
+              "type": "string",
+              "required": false,
+              "condition": {
+                "functionBody": "return !(model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].state && model.devices[arrayIndices].zipCode);"
+              }
+            },
+            "longitude": {
+              "title": "Longitude",
+              "type": "string",
+              "required": false,
+              "condition": {
+                "functionBody": "return !(model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].state && model.devices[arrayIndices].zipCode);"
+              }
+            },
+            "state": {
+              "title": "State",
+              "type": "string",
+              "required": false,
+              "condition": {
+                "functionBody": "return !(model.devices && model.devices[arrayIndices].latitude && model.devices[arrayIndices].longitude);"
+              }
             },
             "zipCode": {
               "title": "Zip Code",
               "type": "string",
-              "required": true
+              "required": false,
+              "condition": {
+                "functionBody": "return !(model.devices && model.devices[arrayIndices].latitude && model.devices[arrayIndices].longitude);"
+              }
             },
             "distance": {
               "title": "Distance",
               "type": "string",
-              "required": true
+              "required": false,
+              "condition": {
+                "functionBody": "return (model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].zipCode);"
+              }
             },
             "firmware": {
               "title": "Firmware Override",
               "type": "string",
-              "placeholder": "1.2.8"
+              "placeholder": "1.2.8",
+              "condition": {
+                "functionBody": "return (model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].zipCode);"
+              }
             },
             "refreshRate": {
               "title": "Device Refresh Rate",
               "type": "number",
               "minimum": 1800,
               "placeholder": 1800,
-              "description": "Indicates the number of seconds between polls of the AirNow service."
+              "description": "Indicates the number of seconds between polls of the AirNow service.",
+              "condition": {
+                "functionBody": "return (model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].zipCode);"
+              }
             },
             "logging": {
               "title": "Device Logging Override Setting",
               "type": "string",
               "required": true,
               "default": "",
+              "condition": {
+                "functionBody": "return (model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].zipCode);"
+              },
               "oneOf": [
                 {
                   "title": "Default Logging",
@@ -105,11 +152,13 @@
                 }
               ]
             },
-            "delete": {
-              "title": "Delete",
-              "type": "button",
-              "style": "danger",
-              "onClick": "delete"
+            "hide_device": {
+              "title": "Delete Device",
+              "type": "boolean",
+              "description": "Delete this device from the plugin cache.",
+              "condition": {
+                "functionBody": "return (model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].zipCode);"
+              }
             }
           }
         }
@@ -160,20 +209,23 @@
       "key": "devices",
       "notitle": false,
       "type": "tabarray",
-      "title": "{{ value.locationName || 'New Location (Zip Code)' }}",
+      "title": "{{ value.city || 'New City (Zip Code)' }}",
       "expandable": true,
       "expanded": false,
       "orderable": false,
       "items": [
         "devices[].provider",
         "devices[].apiKey",
-        "devices[].locationName",
+        "devices[].city",
+        "devices[].latitude",
+        "devices[].longitude",
+        "devices[].state",
         "devices[].zipCode",
         "devices[].distance",
         "devices[].firmware",
         "devices[].refreshRate",
         "devices[].logging",
-        "devices[].delete"
+        "devices[].hide_device"
       ]
     },
     {
