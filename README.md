@@ -10,7 +10,7 @@
 <a href="https://discord.gg/8fpZA4S"><img title="discord-air" src="https://badgen.net/discord/online-members/8fpZA4S?icon=discord&label=discord" ></a>
 <a href="https://paypal.me/donavanbecker"><img title="donate" src="https://badgen.net/badge/donate/paypal/yellow" ></a>
 
-<p>The Homebridge <a href="https://airnow.gove">Air</a> 
+<p>The Homebridge <a href="https://airnow.gov">Air</a> 
 plugin allows you monitor the current AirQuality for your Zip Code from HomeKit and Siri.
 </p>
 
@@ -23,7 +23,7 @@ plugin allows you monitor the current AirQuality for your Zip Code from HomeKit 
 
 ## Configuration
 
-1. Login / create an account at https://airnow.gove/
+1. Login / create an account at https://airnow.gov/
 
 <p align="center">
 
