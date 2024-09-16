@@ -134,7 +134,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
   async discoverDevices() {
     try {
       for (const device of this.config.devices!) {
-        await this.infoLog(`Discovered ${device.locationName}`)
+        await this.infoLog(`Discovered ${device.city}`)
         this.createAirQualitySensor(device)
       }
     } catch {
@@ -143,7 +143,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
   }
 
   private async createAirQualitySensor(device: any) {
-    const uuid = this.api.hap.uuid.generate(device.locationName + device.apiKey + device.zipCode)
+    const uuid = this.api.hap.uuid.generate(device.city + device.apiKey + device.zipCode)
 
     // see if an accessory with the same uuid has already been registered and restored from
     // the cached devices we stored in the `configureAccessory` method above
@@ -154,9 +154,9 @@ export class AirPlatform implements DynamicPlatformPlugin {
       if (!device.delete) {
         // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
         existingAccessory.context.device = device
-        existingAccessory.displayName = await this.validateAndCleanDisplayName(device.locationName, 'locationName', device.locationName)
+        existingAccessory.displayName = await this.validateAndCleanDisplayName(device.city, 'city', device.city)
         existingAccessory.context.serialNumber = device.zipCode
-        existingAccessory.context.model = `Current Observation by Zip Code`
+        existingAccessory.context.model = device.provider === 'airnow' ? 'AirNow' : device.provider === 'aqicn' ? 'Aqicn' : 'Unknown'
         existingAccessory.context.FirmwareRevision = device.firmware ?? await this.getVersion()
         this.api.updatePlatformAccessories([existingAccessory])
         // Restore accessory
@@ -164,33 +164,33 @@ export class AirPlatform implements DynamicPlatformPlugin {
         // create the accessory handler for the restored accessory
         // this is imported from `platformAccessory.ts`
         new AirQualitySensor(this, existingAccessory, device)
-        await this.debugLog(`${device.locationName} uuid: ${device.locationName + device.apiKey + device.zipCode}`)
+        await this.debugLog(`${device.city} uuid: ${device.city + device.apiKey + device.zipCode}`)
       } else {
         this.unregisterPlatformAccessories(existingAccessory)
       }
     } else if (!device.delete) {
       // create a new accessory
-      const accessory = new this.api.platformAccessory(device.locationName, uuid)
+      const accessory = new this.api.platformAccessory(device.city, uuid)
 
       // store a copy of the device object in the `accessory.context`
       // the `context` property can be used to store any data about the accessory you may need
       accessory.context.device = device
-      accessory.displayName = await this.validateAndCleanDisplayName(device.locationName, 'locationName', device.locationName)
+      accessory.displayName = await this.validateAndCleanDisplayName(device.city, 'city', device.city)
       accessory.context.serialNumber = device.zipCode
-      accessory.context.model = `Current Observation by Zip Code`
+      accessory.context.model = device.provider === 'airnow' ? 'AirNow' : device.provider === 'aqicn' ? 'Aqicn' : 'Unknown'
       accessory.context.FirmwareRevision = device.firmware ?? await this.getVersion()
       // the accessory does not yet exist, so we need to create it
-      await this.infoLog(`Adding new accessory: ${device.locationName}`)
+      await this.infoLog(`Adding new accessory: ${device.city}`)
       // create the accessory handler for the newly create accessory
       // this is imported from `platformAccessory.ts`
       new AirQualitySensor(this, accessory, device)
-      await this.debugLog(`${device.locationName} uuid: ${device.locationName + device.apiKey + device.zipCode}`)
+      await this.debugLog(`${device.city} uuid: ${device.city + device.apiKey + device.zipCode}`)
 
       // link the accessory to your platform
       this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory])
       this.accessories.push(accessory)
     } else {
-      this.debugErrorLog(`Unable to Register new device: ${JSON.stringify(device.locationName)}`)
+      this.debugErrorLog(`Unable to Register new device: ${JSON.stringify(device.city)}`)
     }
   }
 
