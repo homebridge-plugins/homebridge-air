@@ -134,7 +134,9 @@ export class AirPlatform implements DynamicPlatformPlugin {
   async discoverDevices() {
     try {
       for (const device of this.config.devices!) {
-        await this.infoLog(`Discovered ${device.city}`)
+        device.city = device.city ?? 'Unknown'
+        device.zipCode = device.zipCode ?? '00000'
+        ?? await this.infoLog(`Discovered ${device.city}`)
         this.createAirQualitySensor(device)
       }
     } catch {

@@ -134,9 +134,12 @@ export class AirQualitySensor extends deviceBase {
    */
   async refreshStatus() {
     try {
+      const AirNowCurrentObservationBy = this.device.latitude && this.device.longitude ? `latLong` : 'zipCode'
+      const AqicnCurrentObservationBy = this.device.latitude && this.device.longitude ? `geo:${this.device.latitude};${this.device.longitude}` : this.device.city
+      const AirNowCurrentObservationByValue = this.device.latitude && this.device.longitude ? `latitude=${this.device.latitude}&longitude=${this.device.longitude}` : `zipCode=${this.device.zipCode}`
       const providerUrls = {
-        airnow: `${AirNowUrl}&zipCode=${this.device.zipCode}&distance=${this.device.distance}&API_KEY=${this.device.apiKey}`,
-        aqicn: `${AqicnUrl}${this.device.city}/?token=${this.device.apiKey}`,
+        airnow: `${AirNowUrl}&${AirNowCurrentObservationBy}/current/?format=application/json&${AirNowCurrentObservationByValue}&distance=${this.device.distance}&API_KEY=${this.device.apiKey}`,
+        aqicn: `${AqicnUrl}${AqicnCurrentObservationBy}/?token=${this.device.apiKey}`,
       }
       const url = providerUrls[this.device.provider]
       if (url) {

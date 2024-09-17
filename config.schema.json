@@ -49,15 +49,45 @@
                 "type": "email"
               }
             },
+            "latitude": {
+              "title": "Latitude",
+              "type": "string",
+              "required": false,
+              "condition": {
+                "functionBody": "return !(model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].state && model.devices[arrayIndices].zipCode);"
+              }
+            },
+            "longitude": {
+              "title": "Longitude",
+              "type": "string",
+              "required": false,
+              "condition": {
+                "functionBody": "return !(model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].state && model.devices[arrayIndices].zipCode);"
+              }
+            },
             "city": {
               "title": "City",
               "type": "string",
-              "required": true
+              "required": false,
+              "condition": {
+                "functionBody": "return !(model.devices && model.devices[arrayIndices].latitude && model.devices[arrayIndices].longitude);"
+              }
+            },
+            "state": {
+              "title": "State",
+              "type": "string",
+              "required": false,
+              "condition": {
+                "functionBody": "return !(model.devices && model.devices[arrayIndices].latitude && model.devices[arrayIndices].longitude);"
+              }
             },
             "zipCode": {
               "title": "Zip Code",
               "type": "string",
-              "required": true
+              "required": false,
+              "condition": {
+                "functionBody": "return !(model.devices && model.devices[arrayIndices].latitude && model.devices[arrayIndices].longitude);"
+              }
             },
             "distance": {
               "title": "Distance",
@@ -184,7 +214,10 @@
       "items": [
         "devices[].provider",
         "devices[].apiKey",
+        "devices[].latitude",
+        "devices[].longitude",
         "devices[].city",
+        "devices[].state",
         "devices[].zipCode",
         "devices[].distance",
         "devices[].firmware",

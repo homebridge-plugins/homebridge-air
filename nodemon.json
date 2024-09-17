@@ -5,7 +5,7 @@
   ],
   "ext": "ts, html, json",
   "ignore": [],
-  "exec": "DEBUG= tsc && homebridge -T -D -P -I -U ~/.homebridge-dev ..",
+  "exec": "DEBUG= tsc && npm run plugin-ui && homebridge -T -D -P -I -U ~/.homebridge-dev .. ",
   "signal": "SIGTERM",
   "env": {
     "NODE_OPTIONS": "--trace-warnings"
