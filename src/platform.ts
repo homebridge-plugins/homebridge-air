@@ -118,8 +118,17 @@ export class AirPlatform implements DynamicPlatformPlugin {
         if (!deviceConfig.apiKey) {
           await this.errorLog('Missing Your AirNow ApiKey')
         }
-        if (!deviceConfig.zipCode) {
-          await this.errorLog('Missing your Zip Code')
+        if (deviceConfig.zipCode || deviceConfig.city) {
+          if (!deviceConfig.zipCode || !deviceConfig.city) {
+            const missing = !deviceConfig.zipCode ? 'Zip Code' : 'City'
+            await this.errorLog(`Missing your ${missing}`)
+          }
+        }
+        if (deviceConfig.latitude || deviceConfig.longitude) {
+          if (!deviceConfig.latitude || !deviceConfig.longitude) {
+            const missing = !deviceConfig.latitude ? 'Latitude' : 'Longitude'
+            await this.errorLog(`Missing your ${missing}`)
+          }
         }
       }
     } else {
@@ -133,10 +142,14 @@ export class AirPlatform implements DynamicPlatformPlugin {
    */
   async discoverDevices() {
     try {
-      for (const device of this.config.devices!) {
-        device.city = device.city ?? 'Unknown'
-        device.zipCode = device.zipCode ?? '00000' ?? await this.infoLog(`Discovered ${device.city}`)
-        this.createAirQualitySensor(device)
+      if (this.config.devices) {
+        for (const device of this.config.devices) {
+          device.city = device.city ?? 'Unknown'
+          device.zipCode = device.zipCode ?? '00000'
+          device.provider = device.provider ?? 'Unknown'
+          await this.infoLog(`Discovered ${device.city}`)
+          this.createAirQualitySensor(device)
+        }
       }
     } catch {
       await this.errorLog('discoverDevices, No Device Config')
@@ -145,7 +158,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
 
   private async createAirQualitySensor(device: any) {
     // generate a unique id for the accessory
-    const uuidString = (device.latitude && device.longitude) ? (device.latitude + device.longitude + device.apiKey) : (device.zipCode + device.apiKey)
+    const uuidString = (device.latitude && device.longitude) ? (device.latitude + device.longitude) : (device.zipCode + device.city)
     const uuid = this.api.hap.uuid.generate(uuidString)
 
     // see if an accessory with the same uuid has already been registered and restored from
@@ -171,7 +184,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
       } else {
         this.unregisterPlatformAccessories(existingAccessory)
       }
-    } else if (!device.delete) {
+    } else if (!device.delete && !existingAccessory) {
       // create a new accessory
       const accessory = new this.api.platformAccessory(device.city, uuid)
 
