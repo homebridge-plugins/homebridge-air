@@ -96,7 +96,7 @@ export class AirQualitySensor extends deviceBase {
     } else if (provider === 'airnow' || provider === 'aqicn') {
       const pollutants = provider === 'airnow' ? ['O3', 'PM2.5', 'PM10'] : ['o3', 'no2', 'so2', 'pm25', 'pm10', 'co']
       pollutants.forEach((pollutant) => {
-        const param = provider === 'airnow' ? this.deviceStatus.find(p => p.ParameterName === pollutant) : this.deviceStatus.iaqi[pollutant]?.v
+        const param = provider === 'airnow' ? this.deviceStatus.find((p: { ParameterName: string }) => p.ParameterName === pollutant) : this.deviceStatus.iaqi[pollutant]?.v
         const aqi = provider === 'airnow' ? Number.parseFloat(param.AQI.toString()) : Number.parseFloat(param)
         if (aqi !== undefined) {
           switch (pollutant.toLowerCase()) {

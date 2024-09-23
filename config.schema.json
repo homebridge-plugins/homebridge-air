@@ -29,12 +29,14 @@
               "oneOf": [
                 {
                   "title": "Air Now",
+                  "description": "AirNow is a U.S. government agency that provides air quality data for the United States.",
                   "enum": [
                     "airnow"
                   ]
                 },
                 {
                   "title": "Aqicn",
+                  "description": "Aqicn is a global air quality data provider.",
                   "enum": [
                     "aqicn"
                   ]
@@ -42,7 +44,7 @@
               ]
             },
             "apiKey": {
-              "title": "Air Now API Key",
+              "title": "API Key",
               "type": "string",
               "required": true,
               "x-schema-form": {

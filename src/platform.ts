@@ -135,8 +135,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
     try {
       for (const device of this.config.devices!) {
         device.city = device.city ?? 'Unknown'
-        device.zipCode = device.zipCode ?? '00000'
-        ?? await this.infoLog(`Discovered ${device.city}`)
+        device.zipCode = device.zipCode ?? '00000' ?? await this.infoLog(`Discovered ${device.city}`)
         this.createAirQualitySensor(device)
       }
     } catch {
@@ -145,7 +144,8 @@ export class AirPlatform implements DynamicPlatformPlugin {
   }
 
   private async createAirQualitySensor(device: any) {
-    const uuid = this.api.hap.uuid.generate(device.city + device.apiKey + device.zipCode)
+    // generate a unique id for the accessory
+    const uuid = this.api.hap.uuid.generate(device.latitude && device.longitude ? device.latitude + device.longitude + device.apiKey : device.city + device.zipCode + device.apiKey)
 
     // see if an accessory with the same uuid has already been registered and restored from
     // the cached devices we stored in the `configureAccessory` method above
