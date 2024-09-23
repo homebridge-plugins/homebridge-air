@@ -143,19 +143,30 @@ export class AirQualitySensor extends deviceBase {
       }
       const url = providerUrls[this.device.provider]
       if (url) {
-        const { body, statusCode } = await request(url)
-        const response = await body.json()
-        await this.debugWarnLog(`statusCode: ${JSON.stringify(statusCode)}`)
-        await this.debugLog(`response: ${JSON.stringify(response)}`)
+        try {
+          const { body, statusCode } = await request(url)
+          let response: any
+          try {
+            response = await body.json()
+          } catch (jsonError: any) {
+            this.errorLog(`Failed to parse JSON response: ${jsonError.message}`)
+            this.errorLog(`Raw response body: ${await body.text()}`)
+            throw jsonError
+          }
+          await this.debugWarnLog(`statusCode: ${JSON.stringify(statusCode)}`)
+          await this.debugLog(`response: ${JSON.stringify(response)}`)
 
-        if (statusCode !== 200) {
-          this.errorLog(`${this.device.provider === 'airnow' ? 'AirNow' : 'World Air Quality Index'} air quality Network or Unknown Error from %s.`, this.device.provider)
-          this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
-          await this.debugLog(`Error: ${JSON.stringify(response)}`)
-          await this.apiError(response)
-        } else {
-          this.deviceStatus = this.device.provider === 'aqicn' ? (response as AqicnData).data : response as AirNowAirQualityDataArray
-          await this.parseStatus()
+          if (statusCode !== 200) {
+            this.errorLog(`${this.device.provider === 'airnow' ? 'AirNow' : 'World Air Quality Index'} air quality Network or Unknown Error from %s.`, this.device.provider)
+            this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
+            await this.debugLog(`Error: ${JSON.stringify(response)}`)
+            await this.apiError(response)
+          } else {
+            this.deviceStatus = this.device.provider === 'aqicn' ? (response as AqicnData).data : response as AirNowAirQualityDataArray
+            await this.parseStatus()
+          }
+        } catch (error: any) {
+          this.errorLog(`Request failed: ${error.message}`)
         }
       } else {
         await this.errorLog('Unknown air quality provider: %s.', this.device.provider)
