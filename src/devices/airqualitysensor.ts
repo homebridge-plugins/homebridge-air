@@ -144,27 +144,28 @@ export class AirQualitySensor extends deviceBase {
       const url = providerUrls[this.device.provider]
       if (url) {
         try {
-          const { body, statusCode } = await request(url)
-          let response: any
+          const response = await fetch(url)
+          const statusCode = response.status
+          let responseBody: any
           let rawBody: string = ''
           try {
-            rawBody = await body.text() // Read the raw response body as text
-            response = JSON.parse(rawBody) // Parse the raw response body as JSON
+            rawBody = await response.text() // Read the raw response body as text
+            responseBody = JSON.parse(rawBody) // Parse the raw response body as JSON
           } catch (jsonError: any) {
             this.errorLog(`Failed to parse JSON response: ${jsonError.message}`)
             this.errorLog(`Raw response body: ${rawBody}`)
             throw jsonError
           }
           await this.debugWarnLog(`statusCode: ${JSON.stringify(statusCode)}`)
-          await this.debugLog(`response: ${JSON.stringify(response)}`)
+          await this.debugLog(`response: ${JSON.stringify(responseBody)}`)
 
           if (statusCode !== 200) {
             this.errorLog(`${this.device.provider === 'airnow' ? 'AirNow' : 'World Air Quality Index'} air quality Network or Unknown Error from %s.`, this.device.provider)
             this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
-            await this.debugLog(`Error: ${JSON.stringify(response)}`)
-            await this.apiError(response)
+            await this.debugLog(`Error: ${JSON.stringify(responseBody)}`)
+            await this.apiError(responseBody)
           } else {
-            this.deviceStatus = this.device.provider === 'aqicn' ? (response as AqicnData).data : response as AirNowAirQualityDataArray
+            this.deviceStatus = this.device.provider === 'aqicn' ? (responseBody as AqicnData).data : responseBody as AirNowAirQualityDataArray
             await this.parseStatus()
           }
         } catch (error: any) {
