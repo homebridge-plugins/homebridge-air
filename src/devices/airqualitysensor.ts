@@ -10,7 +10,7 @@ import type { AirNowAirQualityDataArray, AqicnData, devicesConfig } from '../set
 import { interval } from 'rxjs'
 import { skipWhile } from 'rxjs/operators'
 import striptags from 'striptags'
-import { request } from 'undici'
+// import { request } from 'undici'
 
 import { AirNowUrl, AqicnUrl, HomeKitAQI } from '../settings.js'
 import { deviceBase } from './device.js'
