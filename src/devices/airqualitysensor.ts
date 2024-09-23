@@ -85,47 +85,53 @@ export class AirQualitySensor extends deviceBase {
    * Parse the device status from the Air api
    */
   async parseStatus() {
-    const provider = this.device.provider
-    const status = this.deviceStatus[0]
-    if (provider === 'airnow' && !status) {
-      this.errorLog('AirNow air quality Configuration Error - Invalid ZipCode for %s.', provider)
-      this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
-    } else if (provider === 'airnow' && typeof status.AQI === 'undefined') {
-      this.errorLog('AirNow air quality Observation Error - %s for %s.', striptags(JSON.stringify(this.deviceStatus)), provider)
-      this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
-    } else if (provider === 'airnow' || provider === 'aqicn') {
-      const pollutants = provider === 'airnow' ? ['O3', 'PM2.5', 'PM10'] : ['o3', 'no2', 'so2', 'pm25', 'pm10', 'co']
-      pollutants.forEach((pollutant) => {
-        const param = provider === 'airnow' ? this.deviceStatus.find((p: { ParameterName: string }) => p.ParameterName === pollutant) : this.deviceStatus.iaqi[pollutant]?.v
-        const aqi = provider === 'airnow' ? Number.parseFloat(param.AQI.toString()) : Number.parseFloat(param)
-        if (aqi !== undefined) {
-          switch (pollutant.toLowerCase()) {
-            case 'o3':
-              this.AirQualitySensor.OzoneDensity = aqi
-              break
-            case 'pm2.5':
-              this.AirQualitySensor.PM2_5Density = aqi
-              break
-            case 'pm10':
-              this.AirQualitySensor.PM10Density = aqi
-              break
-            case 'no2':
-              this.AirQualitySensor.NitrogenDioxideDensity = aqi
-              break
-            case 'so2':
-              this.AirQualitySensor.SulphurDioxideDensity = aqi
-              break
-            case 'co':
-              this.AirQualitySensor.CarbonMonoxideLevel = aqi
-              break
+    try {
+      const provider = this.device.provider
+      const status = this.deviceStatus[0]
+      if (provider === 'airnow' && !status) {
+        this.errorLog('AirNow air quality Configuration Error - Invalid ZipCode for %s.', provider)
+        this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
+      } else if (provider === 'airnow' && typeof status.AQI === 'undefined') {
+        this.errorLog('AirNow air quality Observation Error - %s for %s.', striptags(JSON.stringify(this.deviceStatus)), provider)
+        this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
+      } else if (provider === 'airnow' || provider === 'aqicn') {
+        const pollutants = provider === 'airnow' ? ['O3', 'PM2.5', 'PM10'] : ['o3', 'no2', 'so2', 'pm25', 'pm10', 'co']
+        pollutants.forEach((pollutant) => {
+          const param = provider === 'airnow' ? this.deviceStatus.find((p: { ParameterName: string }) => p.ParameterName === pollutant) : this.deviceStatus.iaqi[pollutant]?.v
+          const aqi = provider === 'airnow' ? Number.parseFloat(param.AQI.toString()) : Number.parseFloat(param)
+          if (aqi !== undefined) {
+            switch (pollutant.toLowerCase()) {
+              case 'o3':
+                this.AirQualitySensor.OzoneDensity = aqi
+                break
+              case 'pm2.5':
+                this.AirQualitySensor.PM2_5Density = aqi
+                break
+              case 'pm10':
+                this.AirQualitySensor.PM10Density = aqi
+                break
+              case 'no2':
+                this.AirQualitySensor.NitrogenDioxideDensity = aqi
+                break
+              case 'so2':
+                this.AirQualitySensor.SulphurDioxideDensity = aqi
+                break
+              case 'co':
+                this.AirQualitySensor.CarbonMonoxideLevel = aqi
+                break
+            }
+            this.AirQualitySensor.AirQuality = HomeKitAQI(Math.max(0, aqi))
           }
-          this.AirQualitySensor.AirQuality = HomeKitAQI(Math.max(0, aqi))
-        }
-      })
-      this.infoLog(`${provider} air quality AQI is: ${this.AirQualitySensor.AirQuality}`)
-      this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.NO_FAULT
-    } else {
-      await this.errorLog('Unknown air quality provider: %s.', provider)
+        })
+        this.infoLog(`${provider} air quality AQI is: ${this.AirQualitySensor.AirQuality}`)
+        this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.NO_FAULT
+      } else {
+        await this.errorLog('Unknown air quality provider: %s.', provider)
+      }
+    } catch (e: any) {
+      await this.errorLog(`failed to parse status, Error Message: ${JSON.stringify(e.message)}`)
+      await this.debugLog(`Error: ${JSON.stringify(e)}`)
+      await this.apiError(e)
     }
   }
 

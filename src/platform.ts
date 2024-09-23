@@ -155,7 +155,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
               await this.errorLog('Latitude and Longitude must be a number')
             }
           }
-          await this.infoLog(`Discovered ${device.city}`)
+          await this.debugLog(`Discovered ${device.city}`)
           this.createAirQualitySensor(device)
         }
       }
