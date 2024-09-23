@@ -144,9 +144,9 @@ export class AirPlatform implements DynamicPlatformPlugin {
     try {
       if (this.config.devices) {
         for (const device of this.config.devices) {
-          device.city = device.city ?? 'Unknown'
-          device.zipCode = device.zipCode ?? '00000'
-          device.provider = device.provider ?? 'Unknown'
+          device.city = device.city ? device.city : 'Unknown'
+          device.zipCode = device.zipCode ? device.zipCode : '00000'
+          device.provider = device.provider ? device.provider : 'Unknown'
           if (device.latitude && device.longitude) {
             try {
               device.latitude = Number.parseFloat(Number.parseFloat(device.latitude.toString()).toFixed(6))
