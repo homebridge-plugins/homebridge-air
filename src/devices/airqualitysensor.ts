@@ -10,7 +10,7 @@ import type { AirNowAirQualityDataArray, AqicnData, devicesConfig } from '../set
 import { interval } from 'rxjs'
 import { skipWhile } from 'rxjs/operators'
 import striptags from 'striptags'
-// import { request } from 'undici'
+import { request } from 'undici'
 
 import { AirNowUrl, AqicnUrl, HomeKitAQI } from '../settings.js'
 import { deviceBase } from './device.js'
@@ -138,38 +138,25 @@ export class AirQualitySensor extends deviceBase {
       const AqicnCurrentObservationBy = this.device.latitude && this.device.longitude ? `geo:${this.device.latitude};${this.device.longitude}` : this.device.city
       const AirNowCurrentObservationByValue = this.device.latitude && this.device.longitude ? `latitude=${this.device.latitude}&longitude=${this.device.longitude}` : `zipCode=${this.device.zipCode}`
       const providerUrls = {
-        airnow: `${AirNowUrl}&${AirNowCurrentObservationBy}/current/?format=application/json&${AirNowCurrentObservationByValue}&distance=${this.device.distance}&API_KEY=${this.device.apiKey}`,
+        airnow: `${AirNowUrl}${AirNowCurrentObservationBy}/current/?format=application/json&${AirNowCurrentObservationByValue}&distance=${this.device.distance}&API_KEY=${this.device.apiKey}`,
         aqicn: `${AqicnUrl}${AqicnCurrentObservationBy}/?token=${this.device.apiKey}`,
       }
       const url = providerUrls[this.device.provider]
+      await this.debugSuccessLog(`url: ${JSON.stringify(url)}`)
       if (url) {
-        try {
-          const response = await fetch(url)
-          const statusCode = response.status
-          let responseBody: any
-          let rawBody: string = ''
-          try {
-            rawBody = await response.text() // Read the raw response body as text
-            responseBody = JSON.parse(rawBody) // Parse the raw response body as JSON
-          } catch (jsonError: any) {
-            this.errorLog(`Failed to parse JSON response: ${jsonError.message}`)
-            this.errorLog(`Raw response body: ${rawBody}`)
-            throw jsonError
-          }
-          await this.debugWarnLog(`statusCode: ${JSON.stringify(statusCode)}`)
-          await this.debugLog(`response: ${JSON.stringify(responseBody)}`)
+        const { body, statusCode } = await request(url)
+        const response = await body.json()
+        await this.debugWarnLog(`statusCode: ${JSON.stringify(statusCode)}`)
+        await this.debugLog(`response: ${JSON.stringify(response)}`)
 
-          if (statusCode !== 200) {
-            this.errorLog(`${this.device.provider === 'airnow' ? 'AirNow' : 'World Air Quality Index'} air quality Network or Unknown Error from %s.`, this.device.provider)
-            this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
-            await this.debugLog(`Error: ${JSON.stringify(responseBody)}`)
-            await this.apiError(responseBody)
-          } else {
-            this.deviceStatus = this.device.provider === 'aqicn' ? (responseBody as AqicnData).data : responseBody as AirNowAirQualityDataArray
-            await this.parseStatus()
-          }
-        } catch (error: any) {
-          this.errorLog(`Request failed: ${error.message}`)
+        if (statusCode !== 200) {
+          this.errorLog(`${this.device.provider === 'airnow' ? 'AirNow' : 'World Air Quality Index'} air quality Network or Unknown Error from %s.`, this.device.provider)
+          this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
+          await this.debugLog(`Error: ${JSON.stringify(response)}`)
+          await this.apiError(response)
+        } else {
+          this.deviceStatus = this.device.provider === 'aqicn' ? (response as AqicnData).data : response as AirNowAirQualityDataArray
+          await this.parseStatus()
         }
       } else {
         await this.errorLog('Unknown air quality provider: %s.', this.device.provider)

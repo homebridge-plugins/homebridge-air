@@ -51,6 +51,14 @@
                 "type": "email"
               }
             },
+            "city": {
+              "title": "City",
+              "type": "string",
+              "required": false,
+              "condition": {
+                "functionBody": "return (model.devices && model.devices[arrayIndices].apiKey);"
+              }
+            },
             "latitude": {
               "title": "Latitude",
               "type": "string",
@@ -65,14 +73,6 @@
               "required": false,
               "condition": {
                 "functionBody": "return !(model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].state && model.devices[arrayIndices].zipCode);"
-              }
-            },
-            "city": {
-              "title": "City",
-              "type": "string",
-              "required": false,
-              "condition": {
-                "functionBody": "return !(model.devices && model.devices[arrayIndices].latitude && model.devices[arrayIndices].longitude);"
               }
             },
             "state": {
@@ -216,9 +216,9 @@
       "items": [
         "devices[].provider",
         "devices[].apiKey",
+        "devices[].city",
         "devices[].latitude",
         "devices[].longitude",
-        "devices[].city",
         "devices[].state",
         "devices[].zipCode",
         "devices[].distance",

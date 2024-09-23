@@ -147,6 +147,14 @@ export class AirPlatform implements DynamicPlatformPlugin {
           device.city = device.city ?? 'Unknown'
           device.zipCode = device.zipCode ?? '00000'
           device.provider = device.provider ?? 'Unknown'
+          if (device.latitude && device.longitude) {
+            try {
+              device.latitude = Number.parseFloat(Number.parseFloat(device.latitude.toString()).toFixed(6))
+              device.longitude = Number.parseFloat(Number.parseFloat(device.longitude.toString()).toFixed(6))
+            } catch {
+              await this.errorLog('Latitude and Longitude must be a number')
+            }
+          }
           await this.infoLog(`Discovered ${device.city}`)
           this.createAirQualitySensor(device)
         }
@@ -158,7 +166,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
 
   private async createAirQualitySensor(device: any) {
     // generate a unique id for the accessory
-    const uuidString = (device.latitude && device.longitude) ? (device.latitude + device.longitude) : (device.zipCode + device.city)
+    const uuidString = (device.latitude && device.longitude) ? (`${device.latitude}` + `${device.longitude}` + `${device.provider}`) : (`${device.zipCode}` + `${device.city}` + `${device.provider}`)
     const uuid = this.api.hap.uuid.generate(uuidString)
 
     // see if an accessory with the same uuid has already been registered and restored from
