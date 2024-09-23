@@ -146,11 +146,13 @@ export class AirQualitySensor extends deviceBase {
         try {
           const { body, statusCode } = await request(url)
           let response: any
+          let rawBody: string = ''
           try {
-            response = await body.json()
+            rawBody = await body.text() // Read the raw response body as text
+            response = JSON.parse(rawBody) // Parse the raw response body as JSON
           } catch (jsonError: any) {
             this.errorLog(`Failed to parse JSON response: ${jsonError.message}`)
-            this.errorLog(`Raw response body: ${await body.text()}`)
+            this.errorLog(`Raw response body: ${rawBody}`)
             throw jsonError
           }
           await this.debugWarnLog(`statusCode: ${JSON.stringify(statusCode)}`)
