@@ -145,7 +145,8 @@ export class AirPlatform implements DynamicPlatformPlugin {
 
   private async createAirQualitySensor(device: any) {
     // generate a unique id for the accessory
-    const uuid = this.api.hap.uuid.generate(device.latitude && device.longitude ? device.latitude + device.longitude + device.apiKey : device.city + device.zipCode + device.apiKey)
+    const uuidString = (device.latitude && device.longitude) ? (device.latitude + device.longitude + device.apiKey) : (device.zipCode + device.apiKey)
+    const uuid = this.api.hap.uuid.generate(uuidString)
 
     // see if an accessory with the same uuid has already been registered and restored from
     // the cached devices we stored in the `configureAccessory` method above
@@ -166,7 +167,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
         // create the accessory handler for the restored accessory
         // this is imported from `platformAccessory.ts`
         new AirQualitySensor(this, existingAccessory, device)
-        await this.debugLog(`${device.city} uuid: ${device.city + device.apiKey + device.zipCode}`)
+        await this.debugLog(`${device.city} uuid: ${uuidString}`)
       } else {
         this.unregisterPlatformAccessories(existingAccessory)
       }
@@ -186,7 +187,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
       // create the accessory handler for the newly create accessory
       // this is imported from `platformAccessory.ts`
       new AirQualitySensor(this, accessory, device)
-      await this.debugLog(`${device.city} uuid: ${device.city + device.apiKey + device.zipCode}`)
+      await this.debugLog(`${device.city} uuid: ${uuidString}`)
 
       // link the accessory to your platform
       this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory])
