@@ -49,6 +49,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
     // Plugin options into our config variables.
     this.config = {
       platform: PLATFORM_NAME,
+      name: config.name,
       devices: config.devices as devicesConfig[],
       refreshRate: config.refreshRate as number,
       logging: config.logging as string,
