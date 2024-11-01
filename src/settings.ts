@@ -24,8 +24,7 @@ export const AqicnUrl = 'http://api.waqi.info/feed/'
 export interface AirPlatformConfig extends PlatformConfig {
   name?: string
   devices?: devicesConfig[]
-  refreshRate?: number
-  logging?: string
+  options?: options
 }
 
 export interface devicesConfig {
@@ -41,6 +40,14 @@ export interface devicesConfig {
   refreshRate?: number
   logging?: string
   delete?: boolean
+}
+
+export interface options {
+  allowInvalidCharacters?: boolean
+  refreshRate?: number
+  updateRate?: number
+  pushRate?: number
+  logging?: string
 }
 
 interface Category {

@@ -4,10 +4,10 @@
  */
 import type { API, DynamicPlatformPlugin, HAP, Logging, PlatformAccessory } from 'homebridge'
 
-import type { AirPlatformConfig, devicesConfig } from './settings.js'
+import type { AirPlatformConfig, devicesConfig, options } from './settings.js'
 
 import { readFileSync } from 'node:fs'
-import process from 'node:process'
+import process, { argv } from 'node:process'
 
 import { AirQualitySensor } from './devices/airqualitysensor.js'
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js'
@@ -25,7 +25,10 @@ export class AirPlatform implements DynamicPlatformPlugin {
   public config!: AirPlatformConfig
 
   platformConfig!: AirPlatformConfig
-  platformLogging!: AirPlatformConfig['logging']
+  platformLogging!: options['logging']
+  platformRefreshRate!: options['refreshRate']
+  platformPushRate!: options['pushRate']
+  platformUpdateRate!: options['updateRate']
   debugMode!: boolean
   version!: string
 
@@ -51,9 +54,10 @@ export class AirPlatform implements DynamicPlatformPlugin {
       logging: config.logging as string,
     }
 
-    // Plugin options into our config variables.
-    this.platformConfigOptions()
-    this.platformLogs()
+    // Plugin Configuration
+    this.getPlatformConfigSettings()
+    this.getPlatformRateSettings()
+    this.getPlatformLogSettings()
     this.getVersion()
 
     // Finish initializing the platform
@@ -224,55 +228,57 @@ export class AirPlatform implements DynamicPlatformPlugin {
     await this.warnLog(`Removing existing accessory from cache: ${existingAccessory.displayName}`)
   }
 
-  async platformConfigOptions() {
-    const platformConfig: AirPlatformConfig['options'] = {}
+  async getPlatformConfigSettings() {
     if (this.config.options) {
-      if (this.config.logging) {
-        platformConfig.logging = this.config.logging
+      const platformConfig: AirPlatformConfig = {
+        platform: 'Air',
       }
-      if (this.config.refreshRate) {
-        platformConfig.refreshRate = this.config.refreshRate
-      }
+      platformConfig.logging = this.config.options.logging ? this.config.options.logging : undefined
+      platformConfig.refreshRate = this.config.options.refreshRate ? this.config.options.refreshRate : undefined
+      platformConfig.updateRate = this.config.options.updateRate ? this.config.options.updateRate : undefined
+      platformConfig.pushRate = this.config.options.pushRate ? this.config.options.pushRate : undefined
       if (Object.entries(platformConfig).length !== 0) {
-        this.debugLog(`Platform Config: ${JSON.stringify(platformConfig)}`)
+        await this.debugLog(`Platform Config: ${JSON.stringify(platformConfig)}`)
       }
       this.platformConfig = platformConfig
     }
   }
 
-  async platformLogs() {
-    this.debugMode = process.argv.includes('-D') || process.argv.includes('--debug')
-    this.platformLogging = this.config.options?.logging ?? 'standard'
-    if (this.config.options?.logging === 'debug' || this.config.options?.logging === 'standard' || this.config.options?.logging === 'none') {
-      this.platformLogging = this.config.options.logging
-      if (await this.loggingIsDebug()) {
-        this.debugWarnLog(`Using Config Logging: ${this.platformLogging}`)
-      }
-    } else if (this.debugMode) {
-      this.platformLogging = 'debugMode'
-      if (await this.loggingIsDebug()) {
-        this.debugWarnLog(`Using ${this.platformLogging} Logging`)
-      }
-    } else {
-      this.platformLogging = 'standard'
-      if (await this.loggingIsDebug()) {
-        this.debugWarnLog(`Using ${this.platformLogging} Logging`)
-      }
-    }
-    if (this.debugMode) {
-      this.platformLogging = 'debugMode'
-    }
+  async getPlatformRateSettings() {
+    this.platformRefreshRate = this.config.options?.refreshRate ? this.config.options.refreshRate : 0
+    const refreshRate = this.config.options?.refreshRate ? 'Using Platform Config refreshRate' : 'refreshRate Disabled by Default'
+    await this.debugLog(`${refreshRate}: ${this.platformRefreshRate}`)
+    this.platformUpdateRate = this.config.options?.updateRate ? this.config.options.updateRate : 1
+    const updateRate = this.config.options?.updateRate ? 'Using Platform Config updateRate' : 'Using Default updateRate'
+    await this.debugLog(`${updateRate}: ${this.platformUpdateRate}`)
+    this.platformPushRate = this.config.options?.pushRate ? this.config.options.pushRate : 1
+    const pushRate = this.config.options?.pushRate ? 'Using Platform Config pushRate' : 'Using Default pushRate'
+    await this.debugLog(`${pushRate}: ${this.platformPushRate}`)
   }
 
-  async getVersion() {
-    const json = JSON.parse(
-      readFileSync(
-        new URL('../package.json', import.meta.url),
-        'utf-8',
-      ),
-    )
-    await this.debugLog(`Plugin Version: ${json.version}`)
-    this.version = json.version
+  async getPlatformLogSettings() {
+    this.debugMode = argv.includes('-D') ?? argv.includes('--debug')
+    this.platformLogging = (this.config.options?.logging === 'debug' || this.config.options?.logging === 'standard'
+      || this.config.options?.logging === 'none')
+      ? this.config.options.logging
+      : this.debugMode ? 'debugMode' : 'standard'
+    const logging = this.config.options?.logging ? 'Platform Config' : this.debugMode ? 'debugMode' : 'Default'
+    await this.debugLog(`Using ${logging} Logging: ${this.platformLogging}`)
+  }
+
+  /**
+   * Asynchronously retrieves the version of the plugin from the package.json file.
+   *
+   * This method reads the package.json file located in the parent directory,
+   * parses its content to extract the version, and logs the version using the debug logger.
+   * The extracted version is then assigned to the `version` property of the class.
+   *
+   * @returns {Promise<void>} A promise that resolves when the version has been retrieved and logged.
+   */
+  async getVersion(): Promise<void> {
+    const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf-8'))
+    this.debugLog(`Plugin Version: ${version}`)
+    this.version = version
   }
 
   /**
@@ -368,10 +374,10 @@ export class AirPlatform implements DynamicPlatformPlugin {
 
   async debugLog(...log: any[]): Promise<void> {
     if (await this.enablingPlatformLogging()) {
-      if (this.platformLogging === 'debug') {
-        this.log.info('[DEBUG]', String(...log))
-      } else if (this.platformLogging === 'debugMode') {
+      if (this.platformLogging === 'debugMode') {
         this.log.debug(String(...log))
+      } else if (this.platformLogging === 'debug') {
+        this.log.info('[DEBUG]', String(...log))
       }
     }
   }
