@@ -85,8 +85,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
       try {
         await this.discoverDevices()
       } catch (e: any) {
-        await this.errorLog(`Failed to Discover Devices ${JSON.stringify(e.message)}`)
-        this.debugErrorLog(`Failed to Discover, Error: ${e}`)
+        await this.errorLog(`Failed to Discover Devices ${JSON.stringify(e.message ?? e)}`)
       }
     })
   }

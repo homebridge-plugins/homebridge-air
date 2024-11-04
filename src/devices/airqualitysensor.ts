@@ -129,8 +129,7 @@ export class AirQualitySensor extends deviceBase {
         await this.errorLog('Unknown air quality provider: %s.', provider)
       }
     } catch (e: any) {
-      await this.errorLog(`failed to parse status, Error Message: ${JSON.stringify(e.message)}`)
-      await this.debugLog(`Error: ${JSON.stringify(e)}`)
+      await this.errorLog(`failed to parseStatus, Error Message: ${JSON.stringify(e.message ?? e)}`)
       await this.apiError(e)
     }
   }
@@ -169,8 +168,7 @@ export class AirQualitySensor extends deviceBase {
       }
       await this.updateHomeKitCharacteristics()
     } catch (e: any) {
-      await this.errorLog(`failed to update status, Error Message: ${JSON.stringify(e.message)}`)
-      await this.debugLog(`Error: ${JSON.stringify(e)}`)
+      await this.errorLog(`failed to update status, Error Message: ${JSON.stringify(e.message ?? e)}`)
       await this.apiError(e)
     }
   }
