@@ -71,10 +71,9 @@ export class AirQualitySensor extends deviceBase {
 
     // Retrieve initial values and updateHomekit
     this.refreshStatus()
-    this.updateHomeKitCharacteristics()
 
     // Start an update interval
-    interval(this.deviceRefreshRate * 1000)
+    interval(this.deviceRefreshRate * 10000)
       .pipe(skipWhile(() => this.SensorUpdateInProgress))
       .subscribe(async () => {
         await this.refreshStatus()

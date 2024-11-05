@@ -16,6 +16,9 @@ export abstract class deviceBase {
   // Config
   protected deviceLogging!: string
   protected deviceRefreshRate!: number
+  protected deviceUpdateRate!: number
+  protected devicePushRate!: number
+  protected deviceFirmwareVersion!: string
 
   constructor(
     protected readonly platform: AirPlatform,
@@ -27,9 +30,9 @@ export abstract class deviceBase {
     this.config = this.platform.config
     this.hap = this.api.hap
 
-    this.getDeviceLogSettings(accessory, device)
-    this.getDeviceRateSettings(accessory, device)
-    this.getDeviceConfigSettings(accessory, device)
+    this.getDeviceLogSettings(device)
+    this.getDeviceRateSettings(device)
+    this.getDeviceConfigSettings(device)
     this.getDeviceContext(accessory, device)
 
     // Set accessory information
@@ -40,32 +43,40 @@ export abstract class deviceBase {
       .setCharacteristic(this.hap.Characteristic.ConfiguredName, accessory.displayName)
       .setCharacteristic(this.hap.Characteristic.Model, accessory.context.model)
       .setCharacteristic(this.hap.Characteristic.SerialNumber, accessory.context.serialNumber)
-      .setCharacteristic(this.hap.Characteristic.FirmwareRevision, accessory.context.FirmwareRevision)
+      .setCharacteristic(this.hap.Characteristic.FirmwareRevision, this.deviceFirmwareVersion)
       .getCharacteristic(this.hap.Characteristic.FirmwareRevision)
-      .updateValue(accessory.context.FirmwareRevision)
+      .updateValue(this.deviceFirmwareVersion)
   }
 
-  async getDeviceLogSettings(accessory: PlatformAccessory, device: devicesConfig): Promise<void> {
+  async getDeviceLogSettings(device: devicesConfig): Promise<void> {
     this.deviceLogging = this.platform.debugMode ? 'debugMode' : device.logging ?? this.platform.platformLogging ?? 'standard'
     const logging = this.platform.debugMode ? 'Debug Mode' : device.logging ? 'Device Config' : this.platform.platformLogging ? 'Platform Config' : 'Default'
-    accessory.context.deviceLogging = this.deviceLogging
     await this.debugLog(`Using ${logging} Logging: ${this.deviceLogging}`)
   }
 
-  async getDeviceRateSettings(accessory: PlatformAccessory, device: devicesConfig): Promise<void> {
+  async getDeviceRateSettings(device: devicesConfig): Promise<void> {
     // refreshRate
     this.deviceRefreshRate = device.refreshRate ?? this.platform.platformRefreshRate ?? 3600
-    accessory.context.deviceRefreshRate = this.deviceRefreshRate
     const refreshRate = device.refreshRate ? 'Device Config' : this.platform.platformRefreshRate ? 'Platform Config' : 'Default'
-    await this.debugLog(`Using ${refreshRate} Refresh Rate: ${this.deviceRefreshRate}`)
+    await this.debugLog(`Using ${refreshRate} refreshRate: ${this.deviceRefreshRate}`)
+    // updateRate
+    this.deviceUpdateRate = device.updateRate ?? this.platform.platformUpdateRate ?? 5
+    const updateRate = device.updateRate ? 'Device Config' : this.platform.platformUpdateRate ? 'Platform Config' : 'Default'
+    await this.debugLog(`Using ${updateRate} updateRate: ${this.deviceUpdateRate}`)
+    // pushRate
+    this.devicePushRate = device.pushRate ?? this.platform.platformPushRate ?? 1
+    const pushRate = device.pushRate ? 'Device Config' : this.platform.platformPushRate ? 'Platform Config' : 'Default'
+    await this.debugLog(`Using ${pushRate} pushRate: ${this.devicePushRate}`)
   }
 
-  async getDeviceConfigSettings(accessory: PlatformAccessory, device: devicesConfig): Promise<void> {
+  async getDeviceConfigSettings(device: devicesConfig): Promise<void> {
     const deviceConfig = {}
     const properties = [
       'logging',
       'refreshRate',
-      'delete',
+      'updateRate',
+      'pushRate',
+      'hide_device',
     ]
     properties.forEach((prop) => {
       if (device[prop] !== undefined) {
@@ -75,31 +86,28 @@ export abstract class deviceBase {
     if (Object.keys(deviceConfig).length !== 0) {
       this.infoLog(`Config: ${JSON.stringify(deviceConfig)}`)
     }
-    accessory.context.deviceConfig = deviceConfig
   }
 
   async getDeviceContext(accessory: PlatformAccessory, device: devicesConfig): Promise<void> {
-    const deviceFirmwareVersion = device.firmware ?? accessory.context.version ?? this.platform.version ?? '0.0.0'
+    const deviceFirmwareVersion = device.firmware ?? this.platform.version ?? '0.0.0'
     const version = deviceFirmwareVersion.toString()
     this.debugLog(`Firmware Version: ${version.replace(/^V|-.*$/g, '')}`)
-    let deviceVersion: string
     if (version?.includes('.') === false) {
       const replace = version?.replace(/^V|-.*$/g, '')
       const match = replace?.match(/./g)
       const validVersion = match?.join('.')
-      deviceVersion = validVersion ?? '0.0.0'
+      this.deviceFirmwareVersion = validVersion ?? '0.0.0'
     } else {
-      deviceVersion = version.replace(/^V|-.*$/g, '') ?? '0.0.0'
+      this.deviceFirmwareVersion = version.replace(/^V|-.*$/g, '') ?? '0.0.0'
     }
     accessory
       .getService(this.hap.Service.AccessoryInformation)!
-      .setCharacteristic(this.hap.Characteristic.HardwareRevision, deviceVersion)
-      .setCharacteristic(this.hap.Characteristic.SoftwareRevision, deviceVersion)
-      .setCharacteristic(this.hap.Characteristic.FirmwareRevision, deviceVersion)
+      .setCharacteristic(this.hap.Characteristic.HardwareRevision, this.deviceFirmwareVersion)
+      .setCharacteristic(this.hap.Characteristic.SoftwareRevision, this.deviceFirmwareVersion)
+      .setCharacteristic(this.hap.Characteristic.FirmwareRevision, this.deviceFirmwareVersion)
       .getCharacteristic(this.hap.Characteristic.FirmwareRevision)
-      .updateValue(deviceVersion)
-    accessory.context.FirmwareRevision = deviceVersion
-    this.debugSuccessLog(`FirmwareRevision: ${accessory.context.version}`)
+      .updateValue(this.deviceFirmwareVersion)
+    this.debugSuccessLog(`deviceFirmwareVersion: ${this.deviceFirmwareVersion}`)
   }
 
   /**

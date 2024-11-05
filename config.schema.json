@@ -152,7 +152,7 @@
                 }
               ]
             },
-            "delete": {
+            "hide_device": {
               "title": "Delete Device",
               "type": "boolean",
               "description": "Delete this device from the plugin cache.",
@@ -225,7 +225,7 @@
         "devices[].firmware",
         "devices[].refreshRate",
         "devices[].logging",
-        "devices[].delete"
+        "devices[].hide_device"
       ]
     },
     {

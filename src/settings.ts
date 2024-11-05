@@ -38,8 +38,10 @@ export interface devicesConfig {
   distance?: string
   firmware: string
   refreshRate?: number
+  updateRate?: number
+  pushRate?: number
   logging?: string
-  delete?: boolean
+  hide_device?: boolean
 }
 
 export interface options {
