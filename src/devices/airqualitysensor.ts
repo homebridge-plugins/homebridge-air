@@ -97,29 +97,31 @@ export class AirQualitySensor extends deviceBase {
         const pollutants = provider === 'airnow' ? ['O3', 'PM2.5', 'PM10'] : ['o3', 'no2', 'so2', 'pm25', 'pm10', 'co']
         pollutants.forEach((pollutant) => {
           const param = provider === 'airnow' ? this.deviceStatus.find((p: { ParameterName: string }) => p.ParameterName === pollutant) : this.deviceStatus.iaqi[pollutant]?.v
-          const aqi = provider === 'airnow' ? Number.parseFloat(param.AQI.toString()) : Number.parseFloat(param)
-          if (aqi !== undefined) {
-            switch (pollutant.toLowerCase()) {
-              case 'o3':
-                this.AirQualitySensor.OzoneDensity = aqi
-                break
-              case 'pm2.5':
-                this.AirQualitySensor.PM2_5Density = aqi
-                break
-              case 'pm10':
-                this.AirQualitySensor.PM10Density = aqi
-                break
-              case 'no2':
-                this.AirQualitySensor.NitrogenDioxideDensity = aqi
-                break
-              case 'so2':
-                this.AirQualitySensor.SulphurDioxideDensity = aqi
-                break
-              case 'co':
-                this.AirQualitySensor.CarbonMonoxideLevel = aqi
-                break
+          if (param !== undefined) {
+            const aqi = provider === 'airnow' ? Number.parseFloat(param.AQI.toString()) : Number.parseFloat(param)
+            if (!Number.isNaN(aqi)) {
+              switch (pollutant.toLowerCase()) {
+                case 'o3':
+                  this.AirQualitySensor.OzoneDensity = aqi
+                  break
+                case 'pm2.5':
+                  this.AirQualitySensor.PM2_5Density = aqi
+                  break
+                case 'pm10':
+                  this.AirQualitySensor.PM10Density = aqi
+                  break
+                case 'no2':
+                  this.AirQualitySensor.NitrogenDioxideDensity = aqi
+                  break
+                case 'so2':
+                  this.AirQualitySensor.SulphurDioxideDensity = aqi
+                  break
+                case 'co':
+                  this.AirQualitySensor.CarbonMonoxideLevel = aqi
+                  break
+              }
+              this.AirQualitySensor.AirQuality = HomeKitAQI(Math.max(0, aqi))
             }
-            this.AirQualitySensor.AirQuality = HomeKitAQI(Math.max(0, aqi))
           }
         })
         this.infoLog(`${provider} air quality AQI is: ${this.AirQualitySensor.AirQuality}`)
