@@ -1,6 +1,6 @@
 /* Copyright(C) 2021-2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
  *
- * server.ts: homebridge-air.
+ * server.ts: @homebridge-plugins/homebridge-air.
  */
 import fs from 'node:fs'
 
@@ -17,7 +17,7 @@ class PluginUiServer extends HomebridgePluginUiServer {
     */
     this.onRequest('getCachedAccessories', () => {
       try {
-        const plugin = PLUGIN_NAME ?? 'homebridge-air'
+        const plugin = PLUGIN_NAME ?? '@homebridge-plugins/homebridge-air'
         const devicesToReturn = []
 
         // The path and file of the cached accessories

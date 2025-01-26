@@ -1,6 +1,6 @@
 /* Copyright(C) 2021-2023, donavanbecker (https://github.com/donavanbecker). All rights reserved.
  *
- * index.ts: homebridge-air.
+ * index.ts: @homebridge-plugins/homebridge-air.
  */
 import type { API } from 'homebridge'
 

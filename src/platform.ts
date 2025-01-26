@@ -1,13 +1,13 @@
 /* Copyright(C) 2021-2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
  *
- * platform.ts: homebridge-air.
+ * platform.ts: @homebridge-plugins/homebridge-air.
  */
 import type { API, DynamicPlatformPlugin, HAP, Logging, PlatformAccessory } from 'homebridge'
 
 import type { AirPlatformConfig, devicesConfig, options } from './settings.js'
 
 import { readFileSync } from 'node:fs'
-import process, { argv } from 'node:process'
+import { argv } from 'node:process'
 
 import { AirQualitySensor } from './devices/airqualitysensor.js'
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js'
@@ -168,7 +168,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
     }
   }
 
-  private async createAirQualitySensor(device: any) {
+  public async createAirQualitySensor(device: any) {
     // generate a unique id for the accessory
     const uuidString = (device.latitude && device.longitude) ? (`${device.latitude}` + `${device.longitude}` + `${device.provider}`) : (`${device.zipCode}` + `${device.city}` + `${device.provider}`)
     const uuid = this.api.hap.uuid.generate(uuidString)

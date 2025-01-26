@@ -1,6 +1,6 @@
 /* Copyright(C) 2021-2024, donavanbecker (https://github.com/donavanbecker). All rights reserved.
  *
- * airqualitysensor.ts: homebridge-air.
+ * airqualitysensor.ts: @homebridge-plugins/homebridge-air.
  */
 import type { CharacteristicValue, PlatformAccessory, Service } from 'homebridge'
 
@@ -22,7 +22,7 @@ import { deviceBase } from './device.js'
  */
 export class AirQualitySensor extends deviceBase {
   // Service
-  private AirQualitySensor!: {
+  public AirQualitySensor!: {
     Service: Service
     Name: CharacteristicValue
     AirQuality: CharacteristicValue
