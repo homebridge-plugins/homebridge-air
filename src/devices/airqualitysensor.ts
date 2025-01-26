@@ -22,7 +22,7 @@ import { deviceBase } from './device.js'
  */
 export class AirQualitySensor extends deviceBase {
   // Service
-  private AirQualitySensor!: {
+  public AirQualitySensor!: {
     Service: Service
     Name: CharacteristicValue
     AirQuality: CharacteristicValue
