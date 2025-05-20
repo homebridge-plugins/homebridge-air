@@ -73,7 +73,7 @@ export class AirQualitySensor extends deviceBase {
     this.refreshStatus()
 
     // Start an update interval
-    interval(this.deviceRefreshRate * 10000)
+    interval(this.deviceRefreshRate * 1000)
       .pipe(skipWhile(() => this.SensorUpdateInProgress))
       .subscribe(async () => {
         await this.refreshStatus()
