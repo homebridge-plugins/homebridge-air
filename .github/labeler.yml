@@ -36,3 +36,12 @@ latest:
 workflow:
 - changed-files:
   - any-glob-to-any-file: .github/**
+
+# Semantic Versioning Labels
+# Note: These labels should be manually applied to issues before assignment to Copilot
+# The labeler cannot automatically determine if changes are patch/minor/major
+# Based on the semantic impact of the changes
+
+# 'patch' - Bug fixes, security patches, minor corrections (X.Y.Z+1)
+# 'minor' - New features, backwards-compatible functionality additions (X.Y+1.0)  
+# 'major' - Breaking changes, major architectural changes (X+1.0.0)
