@@ -32,7 +32,7 @@ plugin allows you monitor the current AirQuality for your Zip Code from HomeKit 
 
 2. Select your Provider: Air Now or Apicn
 3. Enter your AirNow.gov or Aqicn API Key
-4. Enter your City and Latitude / Longitude (4 decimal places is sufficient). Bote that City may be ambiguous, so you should always enter Latitude and Longitude for location accuracy
+4. Enter your City and Latitude / Longitude (4 decimal places is sufficient). Note that City may be ambiguous, so you should always enter Latitude and Longitude for location accuracy
 5. Click Save
 6. Restart Homebridge
 
