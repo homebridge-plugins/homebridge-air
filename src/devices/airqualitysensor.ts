@@ -93,18 +93,26 @@ export class AirQualitySensor extends deviceBase {
       } else if (provider === 'airnow' && typeof status.AQI === 'undefined') {
         this.errorLog('AirNow air quality Observation Error - %s for %s.', striptags(JSON.stringify(this.deviceStatus)), provider)
         this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
+      } else if (provider === 'aqicn' && (!this.deviceStatus || typeof this.deviceStatus.aqi === 'undefined')) {
+        this.errorLog('AQICN air quality Data Error - Invalid response structure or missing AQI data for %s.', provider)
+        await this.debugLog('AQICN response structure: %s', JSON.stringify(this.deviceStatus))
+        this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
       } else if (provider === 'airnow' || provider === 'aqicn') {
         const pollutants = provider === 'airnow' ? ['O3', 'PM2.5', 'PM10'] : ['o3', 'no2', 'so2', 'pm25', 'pm10', 'co']
-        pollutants.forEach((pollutant) => {
+        let pollutantCount = 0
+        for (const pollutant of pollutants) {
           const param = provider === 'airnow' ? this.deviceStatus.find((p: { ParameterName: string }) => p.ParameterName === pollutant) : this.deviceStatus.iaqi[pollutant]?.v
           if (param !== undefined) {
-            const aqi = provider === 'airnow' ? Number.parseFloat(param.AQI.toString()) : Number.parseFloat(param)
+            const aqi = provider === 'airnow' ? Number.parseFloat(param.AQI.toString()) : Number.parseFloat(param.toString())
             if (!Number.isNaN(aqi)) {
+              pollutantCount++
+              await this.debugLog(`${provider} ${pollutant} AQI: ${aqi}`)
               switch (pollutant.toLowerCase()) {
                 case 'o3':
                   this.AirQualitySensor.OzoneDensity = aqi
                   break
                 case 'pm2.5':
+                case 'pm25': // Handle both formats
                   this.AirQualitySensor.PM2_5Density = aqi
                   break
                 case 'pm10':
@@ -122,9 +130,16 @@ export class AirQualitySensor extends deviceBase {
               }
               this.AirQualitySensor.AirQuality = HomeKitAQI(Math.max(0, aqi))
             }
+          } else {
+            await this.debugLog(`${provider} ${pollutant} data not available`)
           }
-        })
-        this.infoLog(`${provider} air quality AQI is: ${this.AirQualitySensor.AirQuality}`)
+        }
+
+        if (pollutantCount === 0) {
+          this.warnLog(`${provider} No pollutant data found in response. Available iaqi keys: ${provider === 'aqicn' ? JSON.stringify(Object.keys(this.deviceStatus.iaqi || {})) : 'N/A'}`)
+        } else {
+          this.infoLog(`${provider} air quality AQI is: ${this.AirQualitySensor.AirQuality} (${pollutantCount} pollutants found)`)
+        }
         this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.NO_FAULT
       } else {
         await this.errorLog('Unknown air quality provider: %s.', provider)

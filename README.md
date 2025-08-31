@@ -9,7 +9,7 @@
 <a href="https://discord.gg/8fpZA4S"><img title="discord-air" src="https://badgen.net/discord/online-members/8fpZA4S?icon=discord&label=discord" ></a>
 <a href="https://paypal.me/donavanbecker"><img title="donate" src="https://badgen.net/badge/donate/paypal/yellow" ></a>
 
-<p>The Homebridge <a href="https://airnow.gove">Air</a>
+<p>The Homebridge <a href="https://www.airnow.gov/">Air</a>
 plugin allows you monitor the current AirQuality for your Zip Code from HomeKit and Siri.
 </p>
 
@@ -22,7 +22,7 @@ plugin allows you monitor the current AirQuality for your Zip Code from HomeKit 
 
 ## Configuration
 
-1. Login / create an account at https://airnow.gove/
+1. Login / create an account at https://www.airnow.gov/ or at https://aqicn.org/api/ as applicable for your location
 
 <p align="center">
 
@@ -30,9 +30,11 @@ plugin allows you monitor the current AirQuality for your Zip Code from HomeKit 
 
 </p>
 
-2. Type in your AirNow.gov API Key and Zip Code
-3. Click Save
-4. Restart Homebridge
+2. Select your Provider: AirNow or Apicn
+3. Enter your AirNow.gov or Aqicn API Key
+4. Enter your City and Latitude / Longitude (4 decimal places is sufficient). Note that City may be ambiguous, so you should always enter Latitude and Longitude for location accuracy
+5. Click Save
+6. Restart Homebridge
 
 ## Supported Air Quality Providers
 
