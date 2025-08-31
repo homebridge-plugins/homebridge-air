@@ -150,3 +150,12 @@ Tests  8 passed (8)
 ```
 
 This plugin integrates with external air quality APIs, so actual functionality testing requires valid API keys and network access to AirNow.gov or AQICN services.
+
+## Pull Request and Branching Strategy
+
+- **Target beta branches:** All PRs should target branches that start with "beta-" (e.g., beta-1.1.0, beta-2.0.0)
+- **Version labeling:** Use semantic version labels to indicate change type:
+  - `patch` - Bug fixes and minor improvements
+  - `minor` - New features and functionality  
+  - `major` - Breaking changes that require version bump
+- **Beta workflow:** Features are developed in beta branches before being merged to main for release
