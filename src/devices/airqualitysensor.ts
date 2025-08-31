@@ -161,7 +161,18 @@ export class AirQualitySensor extends deviceBase {
           await this.debugLog(`Error: ${JSON.stringify(response)}`)
           await this.apiError(response)
         } else {
-          this.deviceStatus = this.device.provider === 'aqicn' ? (response as AqicnData).data : response as AirNowAirQualityDataArray
+          if (this.device.provider === 'aqicn') {
+            const aqicnResponse = response as AqicnData
+            if (aqicnResponse.status !== 'ok' || !aqicnResponse.data) {
+              await this.errorLog(`AQICN API Error - Status: ${aqicnResponse.status}`)
+              this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
+              await this.apiError(aqicnResponse)
+              return
+            }
+            this.deviceStatus = aqicnResponse.data
+          } else {
+            this.deviceStatus = response as AirNowAirQualityDataArray
+          }
           await this.parseStatus()
         }
       } else {
