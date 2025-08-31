@@ -47,6 +47,16 @@ Depending on where exactly you would like to monitor AQI, one service may be mor
 
 This plugin will create an AirQualitySensor element. The Home app works well, but the Eve app seems to show more measurements. Measurements retrieved are PM2.5, PM10, & O3 for AirNow. Aqicn adds NO2, SO2, CO...
 
+## Contributing
+
+We welcome contributions! Please note our **beta branch strategy**:
+
+- **All PRs must target a beta branch first** (format: `beta-X.Y.Z`)
+- **Issues must have semantic versioning labels** (`patch`, `minor`, `major`) before assignment
+- **See our [Contributing Guide](./CONTRIBUTING.md)** for detailed instructions
+
+For GitHub Copilot users, please review our [Copilot Instructions](./.github/copilot-instructions.md).
+
 ## Thanks
 
 Thank you to [ToddGreenfield](https://github.com/ToddGreenfield) for the the work done on the accesorry based plugin [homebridge-airnow](https://github.com/ToddGreenfield/homebridge-airnow/blob/master/README.md).
