@@ -91,7 +91,22 @@ export interface AqicnData {
       url: string
     }[]
     iaqi: {
-      pm25: {
+      pm25?: {
+        v: number
+      }
+      pm10?: {
+        v: number
+      }
+      o3?: {
+        v: number
+      }
+      no2?: {
+        v: number
+      }
+      so2?: {
+        v: number
+      }
+      co?: {
         v: number
       }
     }
