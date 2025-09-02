@@ -112,7 +112,7 @@
               "type": "number",
               "minimum": 1800,
               "placeholder": 1800,
-              "description": "Indicates the number of seconds between polls of the AirNow service.",
+              "description": "Indicates the number of seconds between polls of the AirNow or Aqicn service.",
               "condition": {
                 "functionBody": "return (model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].zipCode);"
               }
@@ -168,7 +168,7 @@
         "type": "number",
         "minimum": 1800,
         "placeholder": 1800,
-        "description": "Indicates the number of seconds between polls of the AirNow service."
+        "description": "Indicates the number of seconds between polls of the AirNow or Aqicn service."
       },
       "logging": {
         "title": "Plugin Logging Setting",
@@ -236,7 +236,7 @@
       "items": [
         {
           "type": "help",
-          "helpvalue": "<h5>Refresh Rate</h5><em class='primary-text'>Refresh Rate indicates the number of seconds between polls of the AirNow service.</em>"
+          "helpvalue": "<h5>Refresh Rate</h5><em class='primary-text'>Refresh Rate indicates the number of seconds between polls of the AirNow or Aqicn service.</em>"
         },
         {
           "key": "refreshRate",

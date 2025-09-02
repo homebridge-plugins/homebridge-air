@@ -2,7 +2,15 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
-## [1.0.2](https://github.com/homebridge-plugins/homebridge-air/releases/tag/v1.0.2) (2025-03-04)
+## [1.0.3](https://github.com/homebridge-plugins/homebridge-air/releases/tag/v1.0.3) (2025-04-10)
+
+### What's Changed
+- Fix AQICN status update bug by completing interface and adding error handling [#17](https://github.com/homebridge-plugins/homebridge-air/pull/17)
+- Fix can't fetch data from AQICN [#11](https://github.com/homebridge-plugins/homebridge-air/pull/11)
+- Update config.schema.json [#19](https://github.com/homebridge-plugins/homebridge-air/pull/19)
+- Housekeeping and updated dependencies.
+
+**Full Changelog**: https://github.com/homebridge-plugins/homebridge-air/compare/v1.0.2...v1.0.3
 
 # *No New Releases During Lent*
 
