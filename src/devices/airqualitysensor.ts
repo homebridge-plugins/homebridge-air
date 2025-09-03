@@ -202,6 +202,11 @@ export class AirQualitySensor extends deviceBase {
 
       // Log additional context for debugging
       // Limit error logging to key properties to avoid performance issues
+      const limitedError = {
+        message: e?.message,
+        code: e?.code,
+        name: e?.name,
+        stack: e?.stack,
       }
       await this.debugLog(`Error object: ${JSON.stringify(limitedError)}`)
       await this.debugLog(`Provider: ${this.device.provider}, City: ${this.device.city || 'N/A'}`)
