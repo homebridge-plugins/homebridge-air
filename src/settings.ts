@@ -110,7 +110,6 @@ export interface AqicnData {
       co?: {
         v: number
       }
-      // Weather properties that may be included in API response
       dew?: {
         v: number
       }

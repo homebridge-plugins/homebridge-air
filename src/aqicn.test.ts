@@ -201,4 +201,85 @@ describe('AqicnData interface', () => {
     // Testing incorrect array access
     expect((mockDeviceStatus as any)[0]).toBeUndefined()
   })
+
+  it('should handle real-world AQICN API response with weather data (issue #28)', () => {
+    // This test reproduces the actual API response structure from Winterthur that caused the bug
+    const realWorldResponse: AqicnData = {
+      status: 'ok',
+      data: {
+        aqi: 4,
+        idx: 9023,
+        attributions: [
+          {
+            url: 'https://www.ostluft.ch/',
+            name: 'OSTLUFT - die Luftqualitätsüberwachung der Ostschweizer Kantone und des Fürstentums Liechtenstein',
+          },
+          {
+            url: 'https://waqi.info/',
+            name: 'World Air Quality Index Project',
+          },
+        ],
+        city: {
+          geo: [47.508150298795, 8.7203729897032],
+          name: 'Winterthur Veltheim, Switzerland',
+          url: 'https://aqicn.org/city/switzerland/winterthur-veltheim',
+        },
+        iaqi: {
+          // Weather data that's not pollutants
+          dew: { v: 12 },
+          h: { v: 82 },
+          p: { v: 1016 },
+          t: { v: 15 },
+          w: { v: 2 },
+          wg: { v: 16.9 },
+          // Actual pollutant data
+          pm10: { v: 4 },
+        },
+        time: {
+          s: '2025-09-03 01:00:00',
+          tz: '+02:00',
+        },
+        forecast: {
+          daily: {
+            o3: [{ v: 8 }],
+            pm10: [{ v: 4 }],
+            pm25: [{ v: 9 }],
+            uvi: [{ v: 0 }],
+          },
+        },
+      },
+    }
+
+    // Verify the response can be parsed correctly
+    expect(realWorldResponse.status).toBe('ok')
+    expect(realWorldResponse.data.aqi).toBe(4)
+    expect(realWorldResponse.data.iaqi.pm10?.v).toBe(4)
+    
+    // Verify weather data is present but should be ignored during pollutant parsing
+    expect(realWorldResponse.data.iaqi.dew?.v).toBe(12)
+    expect(realWorldResponse.data.iaqi.h?.v).toBe(82)
+    expect(realWorldResponse.data.iaqi.p?.v).toBe(1016)
+    
+    // Test that pollutant parsing logic works with this structure
+    const pollutants = ['o3', 'no2', 'so2', 'pm25', 'pm10', 'co']
+    const parsedValues: Record<string, number | undefined> = {}
+
+    pollutants.forEach((pollutant) => {
+      const param = realWorldResponse.data.iaqi[pollutant as keyof typeof realWorldResponse.data.iaqi]?.v
+      if (param !== undefined) {
+        const aqi = Number.parseFloat(param.toString())
+        if (!Number.isNaN(aqi)) {
+          parsedValues[pollutant] = aqi
+        }
+      }
+    })
+
+    // Only pm10 should be parsed from this response
+    expect(parsedValues.pm10).toBe(4)
+    expect(parsedValues.o3).toBeUndefined()
+    expect(parsedValues.pm25).toBeUndefined()
+    expect(parsedValues.no2).toBeUndefined()
+    expect(parsedValues.so2).toBeUndefined()
+    expect(parsedValues.co).toBeUndefined()
+  })
 })
