@@ -55,6 +55,7 @@ We welcome contributions! Please note our **beta branch strategy**:
 
 - **All PRs must target a beta branch first** (format: `beta-X.Y.Z`)
 - **Issues must have semantic versioning labels** (`patch`, `minor`, `major`) before assignment
+- **Use our helper script** to create beta branches: `./scripts/create-beta-branch.sh`
 - **See our [Contributing Guide](./CONTRIBUTING.md)** for detailed instructions
 
 For GitHub Copilot users, please review our [Copilot Instructions](./.github/copilot-instructions.md).
