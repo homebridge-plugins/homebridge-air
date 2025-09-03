@@ -46,6 +46,13 @@ npm run lint
 
 ### 2. Creating a Beta Branch (if needed)
 
+**Quick Method (Recommended):**
+```bash
+# Use the helper script to create the appropriate beta branch
+./scripts/create-beta-branch.sh
+```
+
+**Manual Method:**
 ```bash
 # Switch to latest branch
 git checkout latest

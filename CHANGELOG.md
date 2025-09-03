@@ -1,3 +1,8 @@
+## v1.0.5 - 2025-09-03
+- Fix HAP-NodeJS warning by validating accessory names before constructor call (#31) (d9888e2)
+- Fix AQICN API response structure handling and improve error messages (0e3962c)
+- Initial plan (dd020b7)
+
 # Changelog
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
