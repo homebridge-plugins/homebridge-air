@@ -110,11 +110,24 @@ export interface AqicnData {
       co?: {
         v: number
       }
-      // Allow additional properties for weather data (dew, h, p, t, w, wg, etc.)
-      // that may be included in the API response but are not air quality pollutants
-      [key: string]: {
+      dew?: {
         v: number
-      } | undefined
+      }
+      h?: {
+        v: number
+      }
+      p?: {
+        v: number
+      }
+      t?: {
+        v: number
+      }
+      w?: {
+        v: number
+      }
+      wg?: {
+        v: number
+      }
     }
     forecast: {
       daily: {
