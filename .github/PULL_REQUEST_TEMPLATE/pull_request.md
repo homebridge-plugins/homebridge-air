@@ -10,9 +10,17 @@ assignees: 'donavanbecker'
 
 **This PR must target a beta branch (beta-X.Y.Z) before merging to latest.**
 
+**Current Version in package.json:** Check the version and ensure your target beta branch increments it correctly.
+
 - [ ] This PR targets a beta branch that starts with "beta-"
-- [ ] The target version matches the semantic versioning label on the related issue
+- [ ] The target version matches the semantic versioning label on the related issue  
 - [ ] Required labels (patch/minor/major) are set on the related issue
+- [ ] I have checked that the appropriate beta branch exists or created it if needed
+
+**Quick Reference:**
+- `patch` (bug fix): 1.0.4 → beta-1.0.5
+- `minor` (new feature): 1.0.4 → beta-1.1.0
+- `major` (breaking change): 1.0.4 → beta-2.0.0
 
 ## Description
 

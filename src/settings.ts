@@ -91,6 +91,7 @@ export interface AqicnData {
       url: string
     }[]
     iaqi: {
+      // Air quality pollutants
       pm25?: {
         v: number
       }
@@ -107,6 +108,24 @@ export interface AqicnData {
         v: number
       }
       co?: {
+        v: number
+      }
+      dew?: {
+        v: number
+      }
+      h?: {
+        v: number
+      }
+      p?: {
+        v: number
+      }
+      t?: {
+        v: number
+      }
+      w?: {
+        v: number
+      }
+      wg?: {
         v: number
       }
     }

@@ -195,7 +195,22 @@ export class AirQualitySensor extends deviceBase {
       }
       await this.updateHomeKitCharacteristics()
     } catch (e: any) {
-      await this.errorLog(`failed to update status, Error Message: ${JSON.stringify(e.message ?? e)}`)
+      // Improve error message handling to provide more useful debugging information
+      const errorMessage = e?.message || e?.code || e?.name || 'Unknown error'
+      const errorDetails = e?.stack ? ` Stack: ${e.stack}` : ''
+      await this.errorLog(`failed to update status, Error Message: ${errorMessage}${errorDetails}`)
+
+      // Log additional context for debugging
+      // Limit error logging to key properties to avoid performance issues
+      const limitedError = {
+        message: e?.message,
+        code: e?.code,
+        name: e?.name,
+        stack: e?.stack,
+      }
+      await this.debugLog(`Error object: ${JSON.stringify(limitedError)}`)
+      await this.debugLog(`Provider: ${this.device.provider}, City: ${this.device.city || 'N/A'}`)
+
       await this.apiError(e)
     }
   }
