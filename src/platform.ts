@@ -198,12 +198,13 @@ export class AirPlatform implements DynamicPlatformPlugin {
       }
     } else if (!device.hide_device && !existingAccessory) {
       // create a new accessory
-      const accessory = new this.api.platformAccessory(device.city, uuid)
+      const cleanedDisplayName = await this.validateAndCleanDisplayName(device.city, 'city', device.city)
+      const accessory = new this.api.platformAccessory(cleanedDisplayName, uuid)
 
       // store a copy of the device object in the `accessory.context`
       // the `context` property can be used to store any data about the accessory you may need
       accessory.context.device = device
-      accessory.displayName = await this.validateAndCleanDisplayName(device.city, 'city', device.city)
+      accessory.displayName = cleanedDisplayName
       accessory.context.serialNumber = device.zipCode
       accessory.context.model = device.provider === 'airnow' ? 'AirNow' : device.provider === 'aqicn' ? 'Aqicn' : 'Unknown'
       accessory.context.FirmwareRevision = device.firmware ?? await this.getVersion()
