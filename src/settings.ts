@@ -91,6 +91,7 @@ export interface AqicnData {
       url: string
     }[]
     iaqi: {
+      // Air quality pollutants
       pm25?: {
         v: number
       }
@@ -109,6 +110,11 @@ export interface AqicnData {
       co?: {
         v: number
       }
+      // Allow additional properties for weather data (dew, h, p, t, w, wg, etc.)
+      // that may be included in the API response but are not air quality pollutants
+      [key: string]: {
+        v: number
+      } | undefined
     }
     forecast: {
       daily: {
