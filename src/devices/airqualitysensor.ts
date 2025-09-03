@@ -86,7 +86,7 @@ export class AirQualitySensor extends deviceBase {
   async parseStatus() {
     try {
       const provider = this.device.provider
-      const status = this.deviceStatus[0]
+      const status = provider === 'airnow' ? this.deviceStatus[0] : this.deviceStatus
       if (provider === 'airnow' && !status) {
         this.errorLog('AirNow air quality Configuration Error - Invalid ZipCode for %s.', provider)
         this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
