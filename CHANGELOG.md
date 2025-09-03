@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [1.0.4](https://github.com/homebridge-plugins/homebridge-air/releases/tag/v1.0.4) (2025-09-03)
+
+### What's Changed
+- Fix AQICN status parsing bug by handling different data structures correctly [#24](https://github.com/homebridge-plugins/homebridge-air/pull/24)
+- Modified parseStatus() method to conditionally handle AirNow (array) vs AQICN (object) data structures
+- Added test case for AQICN device status handling
+- Resolves AQICN provider failing to parse air quality data [#22](https://github.com/homebridge-plugins/homebridge-air/issues/22)
+
+**Full Changelog**: https://github.com/homebridge-plugins/homebridge-air/compare/v1.0.3...v1.0.4
+
 ## [1.0.3](https://github.com/homebridge-plugins/homebridge-air/releases/tag/v1.0.3) (2025-04-10)
 
 ### What's Changed
