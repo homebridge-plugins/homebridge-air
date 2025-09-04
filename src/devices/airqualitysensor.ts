@@ -7,8 +7,6 @@ import type { CharacteristicValue, PlatformAccessory, Service } from 'homebridge
 import type { AirPlatform } from '../platform.js'
 import type { AirNowAirQualityDataArray, AqicnData, devicesConfig } from '../settings.js'
 
-import { readFileSync } from 'node:fs'
-
 import { interval } from 'rxjs'
 import { skipWhile } from 'rxjs/operators'
 import striptags from 'striptags'
@@ -172,25 +170,6 @@ export class AirQualitySensor extends deviceBase {
   }
 
   /**
-   * Get the plugin version dynamically from platform or package.json
-   */
-  private getPluginVersion(): string {
-    try {
-      // Try to use platform version first (if available)
-      if (this.platform.version) {
-        return this.platform.version
-      }
-
-      // Fallback to reading package.json directly
-      const { version } = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf-8'))
-      return version
-    } catch {
-      // Final fallback if both methods fail
-      return '1.0.5'
-    }
-  }
-
-  /**
    * Asks the Air API for the latest device information
    */
   async refreshStatus() {
@@ -219,7 +198,7 @@ export class AirQualitySensor extends deviceBase {
         const requestOptions = {
           timeout: 10000, // 10 second timeout
           headers: {
-            'User-Agent': `homebridge-air/${this.getPluginVersion()}`,
+            'User-Agent': `homebridge-air/${this.platform.getPluginVersion()}`,
           },
         }
 

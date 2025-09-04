@@ -286,6 +286,25 @@ export class AirPlatform implements DynamicPlatformPlugin {
   }
 
   /**
+   * Get the plugin version dynamically from platform or package.json
+   */
+  public getPluginVersion(): string {
+    try {
+      // Try to use platform version first (if available)
+      if (this.version) {
+        return this.version
+      }
+
+      // Fallback to reading package.json directly
+      const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf-8'))
+      return version
+    } catch {
+      // Final fallback if both methods fail
+      return '1.0.5'
+    }
+  }
+
+  /**
    * Validate and clean a string value for a Name Characteristic.
    * @param displayName - The display name of the accessory.
    * @param name - The name of the characteristic.
