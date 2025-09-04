@@ -98,6 +98,17 @@ export class AirQualitySensor extends deviceBase {
         await this.debugLog('AQICN response structure: %s', JSON.stringify(this.deviceStatus))
         this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
       } else if (provider === 'airnow' || provider === 'aqicn') {
+        // Set the main AirQuality using the overall AQI value
+        if (provider === 'aqicn') {
+          // For AQICN, use the main aqi value for overall air quality
+          const mainAqi = this.deviceStatus.aqi
+          if (typeof mainAqi === 'number' && !Number.isNaN(mainAqi)) {
+            this.AirQualitySensor.AirQuality = HomeKitAQI(Math.max(0, mainAqi))
+            await this.debugLog(`${provider} main AQI: ${mainAqi} -> HomeKit category: ${this.AirQualitySensor.AirQuality}`)
+          }
+        }
+
+        // Process individual pollutants for their specific density characteristics
         const pollutants = provider === 'airnow' ? ['O3', 'PM2.5', 'PM10'] : ['o3', 'no2', 'so2', 'pm25', 'pm10', 'co']
         let pollutantCount = 0
         for (const pollutant of pollutants) {
@@ -128,7 +139,10 @@ export class AirQualitySensor extends deviceBase {
                   this.AirQualitySensor.CarbonMonoxideLevel = aqi
                   break
               }
-              this.AirQualitySensor.AirQuality = HomeKitAQI(Math.max(0, aqi))
+              // For AirNow, set main AirQuality based on individual pollutant values (existing behavior)
+              if (provider === 'airnow') {
+                this.AirQualitySensor.AirQuality = HomeKitAQI(Math.max(0, aqi))
+              }
             }
           } else {
             await this.debugLog(`${provider} ${pollutant} data not available`)
@@ -237,14 +251,9 @@ export class AirQualitySensor extends deviceBase {
     await this.updateCharacteristic(this.AirQualitySensor.Service, this.hap.Characteristic.StatusFault, this.AirQualitySensor.StatusFault, 'StatusFault')
   }
 
-  public async apiError(e: any): Promise<void> {
-    this.AirQualitySensor.Service.updateCharacteristic(this.hap.Characteristic.AirQuality, e)
-    this.AirQualitySensor.Service.updateCharacteristic(this.hap.Characteristic.OzoneDensity, e)
-    this.AirQualitySensor.Service.updateCharacteristic(this.hap.Characteristic.NitrogenDioxideDensity, e)
-    this.AirQualitySensor.Service.updateCharacteristic(this.hap.Characteristic.SulphurDioxideDensity, e)
-    this.AirQualitySensor.Service.updateCharacteristic(this.hap.Characteristic.PM2_5Density, e)
-    this.AirQualitySensor.Service.updateCharacteristic(this.hap.Characteristic.PM10Density, e)
-    this.AirQualitySensor.Service.updateCharacteristic(this.hap.Characteristic.CarbonMonoxideLevel, e)
+  // eslint-disable-next-line unused-imports/no-unused-vars
+  public async apiError(_e: any): Promise<void> {
+    // Set StatusFault to indicate an error state - don't set measurement characteristics to error objects
     this.AirQualitySensor.Service.updateCharacteristic(this.hap.Characteristic.StatusFault, this.hap.Characteristic.StatusFault.GENERAL_FAULT)
   }
 }
