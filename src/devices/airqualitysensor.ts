@@ -198,7 +198,7 @@ export class AirQualitySensor extends deviceBase {
         const requestOptions = {
           timeout: 10000, // 10 second timeout
           headers: {
-            'User-Agent': `homebridge-air/${this.platform.getPluginVersion()}`,
+            'User-Agent': `homebridge-air/${this.platform.version || 'unknown'}`,
           },
         }
 

@@ -59,7 +59,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
     this.getPlatformLogSettings()
     this.getPlatformRateSettings()
     this.getPlatformConfigSettings()
-    this.getVersion()
+    void this.getVersion()
 
     // Finish initializing the platform
     this.debugLog(`Finished initializing platform: ${config.name}`);
@@ -277,31 +277,13 @@ export class AirPlatform implements DynamicPlatformPlugin {
    * parses its content to extract the version, and logs the version using the debug logger.
    * The extracted version is then assigned to the `version` property of the class.
    *
-   * @returns {Promise<void>} A promise that resolves when the version has been retrieved and logged.
+   * @returns {Promise<string>} A promise that resolves with the version string.
    */
-  async getVersion(): Promise<void> {
+  async getVersion(): Promise<string> {
     const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf-8'))
     this.debugLog(`Plugin Version: ${version}`)
     this.version = version
-  }
-
-  /**
-   * Get the plugin version dynamically from platform or package.json
-   */
-  public getPluginVersion(): string {
-    try {
-      // Try to use platform version first (if available)
-      if (this.version) {
-        return this.version
-      }
-
-      // Fallback to reading package.json directly
-      const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf-8'))
-      return version
-    } catch {
-      // Final fallback if both methods fail
-      return '1.0.5'
-    }
+    return version
   }
 
   /**
