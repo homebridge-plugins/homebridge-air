@@ -185,11 +185,22 @@ export class AirQualitySensor extends deviceBase {
       }
 
       const AirNowCurrentObservationBy = this.device.latitude && this.device.longitude ? `latLong` : 'zipCode'
-      const AqicnCurrentObservationBy = this.device.latitude && this.device.longitude ? `geo:${this.device.latitude};${this.device.longitude}` : this.device.city
+      // Support flexible AQICN URL patterns: geo coordinates, city names, and full URL paths
+      let AqicnCurrentObservationBy: string
+      if (this.device.latitude && this.device.longitude) {
+        // Use geo coordinates when available
+        AqicnCurrentObservationBy = `geo:${this.device.latitude};${this.device.longitude}`
+      } else if (this.device.city?.startsWith('/') || this.device.city?.includes('/city/') || this.device.city?.includes('/station/')) {
+        // Support full URL paths like /city/country/cityname, /station/@stationid, /station/station-name/locale
+        AqicnCurrentObservationBy = this.device.city.startsWith('/') ? this.device.city.substring(1) : this.device.city
+      } else {
+        // Default to simple city name for backward compatibility (empty string produces no extra path)
+        AqicnCurrentObservationBy = this.device.city || ''
+      }
       const AirNowCurrentObservationByValue = this.device.latitude && this.device.longitude ? `latitude=${this.device.latitude}&longitude=${this.device.longitude}` : `zipCode=${this.device.zipCode}`
       const providerUrls = {
         airnow: `${AirNowUrl}${AirNowCurrentObservationBy}/current/?format=application/json&${AirNowCurrentObservationByValue}&distance=${this.device.distance}&API_KEY=${this.device.apiKey}`,
-        aqicn: `${AqicnUrl}${AqicnCurrentObservationBy}/?token=${this.device.apiKey}`,
+        aqicn: `${AqicnUrl}${AqicnCurrentObservationBy}${AqicnCurrentObservationBy ? '/' : ''}?token=${this.device.apiKey}`,
       }
       const url = providerUrls[this.device.provider]
       await this.debugSuccessLog(`url: ${JSON.stringify(url)}`)
