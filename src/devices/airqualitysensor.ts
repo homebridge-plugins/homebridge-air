@@ -237,14 +237,9 @@ export class AirQualitySensor extends deviceBase {
     await this.updateCharacteristic(this.AirQualitySensor.Service, this.hap.Characteristic.StatusFault, this.AirQualitySensor.StatusFault, 'StatusFault')
   }
 
-  public async apiError(e: any): Promise<void> {
-    this.AirQualitySensor.Service.updateCharacteristic(this.hap.Characteristic.AirQuality, e)
-    this.AirQualitySensor.Service.updateCharacteristic(this.hap.Characteristic.OzoneDensity, e)
-    this.AirQualitySensor.Service.updateCharacteristic(this.hap.Characteristic.NitrogenDioxideDensity, e)
-    this.AirQualitySensor.Service.updateCharacteristic(this.hap.Characteristic.SulphurDioxideDensity, e)
-    this.AirQualitySensor.Service.updateCharacteristic(this.hap.Characteristic.PM2_5Density, e)
-    this.AirQualitySensor.Service.updateCharacteristic(this.hap.Characteristic.PM10Density, e)
-    this.AirQualitySensor.Service.updateCharacteristic(this.hap.Characteristic.CarbonMonoxideLevel, e)
+  // eslint-disable-next-line unused-imports/no-unused-vars
+  public async apiError(_e: any): Promise<void> {
+    // Set StatusFault to indicate an error state - don't set measurement characteristics to error objects
     this.AirQualitySensor.Service.updateCharacteristic(this.hap.Characteristic.StatusFault, this.hap.Characteristic.StatusFault.GENERAL_FAULT)
   }
 }
