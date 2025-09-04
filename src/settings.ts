@@ -18,7 +18,7 @@ export const PLUGIN_NAME = '@homebridge-plugins/homebridge-air'
  * This must match the name of your plugin as defined the package.json
  */
 export const AirNowUrl = 'https://www.airnowapi.org/aq/observation/'
-export const AqicnUrl = 'http://api.waqi.info/feed/'
+export const AqicnUrl = 'https://api.waqi.info/feed/'
 
 // Config
 export interface AirPlatformConfig extends PlatformConfig {

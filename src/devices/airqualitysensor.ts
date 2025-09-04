@@ -39,6 +39,11 @@ export class AirQualitySensor extends deviceBase {
   SensorUpdateInProgress!: boolean
   deviceStatus: any
 
+  // Simple caching to reduce API calls
+  private lastRequestTime: number = 0
+  private lastResponseData: any = null
+  private readonly cacheMaxAge: number = 60000 // 1 minute cache
+
   constructor(
     readonly platform: AirPlatform,
     accessory: PlatformAccessory,
@@ -169,6 +174,16 @@ export class AirQualitySensor extends deviceBase {
    */
   async refreshStatus() {
     try {
+      // Check cache first to reduce API calls
+      const currentTime = Date.now()
+      if (this.lastResponseData && (currentTime - this.lastRequestTime) < this.cacheMaxAge) {
+        await this.debugLog(`Using cached response (age: ${currentTime - this.lastRequestTime}ms)`)
+        this.deviceStatus = this.lastResponseData
+        await this.parseStatus()
+        await this.updateHomeKitCharacteristics()
+        return
+      }
+
       const AirNowCurrentObservationBy = this.device.latitude && this.device.longitude ? `latLong` : 'zipCode'
       const AqicnCurrentObservationBy = this.device.latitude && this.device.longitude ? `geo:${this.device.latitude};${this.device.longitude}` : this.device.city
       const AirNowCurrentObservationByValue = this.device.latitude && this.device.longitude ? `latitude=${this.device.latitude}&longitude=${this.device.longitude}` : `zipCode=${this.device.zipCode}`
@@ -179,28 +194,64 @@ export class AirQualitySensor extends deviceBase {
       const url = providerUrls[this.device.provider]
       await this.debugSuccessLog(`url: ${JSON.stringify(url)}`)
       if (url) {
-        const { body, statusCode } = await request(url)
+        // Add timeout and better request options for improved reliability
+        const requestOptions = {
+          timeout: 10000, // 10 second timeout
+          headers: {
+            'User-Agent': `homebridge-air/${this.platform.version || 'unknown'}`,
+          },
+        }
+
+        const { body, statusCode } = await request(url, requestOptions)
         const response = await body.json()
         await this.debugWarnLog(`statusCode: ${JSON.stringify(statusCode)}`)
         await this.debugLog(`response: ${JSON.stringify(response)}`)
 
         if (statusCode !== 200) {
-          this.errorLog(`${this.device.provider === 'airnow' ? 'AirNow' : 'World Air Quality Index'} air quality Network or Unknown Error from %s.`, this.device.provider)
+          const errorMessage = `${this.device.provider === 'airnow' ? 'AirNow' : 'World Air Quality Index'} API returned status ${statusCode}`
+          await this.errorLog(`${errorMessage} for provider %s.`, this.device.provider)
           this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
-          await this.debugLog(`Error: ${JSON.stringify(response)}`)
+          await this.debugLog(`Error response: ${JSON.stringify(response)}`)
           await this.apiError(response)
         } else {
+          // Validate response structure before processing
+          if (!response) {
+            await this.errorLog(`Empty response received from ${this.device.provider} API`)
+            this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
+            return
+          }
+
           if (this.device.provider === 'aqicn') {
             const aqicnResponse = response as AqicnData
             if (aqicnResponse.status !== 'ok' || !aqicnResponse.data) {
-              await this.errorLog(`AQICN API Error - Status: ${aqicnResponse.status}`)
+              const statusMessage = aqicnResponse.status || 'unknown'
+              await this.errorLog(`AQICN API Error - Status: ${statusMessage}`)
               this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
               await this.apiError(aqicnResponse)
               return
             }
+            // Additional validation for AQICN data structure
+            if (!aqicnResponse.data.aqi && aqicnResponse.data.aqi !== 0) {
+              await this.errorLog(`AQICN API Error - Missing AQI data in response`)
+              this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
+              return
+            }
             this.deviceStatus = aqicnResponse.data
+            // Cache the successful response
+            this.lastResponseData = aqicnResponse.data
+            this.lastRequestTime = Date.now()
           } else {
-            this.deviceStatus = response as AirNowAirQualityDataArray
+            // Validate AirNow response structure
+            const airnowResponse = response as AirNowAirQualityDataArray
+            if (!Array.isArray(airnowResponse) || airnowResponse.length === 0) {
+              await this.errorLog(`AirNow API Error - Invalid response structure or empty data`)
+              this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
+              return
+            }
+            this.deviceStatus = airnowResponse
+            // Cache the successful response
+            this.lastResponseData = airnowResponse
+            this.lastRequestTime = Date.now()
           }
           await this.parseStatus()
         }
@@ -209,18 +260,26 @@ export class AirQualitySensor extends deviceBase {
       }
       await this.updateHomeKitCharacteristics()
     } catch (e: any) {
-      // Improve error message handling to provide more useful debugging information
+      // Improve error message handling for different error types
       const errorMessage = e?.message || e?.code || e?.name || 'Unknown error'
-      const errorDetails = e?.stack ? ` Stack: ${e.stack}` : ''
-      await this.errorLog(`failed to update status, Error Message: ${errorMessage}${errorDetails}`)
 
-      // Log additional context for debugging
-      // Limit error logging to key properties to avoid performance issues
+      // Handle specific error types for better debugging
+      if (e?.code === 'UND_ERR_CONNECT_TIMEOUT' || e?.code === 'ETIMEDOUT') {
+        await this.errorLog(`API request timeout for ${this.device.provider} - check network connectivity`)
+        this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
+      } else if (e?.code === 'ENOTFOUND' || e?.code === 'ECONNREFUSED') {
+        await this.errorLog(`Network error for ${this.device.provider} API - ${errorMessage}`)
+        this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
+      } else {
+        await this.errorLog(`Failed to update status for ${this.device.provider}, Error: ${errorMessage}`)
+        this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
+      }
+
+      // Log additional context for debugging (limit to avoid performance issues)
       const limitedError = {
         message: e?.message,
         code: e?.code,
         name: e?.name,
-        stack: e?.stack,
       }
       await this.debugLog(`Error object: ${JSON.stringify(limitedError)}`)
       await this.debugLog(`Provider: ${this.device.provider}, City: ${this.device.city || 'N/A'}`)
