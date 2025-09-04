@@ -140,4 +140,30 @@ describe('AQICN URL Construction', () => {
     const url = constructAqicnUrl(device)
     expect(url).toBe('https://api.waqi.info/feed/?token=test-api-key')
   })
+
+  // Integration test with real-world examples from issue #45
+  it('should support all example URLs from issue #45', () => {
+    const examples = [
+      // Original examples from the issue
+      { input: '/city/switzerland/winterthur-veltheim', expected: 'https://api.waqi.info/feed/city/switzerland/winterthur-veltheim/?token=test-key' },
+      { input: '/city/switzerland/tanikon', expected: 'https://api.waqi.info/feed/city/switzerland/tanikon/?token=test-key' },
+      { input: '/station/@92323', expected: 'https://api.waqi.info/feed/station/@92323/?token=test-key' },
+      { input: '/station/@231133', expected: 'https://api.waqi.info/feed/station/@231133/?token=test-key' },
+      { input: '/station/bielsko-bia%C5%82a-poland-bielsko-biala-urodzajna/pl', expected: 'https://api.waqi.info/feed/station/bielsko-bia%C5%82a-poland-bielsko-biala-urodzajna/pl/?token=test-key' },
+      
+      // Backward compatibility examples
+      { input: 'winterthur', expected: 'https://api.waqi.info/feed/winterthur/?token=test-key' },
+      { input: 'beijing', expected: 'https://api.waqi.info/feed/beijing/?token=test-key' }
+    ]
+
+    examples.forEach(({ input, expected }) => {
+      const device: Partial<devicesConfig> = {
+        city: input,
+        apiKey: 'test-key'
+      }
+      
+      const url = constructAqicnUrl(device)
+      expect(url).toBe(expected)
+    })
+  })
 })
