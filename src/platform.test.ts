@@ -76,4 +76,79 @@ describe('AirPlatform validateAndCleanDisplayName', () => {
     expect(result).toBe('UpdateRestartFailure')
     expect(mockLog.warn).toHaveBeenCalled()
   })
+
+  it('should handle AQICN station ID format without warnings', async () => {
+    const result = await platform.validateAndCleanDisplayName('/station/@92323', 'city', '/station/@92323', 'aqicn')
+    expect(result).toBe('Station 92323')
+    expect(mockLog.warn).not.toHaveBeenCalled()
+  })
+
+  it('should handle AQICN station name format', async () => {
+    const result = await platform.validateAndCleanDisplayName('/station/winterthur-veltheim/switzerland', 'city', '/station/winterthur-veltheim/switzerland', 'aqicn')
+    expect(result).toBe('Winterthur Veltheim Switzerland')
+    expect(mockLog.warn).not.toHaveBeenCalled()
+  })
+
+  it('should handle AQICN city path format', async () => {
+    const result = await platform.validateAndCleanDisplayName('/city/switzerland/zurich', 'city', '/city/switzerland/zurich', 'aqicn')
+    expect(result).toBe('Switzerland Zurich')
+    expect(mockLog.warn).not.toHaveBeenCalled()
+  })
+
+  it('should handle regular AQICN city names normally', async () => {
+    const result = await platform.validateAndCleanDisplayName('Zurich', 'city', 'Zurich', 'aqicn')
+    expect(result).toBe('Zurich')
+    expect(mockLog.warn).not.toHaveBeenCalled()
+  })
+
+  it('should still validate non-AQICN providers normally', async () => {
+    const result = await platform.validateAndCleanDisplayName('/station/@92323', 'city', '/station/@92323', 'airnow')
+    expect(result).toBe('station92323')
+    expect(mockLog.warn).toHaveBeenCalled()
+  })
+
+  it('should still validate non-city fields normally for AQICN', async () => {
+    const result = await platform.validateAndCleanDisplayName('/station/@92323', 'name', '/station/@92323', 'aqicn')
+    expect(result).toBe('station92323')
+    expect(mockLog.warn).toHaveBeenCalled()
+  })
+})
+
+describe('AirPlatform generateAqicnDisplayName', () => {
+  let platform: AirPlatform
+
+  beforeEach(() => {
+    platform = new (AirPlatform as any)(mockLog, mockConfig, mockAPI)
+    vi.clearAllMocks()
+  })
+
+  it('should convert station ID format to readable name', () => {
+    const result = platform.generateAqicnDisplayName('/station/@92323')
+    expect(result).toBe('Station 92323')
+  })
+
+  it('should convert station name format to readable name', () => {
+    const result = platform.generateAqicnDisplayName('/station/winterthur-veltheim/switzerland')
+    expect(result).toBe('Winterthur Veltheim Switzerland')
+  })
+
+  it('should convert city path format to readable name', () => {
+    const result = platform.generateAqicnDisplayName('/city/switzerland/zurich-airport')
+    expect(result).toBe('Switzerland Zurich Airport')
+  })
+
+  it('should handle single word station names', () => {
+    const result = platform.generateAqicnDisplayName('/station/zurich')
+    expect(result).toBe('Zurich')
+  })
+
+  it('should return regular city names unchanged', () => {
+    const result = platform.generateAqicnDisplayName('Zurich')
+    expect(result).toBe('Zurich')
+  })
+
+  it('should handle empty string', () => {
+    const result = platform.generateAqicnDisplayName('')
+    expect(result).toBe('')
+  })
 })
