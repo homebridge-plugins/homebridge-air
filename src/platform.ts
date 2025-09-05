@@ -182,7 +182,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
       if (!device.hide_device) {
         // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
         existingAccessory.context.device = device
-        existingAccessory.displayName = await this.validateAndCleanDisplayName(device.city, 'city', device.city)
+        existingAccessory.displayName = await this.validateAndCleanDisplayName(device.city, 'city', device.city, device.provider)
         existingAccessory.context.serialNumber = device.zipCode
         existingAccessory.context.model = device.provider === 'airnow' ? 'AirNow' : device.provider === 'aqicn' ? 'Aqicn' : 'Unknown'
         existingAccessory.context.FirmwareRevision = device.firmware ?? await this.getVersion()
@@ -198,7 +198,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
       }
     } else if (!device.hide_device && !existingAccessory) {
       // create a new accessory
-      const cleanedDisplayName = await this.validateAndCleanDisplayName(device.city, 'city', device.city)
+      const cleanedDisplayName = await this.validateAndCleanDisplayName(device.city, 'city', device.city, device.provider)
       const accessory = new this.api.platformAccessory(cleanedDisplayName, uuid)
 
       // store a copy of the device object in the `accessory.context`
@@ -287,16 +287,60 @@ export class AirPlatform implements DynamicPlatformPlugin {
   }
 
   /**
+   * Generate a clean display name from AQICN station/city format
+   * @param city - The AQICN city value which may contain station URLs or city paths
+   * @returns A clean display name suitable for HomeKit
+   */
+  generateAqicnDisplayName(city: string): string {
+    // Handle AQICN station ID format: /station/@12345 -> Station 12345
+    if (city.startsWith('/station/@')) {
+      const stationId = city.replace('/station/@', '')
+      return `Station ${stationId}`
+    }
+    
+    // Handle AQICN station name format: /station/station-name/locale -> Station Name Locale
+    if (city.startsWith('/station/')) {
+      const parts = city.replace('/station/', '').split('/')
+      return parts.map(part => 
+        part.split('-').map(word => 
+          word.charAt(0).toUpperCase() + word.slice(1)
+        ).join(' ')
+      ).join(' ')
+    }
+    
+    // Handle AQICN city path format: /city/country/cityname -> Country Cityname
+    if (city.startsWith('/city/')) {
+      const parts = city.replace('/city/', '').split('/')
+      return parts.map(part => 
+        part.split('-').map(word => 
+          word.charAt(0).toUpperCase() + word.slice(1)
+        ).join(' ')
+      ).join(' ')
+    }
+    
+    // For regular city names, return as-is
+    return city
+  }
+
+  /**
    * Validate and clean a string value for a Name Characteristic.
    * @param displayName - The display name of the accessory.
    * @param name - The name of the characteristic.
    * @param value - The value to be validated and cleaned.
+   * @param provider - Optional provider type to handle special cases
    * @returns The cleaned string value.
    */
-  async validateAndCleanDisplayName(displayName: string, name: string, value: string): Promise<string> {
+  async validateAndCleanDisplayName(displayName: string, name: string, value: string, provider?: string): Promise<string> {
     if (this.config.options?.allowInvalidCharacters) {
       return value
     } else {
+      // For AQICN provider and city field, handle special station/city formats
+      if (provider === 'aqicn' && name === 'city' && (value.startsWith('/station/') || value.startsWith('/city/'))) {
+        const cleanDisplayName = this.generateAqicnDisplayName(value)
+        await this.debugLog(`Generated clean display name for AQICN ${name}: '${value}' -> '${cleanDisplayName}'`)
+        return cleanDisplayName
+      }
+
       const validPattern = /^[\p{L}\p{N}][\p{L}\p{N} ']*[\p{L}\p{N}]$/u
       const invalidCharsPattern = /[^\p{L}\p{N} ']/gu
       const invalidStartEndPattern = /^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu
