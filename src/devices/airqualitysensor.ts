@@ -165,7 +165,10 @@ export class AirQualitySensor extends deviceBase {
       const url = providerUrls[this.device.provider]
       await this.debugSuccessLog(`url: ${JSON.stringify(url)}`)
       if (url) {
-        const { body, statusCode } = await request(url)
+        const { body, statusCode } = await request(url, {
+          headersTimeout: 30000, // 30 seconds for headers
+          bodyTimeout: 30000, // 30 seconds for body
+        })
         const response = await body.json()
         await this.debugWarnLog(`statusCode: ${JSON.stringify(statusCode)}`)
         await this.debugLog(`response: ${JSON.stringify(response)}`)
