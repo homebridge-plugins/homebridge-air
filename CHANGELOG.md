@@ -1,5 +1,15 @@
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [1.1.0](https://github.com/homebridge-plugins/homebridge-air/releases/tag/v1.1.0) - (2025-09-05)
+
+### What's Changed
+- Fix AQICN station ID validation error for documented syntax (#47)
+- Enhanced validation logic to handle AQICN station formats specially without warnings
+- Added `generateAqicnDisplayName()` helper to convert AQICN URLs to readable HomeKit display names
+- Preserves API functionality while cleaning HomeKit display names for station IDs like `/station/@92323`
+
+**Full Changelog**: https://github.com/homebridge-plugins/homebridge-air/compare/v1.0.5...v1.1.0
+
 ## [1.0.5](https://github.com/homebridge-plugins/homebridge-air/releases/tag/v1.0.5) - (2025-09-03)
 
 ### What's Changed
