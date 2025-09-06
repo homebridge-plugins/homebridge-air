@@ -205,15 +205,10 @@ export class AirQualitySensor extends deviceBase {
       const url = providerUrls[this.device.provider]
       await this.debugSuccessLog(`url: ${JSON.stringify(url)}`)
       if (url) {
-        // Add timeout and better request options for improved reliability
-        const requestOptions = {
-          timeout: 10000, // 10 second timeout
-          headers: {
-            'User-Agent': `homebridge-air/${this.platform.version || 'unknown'}`,
-          },
-        }
-
-        const { body, statusCode } = await request(url, requestOptions)
+        const { body, statusCode } = await request(url, {
+          headersTimeout: 30000, // 30 seconds for headers
+          bodyTimeout: 30000, // 30 seconds for body
+        })
         const response = await body.json()
         await this.debugWarnLog(`statusCode: ${JSON.stringify(statusCode)}`)
         await this.debugLog(`response: ${JSON.stringify(response)}`)

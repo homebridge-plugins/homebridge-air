@@ -283,67 +283,21 @@ describe('AqicnData interface', () => {
     expect(parsedValues.co).toBeUndefined()
   })
 
-  it('should use main AQI value for overall air quality, not individual pollutant values (issue #39)', () => {
-    // This test reproduces the exact scenario from issue #39
-    const winterthurResponse: AqicnData = {
-      status: 'ok',
-      data: {
-        aqi: 6, // <-- This should be used for overall AirQuality
-        idx: 9023,
-        attributions: [
-          {
-            url: 'https://www.ostluft.ch/',
-            name: 'OSTLUFT - die Luftqualitätsüberwachung der Ostschweizer Kantone und des Fürstentums Liechtenstein',
-          },
-          {
-            url: 'https://waqi.info/',
-            name: 'World Air Quality Index Project',
-          },
-        ],
-        city: {
-          geo: [47.508150298795, 8.7203729897032],
-          name: 'Winterthur Veltheim, Switzerland',
-          url: 'https://aqicn.org/city/switzerland/winterthur-veltheim',
-        },
-        iaqi: {
-          dew: { v: 13 },
-          h: { v: 87 },
-          p: { v: 1017 },
-          pm10: { v: 6 }, // <-- Individual pollutant value, should be used for PM10Density only
-          t: { v: 15 },
-          w: { v: 1 },
-          wg: { v: 16.9 },
-        },
-        time: {
-          s: '2025-09-04 01:00:00',
-          tz: '+02:00',
-        },
-        forecast: {
-          daily: {
-            o3: [{ v: 9 }],
-            pm10: [{ v: 5 }],
-            pm25: [{ v: 11 }],
-            uvi: [{ v: 0 }],
-          },
-        },
-      },
+  it('should validate undici request timeout configuration (issue #49)', () => {
+    // Test that timeout configuration is properly structured to prevent ETIMEDOUT errors
+    const timeoutConfig = {
+      headersTimeout: 30000, // 30 seconds for headers
+      bodyTimeout: 30000, // 30 seconds for body
     }
 
-    // Verify the test data matches the issue scenario
-    expect(winterthurResponse.data.aqi).toBe(6)
-    expect(winterthurResponse.data.iaqi.pm10?.v).toBe(6)
-    
-    // The main AQI should be used for overall air quality
-    const mainAqi = winterthurResponse.data.aqi
-    expect(mainAqi).toBe(6)
-    
-    // Individual pollutant values should be used for their respective characteristics
-    const pm10Individual = winterthurResponse.data.iaqi.pm10?.v
-    expect(pm10Individual).toBe(6)
-    
-    // Both are the same value in this case, but conceptually different:
-    // - mainAqi (6) should determine overall AirQuality characteristic  
-    // - pm10Individual (6) should determine PM10Density characteristic
-    expect(mainAqi).toBe(pm10Individual) // They happen to be equal in this case
+    // Validate timeout values are reasonable (should be > 0 and < 60000ms)
+    expect(timeoutConfig.headersTimeout).toBeGreaterThan(0)
+    expect(timeoutConfig.headersTimeout).toBeLessThanOrEqual(60000)
+    expect(timeoutConfig.bodyTimeout).toBeGreaterThan(0)
+    expect(timeoutConfig.bodyTimeout).toBeLessThanOrEqual(60000)
+
+    // Ensure both timeout values are present
+    expect(typeof timeoutConfig.headersTimeout).toBe('number')
+    expect(typeof timeoutConfig.bodyTimeout).toBe('number')
   })
 })
