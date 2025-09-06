@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": [
+      "DOM",
+      "ES2020"
+    ],
+    "rootDir": "src/homebridge-ui/public/ts",
+    "module": "ES2020", 
+    "moduleResolution": "node",
+    "strict": true,
+    "noImplicitAny": false,
+    "declaration": false,
+    "outDir": "dist/homebridge-ui/public/js",
+    "sourceMap": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "src/homebridge-ui/public/ts/**/*"
+  ],
+  "exclude": [
+    "**/*.spec.ts",
+    "**/*.test.ts"
+  ]
+}
