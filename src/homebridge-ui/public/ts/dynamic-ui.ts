@@ -635,3 +635,6 @@ class DynamicAirUI {
     homebridge.toast.error(message, 'Error');
   }
 }
+
+// Attach to global scope for browser compatibility
+(globalThis as any).DynamicAirUI = DynamicAirUI;
