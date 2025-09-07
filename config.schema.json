@@ -55,6 +55,7 @@
               "title": "City",
               "type": "string",
               "required": false,
+              "description": "For AirNow: city name. For AQICN: city name, or full URL path like '/city/country/cityname', '/station/@stationid', or '/station/station-name/locale'",
               "condition": {
                 "functionBody": "return (model.devices && model.devices[arrayIndices].apiKey);"
               }

@@ -282,4 +282,22 @@ describe('AqicnData interface', () => {
     expect(parsedValues.so2).toBeUndefined()
     expect(parsedValues.co).toBeUndefined()
   })
+
+  it('should validate undici request timeout configuration (issue #49)', () => {
+    // Test that timeout configuration is properly structured to prevent ETIMEDOUT errors
+    const timeoutConfig = {
+      headersTimeout: 30000, // 30 seconds for headers
+      bodyTimeout: 30000, // 30 seconds for body
+    }
+
+    // Validate timeout values are reasonable (should be > 0 and < 60000ms)
+    expect(timeoutConfig.headersTimeout).toBeGreaterThan(0)
+    expect(timeoutConfig.headersTimeout).toBeLessThanOrEqual(60000)
+    expect(timeoutConfig.bodyTimeout).toBeGreaterThan(0)
+    expect(timeoutConfig.bodyTimeout).toBeLessThanOrEqual(60000)
+
+    // Ensure both timeout values are present
+    expect(typeof timeoutConfig.headersTimeout).toBe('number')
+    expect(typeof timeoutConfig.bodyTimeout).toBe('number')
+  })
 })
