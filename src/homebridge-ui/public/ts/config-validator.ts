@@ -336,3 +336,6 @@ class ConfigValidator {
     };
   }
 }
+
+// Attach to global scope for browser compatibility
+(globalThis as any).ConfigValidator = ConfigValidator;

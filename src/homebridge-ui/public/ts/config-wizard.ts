@@ -953,3 +953,6 @@ class ConfigWizard {
     }
   }
 }
+
+// Attach to global scope for browser compatibility
+(globalThis as any).ConfigWizard = ConfigWizard;
