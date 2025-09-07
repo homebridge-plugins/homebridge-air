@@ -10,7 +10,7 @@
 <a href="https://paypal.me/donavanbecker"><img title="donate" src="https://badgen.net/badge/donate/paypal/yellow" ></a>
 
 <p>The Homebridge <a href="https://www.airnow.gov/">Air</a>
-plugin allows you monitor the current AirQuality for your Zip Code from HomeKit and Siri.
+plugin allows you to monitor the current AirQuality for your location from HomeKit and Siri.
 </p>
 
 </span>
@@ -32,7 +32,7 @@ plugin allows you monitor the current AirQuality for your Zip Code from HomeKit 
 
 2. Select your Provider: AirNow or Apicn
 3. Enter your AirNow.gov or Aqicn API Key
-4. Enter your City and Latitude / Longitude (4 decimal places is sufficient). Note that City may be ambiguous, so you should always enter Latitude and Longitude for location accuracy
+4. Enter your City (or Station Id for Aqicn, see below) and Latitude / Longitude (4 decimal places is sufficient). Note that City may be ambiguous, so you should always enter Latitude and Longitude for location accuracy. Aqicn supports Station Ids, see section below
 5. Click Save
 6. Restart Homebridge
 
@@ -44,6 +44,19 @@ Currently supports AQI Services:
 - [Aqicn](https://www.aqicn.org/) which has international support, provided by the [World Air Quality Index Project](http://waqi.info/).
 
 Depending on where exactly you would like to monitor AQI, one service may be more appropriate than the other.
+
+## Supported Aqicn City Syntax for Station Ids
+
+Aqicn has weather stations identified by city names or by station ids:
+
+1. Locate your desired weather station at https://aqicn.org/
+2. Click on the weather station and note the url
+3. If the weather station has a name in the url, use the name in the City field
+Example url: https://aqicn.org/station/switzerland/winterthur-veltheim/
+City name to use: winterthur-veltheim
+4. If the weather station has an id prefixed with @ in the url, use the id in the City field. For many private stations, you must also replace the @ with an A
+Example url: https://aqicn.org/station/@92323/
+City name to use: A92323
 
 ## Supported Air Quality Features
 
