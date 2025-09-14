@@ -60,6 +60,13 @@ We welcome contributions! Please note our **beta branch strategy**:
 
 For GitHub Copilot users, please review our [Copilot Instructions](./.github/copilot-instructions.md).
 
+### Version Conflict Tools
+
+If you encounter NPM version conflicts during releases:
+- **Check conflicts**: `./scripts/check-version-conflict.sh`
+- **Auto-fix beta versions**: `./scripts/fix-beta-version.sh`
+- **See troubleshooting**: `WORKFLOW_FIX.md` and `SOLUTION_SUMMARY.md`
+
 ## Thanks
 
 Thank you to [ToddGreenfield](https://github.com/ToddGreenfield) for the the work done on the accesorry based plugin [homebridge-airnow](https://github.com/ToddGreenfield/homebridge-airnow/blob/master/README.md).
