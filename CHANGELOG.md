@@ -1,3 +1,5 @@
+# Changelog
+
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
 ## [1.0.5](https://github.com/homebridge-plugins/homebridge-air/releases/tag/v1.0.5) - (2025-09-03)
