@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## [1.0.6](https://github.com/homebridge-plugins/homebridge-air/releases/tag/v1.0.6) (2025-09-15)
+
+## What's Changed
+* v1.0.6  by @Donavan Becker in https://github.com/homebridge-plugins/homebridge-air/pull/59
+* v1.0.6 by @Donavan Becker in https://github.com/homebridge-plugins/homebridge-air/commit/c0d2f0f
+* Enable blank issues in issue template configuration by @Donavan Becker in https://github.com/homebridge-plugins/homebridge-air/commit/56f3f86
+
+**Full Changelog**: https://github.com/homebridge-plugins/homebridge-air/compare/v1.0.4...v1.0.6
+
 ## [1.0.5](https://github.com/homebridge-plugins/homebridge-air/releases/tag/v1.0.5) - (2025-09-03)
 
 ### What's Changed
