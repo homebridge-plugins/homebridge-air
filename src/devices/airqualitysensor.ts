@@ -41,7 +41,7 @@ export class AirQualitySensor extends deviceBase {
 
   // Simple caching to reduce API calls
   private lastRequestTime: number = 0
-  private lastResponseData: any = null
+  private lastResponseData: AirNowAirQualityDataArray | AqicnData['data'] | null = null
   private readonly cacheMaxAge: number = 60000 // 1 minute cache
 
   constructor(
