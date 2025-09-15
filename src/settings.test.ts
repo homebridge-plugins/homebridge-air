@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { AqicnUrl, HomeKitAQI } from './settings.js'
+import { AqicnUrl, HomeKitAQI, REQUEST_TIMEOUT_CONFIG } from './settings.js'
 
 describe('homeKitAQI', () => {
   it('should return 0 for undefined AQI', () => {
@@ -50,5 +50,26 @@ describe('URL construction for AQICN API (issue #49)', () => {
     
     expect(constructedUrl).toBe(expectedUrl)
     expect(constructedUrl).toMatch(/^https:\/\//)
+  })
+})
+
+describe('REQUEST_TIMEOUT_CONFIG constants', () => {
+  it('should have properly defined timeout constants', () => {
+    expect(REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT).toBe(30000)
+    expect(REQUEST_TIMEOUT_CONFIG.MAX_RETRY_TIMEOUT).toBe(30000)
+    expect(REQUEST_TIMEOUT_CONFIG.MIN_RETRY_TIMEOUT).toBe(500)
+    expect(REQUEST_TIMEOUT_CONFIG.IDLE_TIMEOUT).toBe(4000)
+  })
+
+  it('should have timeout values that make logical sense', () => {
+    // Default timeout should be reasonable (30 seconds)
+    expect(REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT).toBeGreaterThan(0)
+    expect(REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT).toBeLessThanOrEqual(60000) // No more than 1 minute
+    
+    // Min retry timeout should be less than max retry timeout
+    expect(REQUEST_TIMEOUT_CONFIG.MIN_RETRY_TIMEOUT).toBeLessThan(REQUEST_TIMEOUT_CONFIG.MAX_RETRY_TIMEOUT)
+    
+    // Idle timeout should be shorter than default timeout
+    expect(REQUEST_TIMEOUT_CONFIG.IDLE_TIMEOUT).toBeLessThan(REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT)
   })
 })

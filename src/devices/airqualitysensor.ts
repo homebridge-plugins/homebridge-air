@@ -12,7 +12,7 @@ import { skipWhile } from 'rxjs/operators'
 import striptags from 'striptags'
 import { request } from 'undici'
 
-import { AirNowUrl, AqicnUrl, HomeKitAQI } from '../settings.js'
+import { AirNowUrl, AqicnUrl, HomeKitAQI, REQUEST_TIMEOUT_CONFIG } from '../settings.js'
 import { deviceBase } from './device.js'
 
 /**
@@ -206,8 +206,8 @@ export class AirQualitySensor extends deviceBase {
       await this.debugSuccessLog(`url: ${JSON.stringify(url)}`)
       if (url) {
         const { body, statusCode } = await request(url, {
-          headersTimeout: 30000, // 30 seconds for headers
-          bodyTimeout: 30000, // 30 seconds for body
+          headersTimeout: REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT,
+          bodyTimeout: REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT,
         })
         const response = await body.json()
         await this.debugWarnLog(`statusCode: ${JSON.stringify(statusCode)}`)
