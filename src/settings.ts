@@ -20,6 +20,20 @@ export const PLUGIN_NAME = '@homebridge-plugins/homebridge-air'
 export const AirNowUrl = 'https://www.airnowapi.org/aq/observation/'
 export const AqicnUrl = 'https://api.waqi.info/feed/'
 
+/**
+ * HTTP Request Timeout Configuration Constants (in milliseconds)
+ */
+export const REQUEST_TIMEOUT_CONFIG = {
+  /** Default timeout for HTTP requests - monitors time between receiving body data */
+  DEFAULT_TIMEOUT: 30000,
+  /** Maximum timeout between retries */
+  MAX_RETRY_TIMEOUT: 30000,
+  /** Initial timeout for the first retry attempt */
+  MIN_RETRY_TIMEOUT: 500,
+  /** Socket idle timeout - time after which inactive sockets timeout */
+  IDLE_TIMEOUT: 4000,
+} as const
+
 // Config
 export interface AirPlatformConfig extends PlatformConfig {
   name?: string
