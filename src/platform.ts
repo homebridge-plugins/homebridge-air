@@ -59,7 +59,13 @@ export class AirPlatform implements DynamicPlatformPlugin {
     this.getPlatformLogSettings()
     this.getPlatformRateSettings()
     this.getPlatformConfigSettings()
-    void this.getVersion()
+    void this.getVersion().catch((e: any) => {
+      if (this.errorLog) {
+        this.errorLog(`getVersion() failed: ${e?.message ?? e}`);
+      } else {
+        console.error(`getVersion() failed: ${e?.message ?? e}`);
+      }
+    })
 
     // Finish initializing the platform
     this.debugLog(`Finished initializing platform: ${config.name}`);
