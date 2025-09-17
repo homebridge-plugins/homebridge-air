@@ -95,6 +95,10 @@ export class AirQualitySensor extends deviceBase {
     try {
       const provider = this.device.provider
       const status = provider === 'airnow' ? this.deviceStatus[0] : this.deviceStatus
+
+      // Clear previous pollutant availability tracking at the start
+      this.availablePollutants.clear()
+
       if (provider === 'airnow' && !status) {
         this.errorLog('AirNow air quality Configuration Error - Invalid ZipCode for %s.', provider)
         this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
@@ -119,9 +123,6 @@ export class AirQualitySensor extends deviceBase {
         // Process individual pollutants for their specific density characteristics
         const pollutants = provider === 'airnow' ? ['O3', 'PM2.5', 'PM10'] : ['o3', 'no2', 'so2', 'pm25', 'pm10', 'co']
         let pollutantCount = 0
-
-        // Clear previous pollutant availability tracking
-        this.availablePollutants.clear()
 
         for (const pollutant of pollutants) {
           const param = provider === 'airnow' ? this.deviceStatus.find((p: { ParameterName: string }) => p.ParameterName === pollutant) : this.deviceStatus.iaqi[pollutant]?.v

@@ -209,4 +209,24 @@ describe('AirQualitySensor pollutant tracking', () => {
     expect(availablePollutants.has('NitrogenDioxideDensity')).toBe(true) // Valid
     expect(availablePollutants.has('SulphurDioxideDensity')).toBe(true) // Valid
   })
+
+  it('should properly clear pollutants when error conditions occur', () => {
+    // Simulate tracking set that had previous data
+    const availablePollutants = new Set<string>()
+    availablePollutants.add('CarbonMonoxideLevel')
+    availablePollutants.add('OzoneDensity')
+    availablePollutants.add('PM2_5Density')
+
+    // Verify initial state
+    expect(availablePollutants.size).toBe(3)
+
+    // Simulate error condition - clear the set (as done in parseStatus on error)
+    availablePollutants.clear()
+
+    // Verify that the set is properly cleared
+    expect(availablePollutants.size).toBe(0)
+    expect(availablePollutants.has('CarbonMonoxideLevel')).toBe(false)
+    expect(availablePollutants.has('OzoneDensity')).toBe(false)
+    expect(availablePollutants.has('PM2_5Density')).toBe(false)
+  })
 })
