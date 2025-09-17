@@ -35,6 +35,9 @@ export class AirQualitySensor extends deviceBase {
     StatusFault: CharacteristicValue
   }
 
+  // Track which pollutants have valid data to prevent unnecessary characteristic updates
+  private availablePollutants: Set<string> = new Set()
+
   // Updates
   SensorUpdateInProgress!: boolean
   deviceStatus: any
@@ -92,6 +95,10 @@ export class AirQualitySensor extends deviceBase {
     try {
       const provider = this.device.provider
       const status = provider === 'airnow' ? this.deviceStatus[0] : this.deviceStatus
+
+      // Clear previous pollutant availability tracking at the start
+      this.availablePollutants.clear()
+
       if (provider === 'airnow' && !status) {
         this.errorLog('AirNow air quality Configuration Error - Invalid ZipCode for %s.', provider)
         this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
@@ -116,6 +123,7 @@ export class AirQualitySensor extends deviceBase {
         // Process individual pollutants for their specific density characteristics
         const pollutants = provider === 'airnow' ? ['O3', 'PM2.5', 'PM10'] : ['o3', 'no2', 'so2', 'pm25', 'pm10', 'co']
         let pollutantCount = 0
+
         for (const pollutant of pollutants) {
           const param = provider === 'airnow' ? this.deviceStatus.find((p: { ParameterName: string }) => p.ParameterName === pollutant) : this.deviceStatus.iaqi[pollutant]?.v
           if (param !== undefined) {
@@ -126,22 +134,28 @@ export class AirQualitySensor extends deviceBase {
               switch (pollutant.toLowerCase()) {
                 case 'o3':
                   this.AirQualitySensor.OzoneDensity = aqi
+                  this.availablePollutants.add('OzoneDensity')
                   break
                 case 'pm2.5':
                 case 'pm25': // Handle both formats
                   this.AirQualitySensor.PM2_5Density = aqi
+                  this.availablePollutants.add('PM2_5Density')
                   break
                 case 'pm10':
                   this.AirQualitySensor.PM10Density = aqi
+                  this.availablePollutants.add('PM10Density')
                   break
                 case 'no2':
                   this.AirQualitySensor.NitrogenDioxideDensity = aqi
+                  this.availablePollutants.add('NitrogenDioxideDensity')
                   break
                 case 'so2':
                   this.AirQualitySensor.SulphurDioxideDensity = aqi
+                  this.availablePollutants.add('SulphurDioxideDensity')
                   break
                 case 'co':
                   this.AirQualitySensor.CarbonMonoxideLevel = aqi
+                  this.availablePollutants.add('CarbonMonoxideLevel')
                   break
               }
               // For AirNow, set main AirQuality based on individual pollutant values (existing behavior)
@@ -298,21 +312,32 @@ export class AirQualitySensor extends deviceBase {
    * Updates the status for each of the HomeKit Characteristics
    */
   async updateHomeKitCharacteristics(): Promise<void> {
-    // AirQuality
+    // AirQuality (always available)
     await this.updateCharacteristic(this.AirQualitySensor.Service, this.hap.Characteristic.AirQuality, this.AirQualitySensor.AirQuality, 'AirQuality')
-    // OzoneDensity
-    await this.updateCharacteristic(this.AirQualitySensor.Service, this.hap.Characteristic.OzoneDensity, this.AirQualitySensor.OzoneDensity, 'OzoneDensity')
-    // NitrogenDioxideDensity
-    await this.updateCharacteristic(this.AirQualitySensor.Service, this.hap.Characteristic.NitrogenDioxideDensity, this.AirQualitySensor.NitrogenDioxideDensity, 'NitrogenDioxideDensity')
-    // SulphurDioxideDensity
-    await this.updateCharacteristic(this.AirQualitySensor.Service, this.hap.Characteristic.SulphurDioxideDensity, this.AirQualitySensor.SulphurDioxideDensity, 'SulphurDioxideDensity')
-    // PM2_5Density
-    await this.updateCharacteristic(this.AirQualitySensor.Service, this.hap.Characteristic.PM2_5Density, this.AirQualitySensor.PM2_5Density, 'PM2_5Density')
-    // PM10Density
-    await this.updateCharacteristic(this.AirQualitySensor.Service, this.hap.Characteristic.PM10Density, this.AirQualitySensor.PM10Density, 'PM10Density')
-    // CarbonMonoxideLevel
-    await this.updateCharacteristic(this.AirQualitySensor.Service, this.hap.Characteristic.CarbonMonoxideLevel, this.AirQualitySensor.CarbonMonoxideLevel, 'CarbonMonoxideLevel')
-    // StatusFault
+
+    // Only update characteristics for pollutants that have data available
+    if (this.availablePollutants.has('OzoneDensity')) {
+      await this.updateCharacteristic(this.AirQualitySensor.Service, this.hap.Characteristic.OzoneDensity, this.AirQualitySensor.OzoneDensity, 'OzoneDensity')
+    }
+    if (this.availablePollutants.has('NitrogenDioxideDensity')) {
+      await this.updateCharacteristic(this.AirQualitySensor.Service, this.hap.Characteristic.NitrogenDioxideDensity, this.AirQualitySensor.NitrogenDioxideDensity, 'NitrogenDioxideDensity')
+    }
+    if (this.availablePollutants.has('SulphurDioxideDensity')) {
+      await this.updateCharacteristic(this.AirQualitySensor.Service, this.hap.Characteristic.SulphurDioxideDensity, this.AirQualitySensor.SulphurDioxideDensity, 'SulphurDioxideDensity')
+    }
+    if (this.availablePollutants.has('PM2_5Density')) {
+      await this.updateCharacteristic(this.AirQualitySensor.Service, this.hap.Characteristic.PM2_5Density, this.AirQualitySensor.PM2_5Density, 'PM2_5Density')
+    }
+    if (this.availablePollutants.has('PM10Density')) {
+      await this.updateCharacteristic(this.AirQualitySensor.Service, this.hap.Characteristic.PM10Density, this.AirQualitySensor.PM10Density, 'PM10Density')
+    }
+
+    // Only update CarbonMonoxideLevel if CO data is available
+    if (this.availablePollutants.has('CarbonMonoxideLevel')) {
+      await this.updateCharacteristic(this.AirQualitySensor.Service, this.hap.Characteristic.CarbonMonoxideLevel, this.AirQualitySensor.CarbonMonoxideLevel, 'CarbonMonoxideLevel')
+    }
+
+    // StatusFault (always available)
     await this.updateCharacteristic(this.AirQualitySensor.Service, this.hap.Characteristic.StatusFault, this.AirQualitySensor.StatusFault, 'StatusFault')
   }
 
