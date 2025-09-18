@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { AirPlatform } from './platform.js'
+import { AirPlatform } from '../platform.js'
 
 // Mock the dependencies
 const mockLog = {
@@ -30,7 +30,7 @@ const mockConfig = {
   },
 }
 
-describe('AirPlatform validateAndCleanDisplayName', () => {
+describe('airPlatform validateAndCleanDisplayName', () => {
   let platform: AirPlatform
 
   beforeEach(() => {
@@ -43,7 +43,7 @@ describe('AirPlatform validateAndCleanDisplayName', () => {
     const result = await platform.validateAndCleanDisplayName('Update/Restart Failure', 'city', 'Update/Restart Failure')
     expect(result).toBe('UpdateRestart Failure')
     expect(mockLog.warn).toHaveBeenCalledWith(
-      expect.stringContaining("WARNING: The accessory 'Update/Restart Failure' has an invalid 'city' characteristic ('Update/Restart Failure')")
+      expect.stringContaining('WARNING: The accessory \'Update/Restart Failure\' has an invalid \'city\' characteristic (\'Update/Restart Failure\')'),
     )
   })
 
@@ -114,7 +114,7 @@ describe('AirPlatform validateAndCleanDisplayName', () => {
   })
 })
 
-describe('AirPlatform generateAqicnDisplayName', () => {
+describe('airPlatform generateAqicnDisplayName', () => {
   let platform: AirPlatform
 
   beforeEach(() => {

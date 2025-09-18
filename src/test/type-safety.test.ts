@@ -1,8 +1,8 @@
+import type { AqicnData } from '../settings.js'
+
 import { describe, expect, it } from 'vitest'
 
-import type { AqicnData } from './settings.js'
-
-describe('AqicnData interface type safety improvement', () => {
+describe('aqicnData interface type safety improvement', () => {
   it('should allow known weather properties with proper typing', () => {
     const mockAqicnResponseWithWeather: AqicnData = {
       status: 'ok',

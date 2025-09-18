@@ -1,8 +1,8 @@
+import type { AqicnData } from '../settings.js'
+
 import { describe, expect, it } from 'vitest'
 
-import type { AqicnData } from './settings.js'
-
-describe('AqicnData interface', () => {
+describe('aqicnData interface', () => {
   it('should handle valid AQICN response with all pollutants', () => {
     const mockAqicnResponse: AqicnData = {
       status: 'ok',
@@ -187,17 +187,17 @@ describe('AqicnData interface', () => {
     expect(mockDeviceStatus.aqi).toBe(85)
     expect(mockDeviceStatus.iaqi.pm25?.v).toBe(45)
     expect(mockDeviceStatus.iaqi.o3?.v).toBe(35)
-    
+
     // This should NOT be accessed as array (this was the bug)
     expect(Array.isArray(mockDeviceStatus)).toBe(false)
-    
+
     // Verify accessing as array would fail (demonstrating the original bug)
     expect(() => {
       // Testing incorrect array access that was causing the original issue
       const wrongAccess = (mockDeviceStatus as any)[0]
       return wrongAccess
     }).not.toThrow() // The access returns undefined, doesn't throw
-    
+
     // Testing incorrect array access
     expect((mockDeviceStatus as any)[0]).toBeUndefined()
   })
@@ -254,12 +254,12 @@ describe('AqicnData interface', () => {
     expect(realWorldResponse.status).toBe('ok')
     expect(realWorldResponse.data.aqi).toBe(4)
     expect(realWorldResponse.data.iaqi.pm10?.v).toBe(4)
-    
+
     // Verify weather data is present but should be ignored during pollutant parsing
     expect(realWorldResponse.data.iaqi.dew?.v).toBe(12)
     expect(realWorldResponse.data.iaqi.h?.v).toBe(82)
     expect(realWorldResponse.data.iaqi.p?.v).toBe(1016)
-    
+
     // Test that pollutant parsing logic works with this structure
     const pollutants = ['o3', 'no2', 'so2', 'pm25', 'pm10', 'co']
     const parsedValues: Record<string, number | undefined> = {}

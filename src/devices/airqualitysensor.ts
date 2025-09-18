@@ -42,10 +42,13 @@ export class AirQualitySensor extends deviceBase {
   SensorUpdateInProgress!: boolean
   deviceStatus: any
 
-  // Simple caching to reduce API calls
+  // Caching to follow AirNow best practices - observations update hourly
+  // Cache for 10 minutes minimum (AirNow updates between 10-30 min past the hour)
   private lastRequestTime: number = 0
   private lastResponseData: AirNowAirQualityDataArray | AqicnData['data'] | null = null
-  private readonly cacheMaxAge: number = 60000 // 1 minute cache
+  private readonly cacheMaxAge: number = 600000 // 10 minutes cache (600 seconds)
+  private apiCallCount: number = 0
+  private apiCallResetTime: number = Date.now() + 3600000 // Reset hourly
 
   constructor(
     readonly platform: AirPlatform,
@@ -184,20 +187,89 @@ export class AirQualitySensor extends deviceBase {
   }
 
   /**
+   * Reverse geocode lat/long to get zip code using Nominatim (OpenStreetMap)
+   * This is used as a fallback when lat/long endpoint fails
+   */
+  async reverseGeocodeToZipCode(latitude: number, longitude: number): Promise<{ zipCode: string, city: string } | null> {
+    try {
+      await this.debugLog(`Attempting reverse geocoding for coordinates: ${latitude}, ${longitude}`)
+      const geocodeUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`
+
+      const { body, statusCode } = await request(geocodeUrl, {
+        headers: {
+          'User-Agent': 'homebridge-air/1.0',
+        },
+        headersTimeout: 10000,
+        bodyTimeout: 10000,
+      })
+
+      if (statusCode === 200) {
+        const responseText = await body.text()
+        const data = JSON.parse(responseText)
+
+        if (data.address) {
+          const zipCode = data.address.postcode
+          const city = data.address.city || data.address.town || data.address.village || data.address.county
+
+          if (zipCode && city) {
+            await this.infoLog(`Reverse geocoding successful: ${city}, ZIP ${zipCode}`)
+            return { zipCode, city }
+          }
+        }
+      }
+
+      await this.debugLog(`Reverse geocoding failed or incomplete data received`)
+      return null
+    } catch (error: any) {
+      await this.debugLog(`Reverse geocoding error: ${error.message}`)
+      return null
+    }
+  }
+
+  /**
    * Asks the Air API for the latest device information
    */
   async refreshStatus() {
     try {
-      // Check cache first to reduce API calls
+      // Check cache first to reduce API calls and follow AirNow best practices
       const currentTime = Date.now()
       if (this.lastResponseData && (currentTime - this.lastRequestTime) < this.cacheMaxAge) {
-        await this.debugLog(`Using cached response (age: ${currentTime - this.lastRequestTime}ms)`)
+        const cacheAge = Math.round((currentTime - this.lastRequestTime) / 1000)
+        await this.debugLog(`Using cached response (${cacheAge}s old, cache max: ${this.cacheMaxAge / 1000}s)`)
         this.deviceStatus = this.lastResponseData
         await this.parseStatus()
         await this.updateHomeKitCharacteristics()
         return
       }
 
+      // Reset API call counter every hour (rate limiting per AirNow guidelines)
+      if (currentTime > this.apiCallResetTime) {
+        await this.debugLog(`Resetting API call counter (made ${this.apiCallCount} calls last hour)`)
+        this.apiCallCount = 0
+        this.apiCallResetTime = currentTime + 3600000 // Next hour
+      }
+
+      // Check rate limit (conservative limit to avoid issues)
+      // AirNow recommends caching and limiting calls since observations update hourly
+      const maxCallsPerHour = 60 // Conservative limit
+      if (this.apiCallCount >= maxCallsPerHour) {
+        const timeUntilReset = Math.round((this.apiCallResetTime - currentTime) / 60000)
+        await this.warnLog(`API rate limit reached (${this.apiCallCount} calls). Using cached data. Resets in ${timeUntilReset} min`)
+        if (this.lastResponseData) {
+          this.deviceStatus = this.lastResponseData
+          await this.parseStatus()
+          await this.updateHomeKitCharacteristics()
+        }
+        return
+      }
+
+      // Increment API call counter
+      this.apiCallCount++
+      await this.debugLog(`API call ${this.apiCallCount}/${maxCallsPerHour} this hour`)
+
+      // Use correct AirNow API endpoint paths from official docs
+      // https://docs.airnowapi.org/CurrentObservationsByZip/docs
+      // https://docs.airnowapi.org/CurrentObservationsByLatLon/docs
       const AirNowCurrentObservationBy = this.device.latitude && this.device.longitude ? `latLong` : 'zipCode'
       // Support flexible AQICN URL patterns: geo coordinates, city names, and full URL paths
       let AqicnCurrentObservationBy: string
@@ -212,19 +284,138 @@ export class AirQualitySensor extends deviceBase {
         AqicnCurrentObservationBy = this.device.city || ''
       }
       const AirNowCurrentObservationByValue = this.device.latitude && this.device.longitude ? `latitude=${this.device.latitude}&longitude=${this.device.longitude}` : `zipCode=${this.device.zipCode}`
+      const distance = this.device.distance || '25' // Default distance of 25 miles if not specified
+      // Use correct format as per official AirNow API docs
       const providerUrls = {
-        airnow: `${AirNowUrl}${AirNowCurrentObservationBy}/current/?format=application/json&${AirNowCurrentObservationByValue}&distance=${this.device.distance}&API_KEY=${this.device.apiKey}`,
+        airnow: `${AirNowUrl}${AirNowCurrentObservationBy}/current/?format=application/json&${AirNowCurrentObservationByValue}&distance=${distance}&API_KEY=${this.device.apiKey}`,
         aqicn: `${AqicnUrl}${AqicnCurrentObservationBy}${AqicnCurrentObservationBy ? '/' : ''}?token=${this.device.apiKey}`,
       }
       const url = providerUrls[this.device.provider]
       await this.debugSuccessLog(`url: ${JSON.stringify(url)}`)
       if (url) {
-        const { body, statusCode } = await request(url, {
+        const { body, statusCode, headers } = await request(url, {
           headersTimeout: REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT,
           bodyTimeout: REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT,
         })
-        const response = await body.json()
-        await this.debugWarnLog(`statusCode: ${JSON.stringify(statusCode)}`)
+
+        let response: any
+        try {
+          const responseText = await body.text()
+          await this.debugLog(`Raw response (length: ${responseText.length}): ${responseText}`)
+          await this.debugWarnLog(`statusCode: ${JSON.stringify(statusCode)}`)
+
+          // Check for redirects (3xx status codes) - try fallback to zip code lookup
+          if (statusCode >= 300 && statusCode < 400) {
+            const location = headers.location
+            await this.warnLog(`API returned redirect (${statusCode}). Location: ${location || 'not provided'}`)
+
+            // If using lat/lon with AirNow, try reverse geocoding to get zip code as fallback
+            if (this.device.provider === 'airnow' && this.device.latitude && this.device.longitude) {
+              await this.infoLog(`Attempting reverse geocoding to find zip code as fallback...`)
+              const geoData = await this.reverseGeocodeToZipCode(this.device.latitude, this.device.longitude)
+
+              if (geoData?.zipCode) {
+                await this.infoLog(`Found zip code ${geoData.zipCode} for ${geoData.city}. Retrying with zip code...`)
+                // Temporarily update device config to use zip code
+                const originalZipCode = this.device.zipCode
+                this.device.zipCode = geoData.zipCode
+                this.device.city = geoData.city
+
+                // Build new URL with zip code
+                const fallbackUrl = `${AirNowUrl}ByZipCode/current/?format=application/json&zipCode=${geoData.zipCode}&distance=${distance}&API_KEY=${this.device.apiKey}`
+                await this.debugLog(`Fallback URL: ${fallbackUrl}`)
+
+                try {
+                  const fallbackResponse = await request(fallbackUrl, {
+                    headersTimeout: REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT,
+                    bodyTimeout: REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT,
+                  })
+
+                  const fallbackText = await fallbackResponse.body.text()
+                  if (fallbackResponse.statusCode === 200 && fallbackText && fallbackText.trim().length > 0) {
+                    response = JSON.parse(fallbackText)
+                    await this.successLog(`Fallback to zip code successful! Using ${geoData.city}, ${geoData.zipCode}`)
+                    // Process the successful response
+                    this.deviceStatus = response
+                    this.lastResponseData = response
+                    this.lastRequestTime = Date.now()
+                    await this.parseStatus()
+                    await this.updateHomeKitCharacteristics()
+                    return
+                  } else {
+                    await this.warnLog(`Fallback zip code lookup also failed (Status: ${fallbackResponse.statusCode})`)
+                  }
+                } catch (fallbackError: any) {
+                  await this.debugLog(`Fallback zip code request failed: ${fallbackError.message}`)
+                } finally {
+                  // Restore original zip code if we had one
+                  if (originalZipCode) {
+                    this.device.zipCode = originalZipCode
+                  }
+                }
+              } else {
+                await this.warnLog(`Could not determine zip code from coordinates`)
+              }
+            }
+
+            await this.errorLog(`The AirNow API endpoint may have changed or requires different parameters.`)
+            await this.debugLog(`Try using zipCode in your config, or check if your API key is valid.`)
+            this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
+            return
+          }
+
+          if (!responseText || responseText.trim().length === 0) {
+            // Try reverse geocoding fallback for empty responses too
+            if (this.device.provider === 'airnow' && this.device.latitude && this.device.longitude && !this.device.zipCode) {
+              await this.infoLog(`Empty response - attempting reverse geocoding fallback...`)
+              const geoData = await this.reverseGeocodeToZipCode(this.device.latitude, this.device.longitude)
+
+              if (geoData?.zipCode) {
+                await this.infoLog(`Found zip code ${geoData.zipCode}. Retrying with zip code...`)
+                this.device.zipCode = geoData.zipCode
+                this.device.city = geoData.city
+
+                const fallbackUrl = `${AirNowUrl}ByZipCode/current/?format=application/json&zipCode=${geoData.zipCode}&distance=${distance}&API_KEY=${this.device.apiKey}`
+
+                try {
+                  const fallbackResponse = await request(fallbackUrl, {
+                    headersTimeout: REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT,
+                    bodyTimeout: REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT,
+                  })
+
+                  const fallbackText = await fallbackResponse.body.text()
+                  if (fallbackResponse.statusCode === 200 && fallbackText && fallbackText.trim().length > 0) {
+                    response = JSON.parse(fallbackText)
+                    await this.successLog(`Fallback to zip code successful! Will use ${geoData.city}, ${geoData.zipCode} going forward`)
+                    this.deviceStatus = response
+                    this.lastResponseData = response
+                    this.lastRequestTime = Date.now()
+                    await this.parseStatus()
+                    await this.updateHomeKitCharacteristics()
+                    return
+                  }
+                } catch (fallbackError: any) {
+                  await this.debugLog(`Fallback zip code request failed: ${fallbackError.message}`)
+                }
+              }
+            }
+
+            await this.errorLog(`Empty response body received from ${this.device.provider} API (Status: ${statusCode})`)
+            await this.errorLog(`This usually means no air quality data is available for your location.`)
+            await this.errorLog(`Try adjusting the distance parameter or verify your coordinates are correct.`)
+            await this.debugLog(`Current settings - Lat: ${this.device.latitude}, Lon: ${this.device.longitude}, Distance: ${distance}`)
+            this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
+            return
+          }
+
+          response = JSON.parse(responseText)
+        } catch (parseError: any) {
+          await this.errorLog(`Failed to parse JSON response from ${this.device.provider} API: ${parseError.message}`)
+          await this.debugLog(`Parse error details: ${JSON.stringify({ code: parseError.code, name: parseError.name })}`)
+          this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
+          return
+        }
+
         await this.debugLog(`response: ${JSON.stringify(response)}`)
 
         if (statusCode !== 200) {
@@ -257,9 +448,10 @@ export class AirQualitySensor extends deviceBase {
               return
             }
             this.deviceStatus = aqicnResponse.data
-            // Cache the successful response
+            // Cache the successful response (following AirNow best practices for hourly updates)
             this.lastResponseData = aqicnResponse.data
             this.lastRequestTime = Date.now()
+            await this.debugLog(`Data cached. Will reuse for ${this.cacheMaxAge / 1000}s (AirNow updates hourly)`)
           } else {
             // Validate AirNow response structure
             const airnowResponse = response as AirNowAirQualityDataArray
@@ -269,8 +461,10 @@ export class AirQualitySensor extends deviceBase {
               return
             }
             this.deviceStatus = airnowResponse
-            // Cache the successful response
+            // Cache the successful response (following AirNow best practices for hourly updates)
             this.lastResponseData = airnowResponse
+            this.lastRequestTime = Date.now()
+            await this.debugLog(`Data cached. Will reuse for ${this.cacheMaxAge / 1000}s (AirNow updates hourly)`)
             this.lastRequestTime = Date.now()
           }
           await this.parseStatus()

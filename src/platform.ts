@@ -61,9 +61,9 @@ export class AirPlatform implements DynamicPlatformPlugin {
     this.getPlatformConfigSettings()
     void this.getVersion().catch((e: any) => {
       if (this.errorLog) {
-        this.errorLog(`getVersion() failed: ${e?.message ?? e}`);
+        this.errorLog(`getVersion() failed: ${e?.message ?? e}`)
       } else {
-        console.error(`getVersion() failed: ${e?.message ?? e}`);
+        console.error(`getVersion() failed: ${e?.message ?? e}`)
       }
     })
 
@@ -101,7 +101,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
    * It should be used to setup event handlers for characteristics and update respective values.
    */
   async configureAccessory(accessory: PlatformAccessory) {
-    await this.infoLog(`Loading accessory from cache: ${accessory.displayName}`)
+    await this.debugLog(`Loading accessory from cache: ${accessory.displayName} (UUID: ${accessory.UUID})`)
 
     // add the restored accessory to the accessories cache so we can track if it has already been registered
     this.accessories.push(accessory)
@@ -237,19 +237,20 @@ export class AirPlatform implements DynamicPlatformPlugin {
 
   async getPlatformLogSettings() {
     this.debugMode = argv.includes('-D') ?? argv.includes('--debug')
-    this.platformLogging = (this.config.options?.logging === 'debug' || this.config.options?.logging === 'standard'
-      || this.config.options?.logging === 'none')
-      ? this.config.options.logging
+    // Check both config.logging (root level) and config.options.logging for backward compatibility
+    const configLogging = this.config.logging || this.config.options?.logging
+    this.platformLogging = (configLogging === 'debug' || configLogging === 'standard' || configLogging === 'none')
+      ? configLogging
       : this.debugMode ? 'debugMode' : 'standard'
-    const logging = this.config.options?.logging ? 'Platform Config' : this.debugMode ? 'debugMode' : 'Default'
-    await this.debugLog(`Using ${logging} Logging: ${this.platformLogging}`)
+    const loggingSource = this.config.logging ? 'Platform Config (root)' : this.config.options?.logging ? 'Platform Config (options)' : this.debugMode ? 'debugMode' : 'Default'
+    await this.debugLog(`Using ${loggingSource} Logging: ${this.platformLogging}`)
   }
 
   async getPlatformRateSettings() {
-    // RefreshRate
-    this.platformRefreshRate = this.config.options?.refreshRate ? this.config.options.refreshRate : undefined
-    const refreshRate = this.config.options?.refreshRate ? 'Using Platform Config refreshRate' : 'Platform Config refreshRate Not Set'
-    await this.debugLog(`${refreshRate}: ${this.platformRefreshRate}`)
+    // RefreshRate - check both root level and options
+    this.platformRefreshRate = this.config.refreshRate ?? this.config.options?.refreshRate ?? undefined
+    const refreshRateSource = this.config.refreshRate ? 'Platform Config (root)' : this.config.options?.refreshRate ? 'Platform Config (options)' : 'Not Set'
+    await this.debugLog(`Using ${refreshRateSource} refreshRate: ${this.platformRefreshRate}`)
     // UpdateRate
     this.platformUpdateRate = this.config.options?.updateRate ? this.config.options.updateRate : undefined
     const updateRate = this.config.options?.updateRate ? 'Using Platform Config updateRate' : 'Platform Config updateRate Not Set'
@@ -303,27 +304,27 @@ export class AirPlatform implements DynamicPlatformPlugin {
       const stationId = city.replace('/station/@', '')
       return `Station ${stationId}`
     }
-    
+
     // Handle AQICN station name format: /station/station-name/locale -> Station Name Locale
     if (city.startsWith('/station/')) {
       const parts = city.replace('/station/', '').split('/')
-      return parts.map(part => 
-        part.split('-').map(word => 
-          word.charAt(0).toUpperCase() + word.slice(1)
-        ).join(' ')
+      return parts.map(part =>
+        part.split('-').map(word =>
+          word.charAt(0).toUpperCase() + word.slice(1),
+        ).join(' '),
       ).join(' ')
     }
-    
+
     // Handle AQICN city path format: /city/country/cityname -> Country Cityname
     if (city.startsWith('/city/')) {
       const parts = city.replace('/city/', '').split('/')
-      return parts.map(part => 
-        part.split('-').map(word => 
-          word.charAt(0).toUpperCase() + word.slice(1)
-        ).join(' ')
+      return parts.map(part =>
+        part.split('-').map(word =>
+          word.charAt(0).toUpperCase() + word.slice(1),
+        ).join(' '),
       ).join(' ')
     }
-    
+
     // For regular city names, return as-is
     return city
   }
