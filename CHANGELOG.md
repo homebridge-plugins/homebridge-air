@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file. This projec
 
 ## [1.0.8](https://github.com/homebridge-plugins/homebridge-air/compare/v1.0.7...v1.0.8) (2025-11-03)
 
+
+
+## [1.0.7](https://github.com/homebridge-plugins/homebridge-air/compare/v1.0.4...v1.0.7) (2025-09-17)
+
+
+
+## [1.0.4](https://github.com/homebridge-plugins/homebridge-air/compare/v1.0.3...v1.0.4) (2025-09-03)
+
+
+
+## [1.0.3](https://github.com/homebridge-plugins/homebridge-air/compare/v1.0.2...v1.0.3) (2025-09-02)
+
+
+
+## [1.0.2](https://github.com/homebridge-plugins/homebridge-air/compare/v1.0.0...v1.0.2) (2025-03-05)
+
+
+
+# 1.0.0 (2024-11-11)
+
+## [1.0.8](https://github.com/homebridge-plugins/homebridge-air/compare/v1.0.7...v1.0.8) (2025-11-03)
+
 ### What's Changed
 - **Bug Fix**: Fixed AirNow API endpoints to use correct paths (`latLong` and `zipCode`) per official documentation
 - **Feature**: Added "Save to Config" button on location lookup tab with duplicate prevention
