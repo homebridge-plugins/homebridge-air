@@ -32,10 +32,13 @@
     <input type="text" id="latitudeField" name="latitude">
     <button type="button" class="btn btn-outline-secondary btn-sm" id="copyLatitude">Copy</button>
   </div>
-  <div>
+  <div class="mb-3">
     <label for="longitudeField">Longitude:</label>
     <input type="text" id="longitudeField" name="longitude">
     <button type="button" class="btn btn-outline-secondary btn-sm" id="copyLongitude">Copy</button>
+  </div>
+  <div class="text-center">
+    <button type="button" class="btn btn-success" id="saveToConfig">Save to Config</button>
   </div>
 </div>
 <div id="pageDevices" class="mt-4" style="display: none">
@@ -264,6 +267,54 @@
           });
         });
 
+        document.getElementById('saveToConfig').addEventListener('click', async () => {
+          const latitude = document.getElementById('latitudeField').value;
+          const longitude = document.getElementById('longitudeField').value;
+
+          if (!latitude || !longitude) {
+            homebridge.toast.error('Please enter or fetch both latitude and longitude before saving.', 'Error');
+            return;
+          }
+
+          try {
+            homebridge.showSpinner();
+            const config = await homebridge.getPluginConfig();
+            
+            // Initialize devices array if it doesn't exist
+            if (!config[0].devices) {
+              config[0].devices = [];
+            }
+
+            // Check if a device with these exact coordinates already exists
+            const existingDevice = config[0].devices.find(device => 
+              device.latitude === latitude && device.longitude === longitude
+            );
+
+            if (existingDevice) {
+              homebridge.toast.warning('A device with these coordinates already exists in the config.', 'Warning');
+              homebridge.hideSpinner();
+              return;
+            }
+
+            // Add a new device to the array
+            config[0].devices.push({
+              provider: 'airnow',
+              apiKey: '',
+              latitude: latitude,
+              longitude: longitude
+            });
+
+            await homebridge.updatePluginConfig(config);
+            await homebridge.savePluginConfig();
+            homebridge.toast.success('Location added to config successfully!', 'Success');
+          } catch (error) {
+            console.error('Error saving to config:', error);
+            homebridge.toast.error('Error saving to config: ' + error.message, 'Error');
+          } finally {
+            homebridge.hideSpinner();
+          }
+        });
+
         homebridge.showSpinner();
         homebridge.hideSchemaForm();
         document.getElementById('menuHome').classList.remove('btn-elegant');
@@ -278,9 +329,7 @@
         document.getElementById('pageSupport').style.display = 'none';
         document.getElementById('pageDevices').style.display = 'none';
         homebridge.hideSpinner();
-      };
-
-      document.getElementById('menuLocation').addEventListener('click', showLocation);
+      };      document.getElementById('menuLocation').addEventListener('click', showLocation);
 
       const showSettings = () => {
         homebridge.showSpinner();
@@ -320,7 +369,12 @@
 
       if (currentConfig.length) {
         document.getElementById('menuWrapper').style.display = 'inline-flex';
-        showLocation(); // Set Location as the default tab
+        // Show Location tab if no devices configured, otherwise show Settings tab
+        if (!currentConfig[0].devices || currentConfig[0].devices.length === 0) {
+          showLocation();
+        } else {
+          showSettings();
+        }
         if (currentConfig[0].disablePlugin) {
           showDisabledBanner();
         }

@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import { AqicnUrl, AirNowUrl } from './settings.js'
+import { AirNowUrl, AqicnUrl } from '../settings.js'
 
-describe('API Performance and Security Improvements', () => {
+describe('aPI Performance and Security Improvements', () => {
   it('should use HTTPS for both API endpoints for security', () => {
     // Verify both APIs use HTTPS for secure connections
     expect(AirNowUrl).toMatch(/^https:\/\//)
     expect(AqicnUrl).toMatch(/^https:\/\//)
-    
+
     // Verify specific URLs match expected endpoints
     expect(AirNowUrl).toBe('https://www.airnowapi.org/aq/observation/')
     expect(AqicnUrl).toBe('https://api.waqi.info/feed/')
@@ -17,7 +17,7 @@ describe('API Performance and Security Improvements', () => {
     // AirNow URL should include the observation endpoint
     expect(AirNowUrl).toContain('airnowapi.org')
     expect(AirNowUrl).toContain('/aq/observation/')
-    
+
     // AQICN URL should include the feed endpoint
     expect(AqicnUrl).toContain('api.waqi.info')
     expect(AqicnUrl).toContain('/feed/')
@@ -41,11 +41,11 @@ describe('API Performance and Security Improvements', () => {
     // Test error handling for different network error scenarios
     const timeoutErrors = ['UND_ERR_CONNECT_TIMEOUT', 'ETIMEDOUT']
     const networkErrors = ['ENOTFOUND', 'ECONNREFUSED']
-    
+
     // Verify timeout errors are recognized
     expect(timeoutErrors.includes('UND_ERR_CONNECT_TIMEOUT')).toBe(true)
     expect(timeoutErrors.includes('ETIMEDOUT')).toBe(true)
-    
+
     // Verify network errors are recognized
     expect(networkErrors.includes('ENOTFOUND')).toBe(true)
     expect(networkErrors.includes('ECONNREFUSED')).toBe(true)
@@ -58,23 +58,23 @@ describe('API Performance and Security Improvements', () => {
       data: {
         aqi: 50,
         iaqi: {
-          pm25: { v: 45 }
-        }
-      }
+          pm25: { v: 45 },
+        },
+      },
     }
-    
+
     expect(validAqicnResponse.status).toBe('ok')
     expect(validAqicnResponse.data.aqi).toBeDefined()
     expect(typeof validAqicnResponse.data.aqi).toBe('number')
-    
+
     // Test AirNow response validation requirements
     const validAirNowResponse = [
       {
         ParameterName: 'PM2.5',
-        AQI: 45
-      }
+        AQI: 45,
+      },
     ]
-    
+
     expect(Array.isArray(validAirNowResponse)).toBe(true)
     expect(validAirNowResponse.length).toBeGreaterThan(0)
     expect(validAirNowResponse[0].ParameterName).toBeDefined()
@@ -83,7 +83,7 @@ describe('API Performance and Security Improvements', () => {
 
   it('should validate user agent format for API requests', () => {
     const userAgent = 'homebridge-air/1.0.5'
-    
+
     expect(userAgent).toMatch(/^homebridge-air\/\d+\.\d+\.\d+$/)
     expect(userAgent).toContain('homebridge-air')
     expect(userAgent).toContain('1.0.5')

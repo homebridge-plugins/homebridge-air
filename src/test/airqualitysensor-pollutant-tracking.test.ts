@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-describe('AirQualitySensor pollutant tracking', () => {
+describe('airQualitySensor pollutant tracking', () => {
   it('should track available pollutants correctly when CO data is present', () => {
     // Mock AQICN response with CO data
     const mockDeviceStatus = {

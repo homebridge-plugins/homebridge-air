@@ -2,9 +2,9 @@ import type { API } from 'homebridge'
 
 import { describe, expect, it, vi } from 'vitest'
 
-import registerPlatform from './index.js'
-import { AirPlatform } from './platform.js'
-import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js'
+import registerPlatform from '../index.js'
+import { AirPlatform } from '../platform.js'
+import { PLATFORM_NAME, PLUGIN_NAME } from '../settings.js'
 
 describe('registerPlatform', () => {
   it('should register the platform with homebridge', () => {
