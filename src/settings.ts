@@ -64,6 +64,8 @@ export interface options {
   updateRate?: number
   pushRate?: number
   logging?: string
+  enableMatter?: boolean
+  preferMatter?: boolean
 }
 
 interface Category {
