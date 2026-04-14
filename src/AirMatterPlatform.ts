@@ -68,7 +68,7 @@ export class AirMatterPlatform extends AirPlatform {
    */
   async configureAccessory(accessory: PlatformAccessory): Promise<void> {
     await this.debugLog(`Unregistering stale HAP accessory (Matter mode active): ${accessory.displayName}`)
-    this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory])
+    await Promise.resolve(this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]))
   }
 
   /**
