@@ -2,12 +2,13 @@
  *
  * AirMatterPlatform.ts: @homebridge-plugins/homebridge-air.
  */
-import type { API, Logging, MatterAccessory, SerializedMatterAccessory } from 'homebridge'
+import type { API, Logging, MatterAccessory, PlatformAccessory, SerializedMatterAccessory } from 'homebridge'
 
 import type { AirPlatformConfig, devicesConfig } from './settings.js'
 
 import { devices } from 'homebridge'
 
+import { AirQualitySensorMatter } from './devices/airqualitysensormatter.js'
 import { AirPlatform } from './platform.js'
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js'
 
@@ -59,6 +60,18 @@ export class AirMatterPlatform extends AirPlatform {
   }
 
   /**
+   * Override configureAccessory to unregister any previously cached HAP accessories.
+   *
+   * When a user switches from HAP to Matter mode, Homebridge will restore cached
+   * HAP accessories on startup. In Matter mode these stale HAP accessories must be
+   * removed so they do not accumulate untracked in the Homebridge accessory cache.
+   */
+  async configureAccessory(accessory: PlatformAccessory): Promise<void> {
+    await this.debugLog(`Unregistering stale HAP accessory (Matter mode active): ${accessory.displayName}`)
+    this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory])
+  }
+
+  /**
    * Called when Homebridge restores cached Matter accessories from disk at startup.
    */
   configureMatterAccessory(accessory: SerializedMatterAccessory): void {
@@ -94,18 +107,27 @@ export class AirMatterPlatform extends AirPlatform {
   }
 
   /**
-   * Register or restore a single Air Quality device as a Matter accessory.
+   * Register or restore a single Air Quality device as a Matter accessory and
+   * start its polling loop.
    */
   public async createMatterAirQualitySensor(device: devicesConfig): Promise<void> {
-    if (device.hide_device) {
-      await this.debugLog(`Skipping hidden device: ${device.city}`)
-      return
-    }
-
     const uuidString = (device.latitude && device.longitude)
       ? (`${device.latitude}` + `${device.longitude}` + `${device.provider}`)
       : (`${device.zipCode}` + `${device.city}` + `${device.provider}`)
     const uuid = this.api.hap.uuid.generate(uuidString)
+
+    // Handle hide_device: remove any existing Matter accessory then bail out.
+    if (device.hide_device) {
+      const existingAccessory = this.matterAccessories.get(uuid)
+      if (existingAccessory) {
+        await this.warnLog(`Removing Matter accessory for hidden device: ${existingAccessory.displayName}`)
+        await this.api.matter.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [existingAccessory])
+        this.matterAccessories.delete(uuid)
+      } else {
+        await this.debugLog(`Skipping hidden device (no cached Matter accessory): ${device.city}`)
+      }
+      return
+    }
 
     const displayName = await this.validateAndCleanDisplayName(
       device.city ?? 'Unknown',
@@ -157,6 +179,9 @@ export class AirMatterPlatform extends AirPlatform {
       await this.api.matter.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory])
       await this.debugLog(`${device.city} uuid: ${uuidString}`)
     }
+
+    // Start polling loop: fetch AQI from the provider API and push to Matter state.
+    new AirQualitySensorMatter(this, device, uuid)
   }
 
   /**
