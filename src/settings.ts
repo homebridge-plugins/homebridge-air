@@ -32,6 +32,22 @@ export const REQUEST_TIMEOUT_CONFIG = {
   MIN_RETRY_TIMEOUT: 500,
   /** Socket idle timeout - time after which inactive sockets timeout */
   IDLE_TIMEOUT: 4000,
+  /** Timeout used for reverse geocoding lookup requests */
+  GEOCODE_TIMEOUT: 10000,
+  /** Timeout used by Node family auto-selection attempt before fallback */
+  AUTO_SELECT_FAMILY_ATTEMPT_TIMEOUT: 250,
+} as const
+
+/**
+ * Request throttling and cache constants used by both HAP and Matter polling paths.
+ */
+export const REQUEST_RATE_LIMIT_CONFIG = {
+  /** Cache successful API responses for 10 minutes. */
+  CACHE_MAX_AGE: 600000,
+  /** Track call counts in 1 hour windows. */
+  CALL_WINDOW_MS: 3600000,
+  /** Conservative call cap to reduce provider throttling. */
+  MAX_CALLS_PER_WINDOW: 60,
 } as const
 
 // Config
@@ -87,6 +103,50 @@ interface AirNowAirQualityData {
 }
 
 export type AirNowAirQualityDataArray = AirNowAirQualityData[]
+
+/**
+ * Build the AQICN location segment for /feed/<segment> requests.
+ *
+ * Priority:
+ * 1) explicit station/city path (or full AQICN URL) from city field
+ * 2) geo:lat;lon when coordinates are provided
+ * 3) plain city value
+ */
+export function resolveAqicnLocationSegment(device: Pick<devicesConfig, 'city' | 'latitude' | 'longitude'>): string {
+  const rawCity = device.city?.trim()
+
+  if (rawCity) {
+    // Allow users to paste a full AQICN URL (issue #7)
+    if (rawCity.startsWith('http://') || rawCity.startsWith('https://')) {
+      try {
+        const parsed = new URL(rawCity)
+        const path = parsed.pathname.replace(/^\/+|\/+$/g, '')
+        if (path.startsWith('city/') || path.startsWith('station/')) {
+          return path
+        }
+      } catch {
+        // Fall through to other path/city handling.
+      }
+    }
+
+    const cityPath = rawCity.replace(/^\/+|\/+$/g, '')
+    const looksLikeExplicitPath = cityPath.startsWith('city/')
+      || cityPath.startsWith('station/')
+      || cityPath.includes('/city/')
+      || cityPath.includes('/station/')
+
+    // If the user supplied an explicit path, prefer it over geo coordinates.
+    if (looksLikeExplicitPath) {
+      return cityPath
+    }
+  }
+
+  if (device.latitude && device.longitude) {
+    return `geo:${device.latitude};${device.longitude}`
+  }
+
+  return rawCity || ''
+}
 
 export interface AqicnData {
   status: string

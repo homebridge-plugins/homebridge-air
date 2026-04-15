@@ -10,10 +10,32 @@ import type { AirNowAirQualityDataArray, AqicnData, devicesConfig } from '../set
 import { interval } from 'rxjs'
 import { skipWhile } from 'rxjs/operators'
 import striptags from 'striptags'
-import { request } from 'undici'
+import { Agent, request } from 'undici'
 
-import { AirNowUrl, AqicnUrl, HomeKitAQI, REQUEST_TIMEOUT_CONFIG } from '../settings.js'
+import {
+  AirNowUrl,
+  AqicnUrl,
+  HomeKitAQI,
+  REQUEST_RATE_LIMIT_CONFIG,
+  REQUEST_TIMEOUT_CONFIG,
+  resolveAqicnLocationSegment,
+} from '../settings.js'
 import { deviceBase } from './device.js'
+
+const defaultApiAgent = new Agent({
+  connect: {
+    timeout: REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT,
+    autoSelectFamily: true,
+    autoSelectFamilyAttemptTimeout: REQUEST_TIMEOUT_CONFIG.AUTO_SELECT_FAMILY_ATTEMPT_TIMEOUT,
+  },
+})
+
+const noFamilyAutoSelectAgent = new Agent({
+  connect: {
+    timeout: REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT,
+    autoSelectFamily: false,
+  },
+})
 
 /**
  * Platform Accessory
@@ -46,9 +68,9 @@ export class AirQualitySensor extends deviceBase {
   // Cache for 10 minutes minimum (AirNow updates between 10-30 min past the hour)
   private lastRequestTime: number = 0
   private lastResponseData: AirNowAirQualityDataArray | AqicnData['data'] | null = null
-  private readonly cacheMaxAge: number = 600000 // 10 minutes cache (600 seconds)
+  private readonly cacheMaxAge: number = REQUEST_RATE_LIMIT_CONFIG.CACHE_MAX_AGE
   private apiCallCount: number = 0
-  private apiCallResetTime: number = Date.now() + 3600000 // Reset hourly
+  private apiCallResetTime: number = Date.now() + REQUEST_RATE_LIMIT_CONFIG.CALL_WINDOW_MS
 
   constructor(
     readonly platform: AirPlatform,
@@ -199,8 +221,9 @@ export class AirQualitySensor extends deviceBase {
         headers: {
           'User-Agent': 'homebridge-air/1.0',
         },
-        headersTimeout: 10000,
-        bodyTimeout: 10000,
+        headersTimeout: REQUEST_TIMEOUT_CONFIG.GEOCODE_TIMEOUT,
+        bodyTimeout: REQUEST_TIMEOUT_CONFIG.GEOCODE_TIMEOUT,
+        dispatcher: defaultApiAgent,
       })
 
       if (statusCode === 200) {
@@ -246,12 +269,12 @@ export class AirQualitySensor extends deviceBase {
       if (currentTime > this.apiCallResetTime) {
         await this.debugLog(`Resetting API call counter (made ${this.apiCallCount} calls last hour)`)
         this.apiCallCount = 0
-        this.apiCallResetTime = currentTime + 3600000 // Next hour
+        this.apiCallResetTime = currentTime + REQUEST_RATE_LIMIT_CONFIG.CALL_WINDOW_MS
       }
 
       // Check rate limit (conservative limit to avoid issues)
       // AirNow recommends caching and limiting calls since observations update hourly
-      const maxCallsPerHour = 60 // Conservative limit
+      const maxCallsPerHour = REQUEST_RATE_LIMIT_CONFIG.MAX_CALLS_PER_WINDOW
       if (this.apiCallCount >= maxCallsPerHour) {
         const timeUntilReset = Math.round((this.apiCallResetTime - currentTime) / 60000)
         await this.warnLog(`API rate limit reached (${this.apiCallCount} calls). Using cached data. Resets in ${timeUntilReset} min`)
@@ -272,17 +295,7 @@ export class AirQualitySensor extends deviceBase {
       // https://docs.airnowapi.org/CurrentObservationsByLatLon/docs
       const AirNowCurrentObservationBy = this.device.latitude && this.device.longitude ? `latLong` : 'zipCode'
       // Support flexible AQICN URL patterns: geo coordinates, city names, and full URL paths
-      let AqicnCurrentObservationBy: string
-      if (this.device.latitude && this.device.longitude) {
-        // Use geo coordinates when available
-        AqicnCurrentObservationBy = `geo:${this.device.latitude};${this.device.longitude}`
-      } else if (this.device.city?.startsWith('/') || this.device.city?.includes('/city/') || this.device.city?.includes('/station/')) {
-        // Support full URL paths like /city/country/cityname, /station/@stationid, /station/station-name/locale
-        AqicnCurrentObservationBy = this.device.city.startsWith('/') ? this.device.city.substring(1) : this.device.city
-      } else {
-        // Default to simple city name for backward compatibility (empty string produces no extra path)
-        AqicnCurrentObservationBy = this.device.city || ''
-      }
+      const AqicnCurrentObservationBy = resolveAqicnLocationSegment(this.device)
       const AirNowCurrentObservationByValue = this.device.latitude && this.device.longitude ? `latitude=${this.device.latitude}&longitude=${this.device.longitude}` : `zipCode=${this.device.zipCode}`
       const distance = this.device.distance || '25' // Default distance of 25 miles if not specified
       // Use correct format as per official AirNow API docs
@@ -293,10 +306,7 @@ export class AirQualitySensor extends deviceBase {
       const url = providerUrls[this.device.provider]
       await this.debugSuccessLog(`url: ${JSON.stringify(url)}`)
       if (url) {
-        const { body, statusCode, headers } = await request(url, {
-          headersTimeout: REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT,
-          bodyTimeout: REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT,
-        })
+        const { body, statusCode, headers } = await this.executeApiRequestWithFallback(url)
 
         let response: any
         try {
@@ -326,10 +336,7 @@ export class AirQualitySensor extends deviceBase {
                 await this.debugLog(`Fallback URL: ${fallbackUrl}`)
 
                 try {
-                  const fallbackResponse = await request(fallbackUrl, {
-                    headersTimeout: REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT,
-                    bodyTimeout: REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT,
-                  })
+                  const fallbackResponse = await this.executeApiRequestWithFallback(fallbackUrl)
 
                   const fallbackText = await fallbackResponse.body.text()
                   if (fallbackResponse.statusCode === 200 && fallbackText && fallbackText.trim().length > 0) {
@@ -378,10 +385,7 @@ export class AirQualitySensor extends deviceBase {
                 const fallbackUrl = `${AirNowUrl}ByZipCode/current/?format=application/json&zipCode=${geoData.zipCode}&distance=${distance}&API_KEY=${this.device.apiKey}`
 
                 try {
-                  const fallbackResponse = await request(fallbackUrl, {
-                    headersTimeout: REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT,
-                    bodyTimeout: REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT,
-                  })
+                  const fallbackResponse = await this.executeApiRequestWithFallback(fallbackUrl)
 
                   const fallbackText = await fallbackResponse.body.text()
                   if (fallbackResponse.statusCode === 200 && fallbackText && fallbackText.trim().length > 0) {
@@ -499,6 +503,41 @@ export class AirQualitySensor extends deviceBase {
       await this.debugLog(`Provider: ${this.device.provider}, City: ${this.device.city || 'N/A'}`)
 
       await this.apiError(e)
+    }
+  }
+
+  private isTimeoutError(error: any): boolean {
+    const directCode = error?.code
+    const directName = error?.name
+    const nestedTimeout = Array.isArray(error?.errors)
+      && error.errors.some((nested: any) => nested?.code === 'ETIMEDOUT' || nested?.code === 'UND_ERR_CONNECT_TIMEOUT')
+
+    return directCode === 'ETIMEDOUT'
+      || directCode === 'UND_ERR_CONNECT_TIMEOUT'
+      || directName === 'AggregateError'
+      || nestedTimeout
+  }
+
+  private async executeApiRequestWithFallback(url: string) {
+    const requestOptions = {
+      headersTimeout: REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT,
+      bodyTimeout: REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT,
+      dispatcher: defaultApiAgent,
+    }
+
+    try {
+      return await request(url, requestOptions)
+    } catch (error: any) {
+      if (!this.isTimeoutError(error)) {
+        throw error
+      }
+
+      await this.debugWarnLog('Request timeout detected, retrying with network family auto-selection disabled')
+      return request(url, {
+        headersTimeout: REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT,
+        bodyTimeout: REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT,
+        dispatcher: noFamilyAutoSelectAgent,
+      })
     }
   }
 

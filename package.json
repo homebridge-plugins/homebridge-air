@@ -2,7 +2,7 @@
   "name": "@homebridge-plugins/homebridge-air",
   "displayName": "Air Quality",
   "type": "module",
-  "version": "1.0.8",
+  "version": "2.0.0",
   "description": "The AirNow plugin allows you to monitor the current AirQuality for your Zip Code from HomeKit and Siri.",
   "author": {
     "name": "donavanbecker",
@@ -46,7 +46,7 @@
     "node": "^20 || ^22 || ^24"
   },
   "scripts": {
-    "check": "npm install && npm outdated",
+    "check": "npm install && npm outdated --json | node -e \"let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{const o=d.trim()?JSON.parse(d):{};delete o.homebridge;const keys=Object.keys(o);if(keys.length){console.error('Outdated packages (excluding homebridge beta track):');console.error(JSON.stringify(o,null,2));process.exit(1)}console.log('Check passed: no outdated packages (homebridge beta track ignored).')})\"",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "watch": "npm run build && npm run plugin-ui && npm link && nodemon",
@@ -65,30 +65,23 @@
     "access": "public"
   },
   "dependencies": {
-    "@homebridge/plugin-ui-utils": "^2.1.0",
+    "@homebridge/plugin-ui-utils": "^2.2.3",
     "rxjs": "^7.8.1",
     "striptags": "^3.2.0",
-    "undici": "^7.16.0"
+    "undici": "^8.1.0"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^6.2.0",
-    "@types/aes-js": "^3.1.4",
-    "@types/debug": "^4.1.12",
-    "@types/fs-extra": "^11.0.4",
-    "@types/mdast": "^4.0.4",
-    "@types/node": "^24.10.0",
-    "@types/semver": "^7.7.1",
-    "@types/source-map-support": "^0.5.10",
-    "@vitest/coverage-v8": "^4.0.6",
-    "eslint": "^9.39.0",
-    "eslint-plugin-format": "^1.0.2",
-    "homebridge": "^2.0.0-beta.41",
-    "homebridge-config-ui-x": "^5.9.0",
-    "nodemon": "^3.1.10",
+    "@antfu/eslint-config": "^8.2.0",
+    "@types/debug": "^4.1.13",
+    "@types/node": "^25.6.0",
+    "@vitest/coverage-v8": "^4.1.4",
+    "eslint": "^10.2.0",
+    "eslint-plugin-format": "^2.0.1",
+    "homebridge": "^2.0.0-beta.89",
+    "nodemon": "^3.1.14",
     "shx": "^0.4.0",
-    "ts-node": "^10.9.2",
-    "typedoc": "^0.28.14",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.6"
+    "typedoc": "^0.28.19",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.4"
   }
 }

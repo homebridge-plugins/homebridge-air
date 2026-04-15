@@ -55,7 +55,7 @@
               "title": "City",
               "type": "string",
               "required": false,
-              "description": "For AirNow: city name. For AQICN: city name, or full URL path like '/city/country/cityname', '/station/@stationid', or '/station/station-name/locale'",
+              "description": "For AirNow: city name. For AQICN: city name, full AQICN URL, or full URL path like '/city/country/cityname', '/station/@stationid', or '/station/station-name/locale'. Explicit AQICN station/city paths are preferred over geo coordinates.",
               "condition": {
                 "functionBody": "return (model.devices && model.devices[arrayIndices].apiKey);"
               }

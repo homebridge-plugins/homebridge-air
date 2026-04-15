@@ -2,7 +2,7 @@
  *
  * AirMatterPlatform.ts: @homebridge-plugins/homebridge-air.
  */
-import type { API, Logging, MatterAccessory, PlatformAccessory, SerializedMatterAccessory } from 'homebridge'
+import type { API, Logging, MatterAccessory, PlatformAccessory } from 'homebridge'
 
 import type { AirPlatformConfig, devicesConfig } from './settings.js'
 
@@ -74,9 +74,9 @@ export class AirMatterPlatform extends AirPlatform {
   /**
    * Called when Homebridge restores cached Matter accessories from disk at startup.
    */
-  configureMatterAccessory(accessory: SerializedMatterAccessory): void {
+  configureMatterAccessory(accessory: MatterAccessory): void {
     this.log.debug(`Loading cached Matter accessory: ${accessory.displayName}`)
-    this.matterAccessories.set(accessory.uuid, accessory as unknown as MatterAccessory)
+    this.matterAccessories.set(accessory.UUID, accessory)
   }
 
   /**
@@ -155,7 +155,7 @@ export class AirMatterPlatform extends AirPlatform {
       await this.infoLog(`Adding new Matter accessory: ${displayName}`)
 
       const accessory: MatterAccessory = {
-        uuid,
+        UUID: uuid,
         displayName,
         deviceType: devices.AirQualitySensorDevice,
         serialNumber: device.zipCode ?? '00000',

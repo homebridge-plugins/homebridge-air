@@ -2,7 +2,7 @@ import type { devicesConfig } from '../settings.js'
 
 import { describe, expect, it } from 'vitest'
 
-import { AqicnUrl } from '../settings.js'
+import { AqicnUrl, resolveAqicnLocationSegment } from '../settings.js'
 
 /**
  * Test the AQICN URL construction logic to ensure it supports
@@ -14,18 +14,11 @@ describe('aQICN URL Construction', () => {
    * This simulates lines 188-199 in airqualitysensor.ts
    */
   function constructAqicnUrl(device: Partial<devicesConfig>): string {
-    // Support flexible AQICN URL patterns: geo coordinates, city names, and full URL paths
-    let AqicnCurrentObservationBy: string
-    if (device.latitude && device.longitude) {
-      // Use geo coordinates when available
-      AqicnCurrentObservationBy = `geo:${device.latitude};${device.longitude}`
-    } else if (device.city?.startsWith('/') || device.city?.includes('/city/') || device.city?.includes('/station/')) {
-      // Support full URL paths like /city/country/cityname, /station/@stationid, /station/station-name/locale
-      AqicnCurrentObservationBy = device.city.startsWith('/') ? device.city.substring(1) : device.city
-    } else {
-      // Default to simple city name for backward compatibility
-      AqicnCurrentObservationBy = device.city || ''
-    }
+    const AqicnCurrentObservationBy = resolveAqicnLocationSegment({
+      city: device.city,
+      latitude: device.latitude,
+      longitude: device.longitude,
+    })
 
     return `${AqicnUrl}${AqicnCurrentObservationBy}${AqicnCurrentObservationBy ? '/' : ''}?token=${device.apiKey}`
   }
@@ -111,7 +104,7 @@ describe('aQICN URL Construction', () => {
     expect(url).toBe('https://api.waqi.info/feed/station/bielsko-bia%C5%82a-poland-bielsko-biala-urodzajna/pl/?token=test-api-key')
   })
 
-  it('should prioritize geo coordinates over city patterns', () => {
+  it('should prioritize explicit station/city paths over geo coordinates', () => {
     const device: Partial<devicesConfig> = {
       latitude: 47.5,
       longitude: 8.7,
@@ -120,7 +113,17 @@ describe('aQICN URL Construction', () => {
     }
 
     const url = constructAqicnUrl(device)
-    expect(url).toBe('https://api.waqi.info/feed/geo:47.5;8.7/?token=test-api-key')
+    expect(url).toBe('https://api.waqi.info/feed/city/switzerland/winterthur-veltheim/?token=test-api-key')
+  })
+
+  it('should support full AQICN station URL input', () => {
+    const device: Partial<devicesConfig> = {
+      city: 'https://aqicn.org/station/@92323/',
+      apiKey: 'test-api-key',
+    }
+
+    const url = constructAqicnUrl(device)
+    expect(url).toBe('https://api.waqi.info/feed/station/@92323/?token=test-api-key')
   })
 
   it('should handle empty city gracefully', () => {

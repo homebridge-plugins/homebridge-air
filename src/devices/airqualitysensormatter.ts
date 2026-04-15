@@ -7,9 +7,31 @@ import type { AirNowAirQualityDataArray, AqicnData, devicesConfig } from '../set
 
 import { interval } from 'rxjs'
 import { skipWhile } from 'rxjs/operators'
-import { request } from 'undici'
+import { Agent, request } from 'undici'
 
-import { AirNowUrl, AqicnUrl, HomeKitAQI, REQUEST_TIMEOUT_CONFIG } from '../settings.js'
+import {
+  AirNowUrl,
+  AqicnUrl,
+  HomeKitAQI,
+  REQUEST_RATE_LIMIT_CONFIG,
+  REQUEST_TIMEOUT_CONFIG,
+  resolveAqicnLocationSegment,
+} from '../settings.js'
+
+const defaultApiAgent = new Agent({
+  connect: {
+    timeout: REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT,
+    autoSelectFamily: true,
+    autoSelectFamilyAttemptTimeout: REQUEST_TIMEOUT_CONFIG.AUTO_SELECT_FAMILY_ATTEMPT_TIMEOUT,
+  },
+})
+
+const noFamilyAutoSelectAgent = new Agent({
+  connect: {
+    timeout: REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT,
+    autoSelectFamily: false,
+  },
+})
 
 /**
  * AirQualitySensorMatter
@@ -25,9 +47,9 @@ export class AirQualitySensorMatter {
   private updateInProgress = false
   private lastRequestTime = 0
   private lastAqi: number | null = null
-  private readonly cacheMaxAge = 600000 // 10 minutes (same as HAP class)
+  private readonly cacheMaxAge = REQUEST_RATE_LIMIT_CONFIG.CACHE_MAX_AGE
   private apiCallCount = 0
-  private apiCallResetTime = Date.now() + 3600000 // reset counter every hour
+  private apiCallResetTime = Date.now() + REQUEST_RATE_LIMIT_CONFIG.CALL_WINDOW_MS
 
   constructor(
     private readonly platform: AirMatterPlatform,
@@ -71,11 +93,11 @@ export class AirQualitySensorMatter {
       // Reset hourly call counter
       if (currentTime > this.apiCallResetTime) {
         this.apiCallCount = 0
-        this.apiCallResetTime = currentTime + 3600000
+        this.apiCallResetTime = currentTime + REQUEST_RATE_LIMIT_CONFIG.CALL_WINDOW_MS
       }
 
       // Honour rate limit (same 60 calls/hour as HAP class)
-      const maxCallsPerHour = 60
+      const maxCallsPerHour = REQUEST_RATE_LIMIT_CONFIG.MAX_CALLS_PER_WINDOW
       if (this.apiCallCount >= maxCallsPerHour) {
         if (this.lastAqi !== null) {
           await this.platform.updateMatterAirQuality(this.uuid, this.lastAqi)
@@ -90,10 +112,7 @@ export class AirQualitySensorMatter {
         return
       }
 
-      const { body, statusCode } = await request(url, {
-        headersTimeout: REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT,
-        bodyTimeout: REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT,
-      })
+      const { body, statusCode } = await this.executeApiRequestWithFallback(url)
 
       if (statusCode !== 200) {
         this.platform.log.error(`[${this.device.city}] Matter: ${this.device.provider} API returned status ${statusCode}`)
@@ -134,18 +153,7 @@ export class AirQualitySensorMatter {
   private buildUrl(): string | undefined {
     const airNowBy = this.device.latitude && this.device.longitude ? 'latLong' : 'zipCode'
 
-    let aqicnBy: string
-    if (this.device.latitude && this.device.longitude) {
-      aqicnBy = `geo:${this.device.latitude};${this.device.longitude}`
-    } else if (
-      this.device.city?.startsWith('/')
-      || this.device.city?.includes('/city/')
-      || this.device.city?.includes('/station/')
-    ) {
-      aqicnBy = this.device.city.startsWith('/') ? this.device.city.substring(1) : this.device.city
-    } else {
-      aqicnBy = this.device.city || ''
-    }
+    const aqicnBy = resolveAqicnLocationSegment(this.device)
 
     const airNowByValue = this.device.latitude && this.device.longitude
       ? `latitude=${this.device.latitude}&longitude=${this.device.longitude}`
@@ -190,6 +198,39 @@ export class AirQualitySensorMatter {
       return null
     } catch {
       return null
+    }
+  }
+
+  private isTimeoutError(error: any): boolean {
+    const directCode = error?.code
+    const directName = error?.name
+    const nestedTimeout = Array.isArray(error?.errors)
+      && error.errors.some((nested: any) => nested?.code === 'ETIMEDOUT' || nested?.code === 'UND_ERR_CONNECT_TIMEOUT')
+
+    return directCode === 'ETIMEDOUT'
+      || directCode === 'UND_ERR_CONNECT_TIMEOUT'
+      || directName === 'AggregateError'
+      || nestedTimeout
+  }
+
+  private async executeApiRequestWithFallback(url: string) {
+    try {
+      return await request(url, {
+        headersTimeout: REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT,
+        bodyTimeout: REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT,
+        dispatcher: defaultApiAgent,
+      })
+    } catch (error: any) {
+      if (!this.isTimeoutError(error)) {
+        throw error
+      }
+
+      this.platform.log.warn(`[${this.device.city}] Matter: timeout detected, retrying with network family auto-selection disabled`)
+      return request(url, {
+        headersTimeout: REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT,
+        bodyTimeout: REQUEST_TIMEOUT_CONFIG.DEFAULT_TIMEOUT,
+        dispatcher: noFamilyAutoSelectAgent,
+      })
     }
   }
 }

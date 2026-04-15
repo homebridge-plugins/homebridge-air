@@ -20,6 +20,9 @@ const mockAPI = {
   registerPlatformAccessories: vi.fn(),
   updatePlatformAccessories: vi.fn(),
   unregisterPlatformAccessories: vi.fn(),
+  matter: {
+    unregisterPlatformAccessories: vi.fn(),
+  },
   on: vi.fn(), // Mock the event listener
 }
 
@@ -150,5 +153,90 @@ describe('airPlatform generateAqicnDisplayName', () => {
   it('should handle empty string', () => {
     const result = platform.generateAqicnDisplayName('')
     expect(result).toBe('')
+  })
+})
+
+describe('airPlatform matter fallback cleanup', () => {
+  let platform: AirPlatform
+
+  beforeEach(() => {
+    platform = new (AirPlatform as any)(mockLog, mockConfig, mockAPI)
+    vi.clearAllMocks()
+  })
+
+  it('should unregister stale matter accessory while in HAP mode', async () => {
+    const staleAccessory = {
+      UUID: 'matter-uuid-1',
+      displayName: 'Matter Device 1',
+    }
+
+    platform.configureMatterAccessory(staleAccessory as any)
+
+    // configureMatterAccessory kicks off async cleanup without awaiting.
+    await Promise.resolve()
+    await Promise.resolve()
+
+    expect(mockAPI.matter.unregisterPlatformAccessories).toHaveBeenCalledWith(
+      '@homebridge-plugins/homebridge-air',
+      'Air',
+      [staleAccessory],
+    )
+  })
+})
+
+describe('airPlatform verifyConfig provider validation', () => {
+  let platform: AirPlatform
+
+  beforeEach(() => {
+    platform = new (AirPlatform as any)(mockLog, mockConfig, mockAPI)
+    vi.clearAllMocks()
+  })
+
+  it('should require AirNow location as zip+city or lat+lon', async () => {
+    platform.config.devices = [
+      {
+        provider: 'airnow',
+        apiKey: 'test-key',
+        city: undefined,
+        zipCode: undefined,
+        latitude: undefined,
+        longitude: undefined,
+      } as any,
+    ]
+
+    const errorSpy = vi.spyOn(platform, 'errorLog').mockResolvedValue(undefined)
+    await platform.verifyConfig()
+
+    expect(errorSpy).toHaveBeenCalledWith('AirNow requires either (zipCode + city) or (latitude + longitude)')
+  })
+
+  it('should allow AQICN with city path and no coordinates', async () => {
+    platform.config.devices = [
+      {
+        provider: 'aqicn',
+        apiKey: 'test-key',
+        city: '/station/@92323',
+      } as any,
+    ]
+
+    const errorSpy = vi.spyOn(platform, 'errorLog').mockResolvedValue(undefined)
+    await platform.verifyConfig()
+
+    expect(errorSpy).not.toHaveBeenCalledWith('AQICN requires either city/station path/URL or (latitude + longitude)')
+  })
+
+  it('should report missing longitude when only latitude is provided', async () => {
+    platform.config.devices = [
+      {
+        provider: 'airnow',
+        apiKey: 'test-key',
+        latitude: 47.5,
+      } as any,
+    ]
+
+    const errorSpy = vi.spyOn(platform, 'errorLog').mockResolvedValue(undefined)
+    await platform.verifyConfig()
+
+    expect(errorSpy).toHaveBeenCalledWith('Missing your Longitude')
   })
 })
