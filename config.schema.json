@@ -55,7 +55,7 @@
               "title": "City",
               "type": "string",
               "required": false,
-              "description": "For AirNow: city name. For AQICN: city name, or full URL path like '/city/country/cityname', '/station/@stationid', or '/station/station-name/locale'",
+              "description": "For AirNow: city name. For AQICN: city name, full AQICN URL, or full URL path like '/city/country/cityname', '/station/@stationid', or '/station/station-name/locale'. Explicit AQICN station/city paths are preferred over geo coordinates.",
               "condition": {
                 "functionBody": "return (model.devices && model.devices[arrayIndices].apiKey);"
               }
@@ -171,6 +171,24 @@
         "placeholder": 1800,
         "description": "Indicates the number of seconds between polls of the AirNow or Aqicn service."
       },
+      "options": {
+        "title": "Platform Options",
+        "type": "object",
+        "properties": {
+          "enableMatter": {
+            "title": "Enable Matter",
+            "type": "boolean",
+            "default": false,
+            "description": "Register Air Quality sensors as Matter accessories. Requires Matter to be enabled in Homebridge settings. Falls back to HAP if Matter is unavailable."
+          },
+          "preferMatter": {
+            "title": "Prefer Matter",
+            "type": "boolean",
+            "default": false,
+            "description": "Prefer Matter over HAP when Matter is available and enabled in Homebridge. If Matter is unavailable, HAP is used as a fallback."
+          }
+        }
+      },
       "logging": {
         "title": "Plugin Logging Setting",
         "type": "string",
@@ -244,6 +262,20 @@
           "notitle": true
         },
         "logging"
+      ]
+    },
+    {
+      "type": "fieldset",
+      "title": "Matter Settings",
+      "expandable": true,
+      "expanded": false,
+      "items": [
+        {
+          "type": "help",
+          "helpvalue": "<h5>Matter Support</h5><em class='primary-text'>Enable Matter support to register Air Quality sensors as Matter accessories. Requires Matter to be enabled in Homebridge settings (Homebridge v2.0+).</em>"
+        },
+        "options.enableMatter",
+        "options.preferMatter"
       ]
     }
   ]

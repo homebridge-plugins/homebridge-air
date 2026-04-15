@@ -127,6 +127,30 @@
     try {
       const currentConfig = await homebridge.getPluginConfig();
 
+      const ensurePrimaryConfig = () => {
+        if (!Array.isArray(currentConfig)) {
+          return { name: 'Air' };
+        }
+        if (!currentConfig[0]) {
+          currentConfig[0] = { name: 'Air' };
+        }
+        if (!Array.isArray(currentConfig[0].devices)) {
+          currentConfig[0].devices = [];
+        }
+        return currentConfig[0];
+      };
+
+      const primaryConfig = ensurePrimaryConfig();
+
+      const bindClick = (id, handler) => {
+        const element = document.getElementById(id);
+        if (!element) {
+          console.warn(`homebridge-air UI: missing element #${id}`);
+          return;
+        }
+        element.addEventListener('click', handler);
+      };
+
       const showIntro = () => {
         const introLink = document.getElementById('introLink');
         introLink.addEventListener('click', () => {
@@ -281,7 +305,10 @@
             const config = await homebridge.getPluginConfig();
             
             // Initialize devices array if it doesn't exist
-            if (!config[0].devices) {
+            if (!config[0]) {
+              config[0] = { name: 'Air', devices: [] };
+            }
+            if (!Array.isArray(config[0].devices)) {
               config[0].devices = [];
             }
 
@@ -361,25 +388,25 @@
         homebridge.hideSpinner();
       };
 
-      document.getElementById('menuHome').addEventListener('click', () => showSupport());
-      document.getElementById('menuDevices').addEventListener('click', () => showDevices());
-      document.getElementById('menuLocation').addEventListener('click', () => showLocation());
-      document.getElementById('menuSettings').addEventListener('click', () => showSettings());
-      document.getElementById('disabledEnable').addEventListener('click', () => enablePlugin());
+      bindClick('menuHome', () => showSupport());
+      bindClick('menuDevices', () => showDevices());
+      bindClick('menuLocation', () => showLocation());
+      bindClick('menuSettings', () => showSettings());
+      bindClick('disabledEnable', () => enablePlugin());
 
       if (currentConfig.length) {
         document.getElementById('menuWrapper').style.display = 'inline-flex';
         // Show Location tab if no devices configured, otherwise show Settings tab
-        if (!currentConfig[0].devices || currentConfig[0].devices.length === 0) {
+        if (!primaryConfig.devices || primaryConfig.devices.length === 0) {
           showLocation();
         } else {
           showSettings();
         }
-        if (currentConfig[0].disablePlugin) {
+        if (primaryConfig.disablePlugin) {
           showDisabledBanner();
         }
       } else {
-        currentConfig.push({ name: 'Air' });
+        currentConfig.push({ name: 'Air', devices: [] });
         await homebridge.updatePluginConfig(currentConfig);
         showIntro();
       }

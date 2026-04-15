@@ -2,7 +2,7 @@
  *
  * platform.ts: @homebridge-plugins/homebridge-air.
  */
-import type { API, DynamicPlatformPlugin, HAP, Logging, PlatformAccessory } from 'homebridge'
+import type { API, DynamicPlatformPlugin, HAP, Logging, MatterAccessory, PlatformAccessory } from 'homebridge'
 
 import type { AirPlatformConfig, devicesConfig, options } from './settings.js'
 
@@ -19,6 +19,7 @@ import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js'
  */
 export class AirPlatform implements DynamicPlatformPlugin {
   public accessories: PlatformAccessory[]
+  public readonly matterAccessories: Map<string, MatterAccessory>
   public readonly api: API
   public readonly log: Logging
   protected readonly hap: HAP
@@ -38,6 +39,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
     api: API,
   ) {
     this.accessories = []
+    this.matterAccessories = new Map()
     this.api = api
     this.hap = this.api.hap
     this.log = log
@@ -108,6 +110,28 @@ export class AirPlatform implements DynamicPlatformPlugin {
   }
 
   /**
+   * In HAP mode, proactively remove stale cached Matter accessories.
+   *
+   * This keeps fallback behavior deterministic when users switch from Matter
+   * back to HAP and prevents duplicate/orphaned accessories.
+   */
+  configureMatterAccessory(accessory: MatterAccessory): void {
+    if (!this.api.matter?.unregisterPlatformAccessories) {
+      void this.debugLog(`Skipping stale Matter accessory cleanup (Matter API unavailable): ${accessory.displayName}`)
+      return
+    }
+
+    this.matterAccessories.set(accessory.UUID, accessory)
+    void this.removeStaleMatterAccessory(accessory)
+  }
+
+  private async removeStaleMatterAccessory(accessory: MatterAccessory): Promise<void> {
+    await this.warnLog(`Removing stale Matter accessory (HAP mode active): ${accessory.displayName}`)
+    await this.api.matter.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory])
+    this.matterAccessories.delete(accessory.UUID)
+  }
+
+  /**
    * Verify the config passed to the plugin is valid
    */
   async verifyConfig() {
@@ -125,20 +149,34 @@ export class AirPlatform implements DynamicPlatformPlugin {
     // Device Config
     if (this.config.devices) {
       for (const deviceConfig of this.config.devices) {
+        const provider = (deviceConfig.provider || '').toLowerCase()
+        const hasCity = Boolean(deviceConfig.city)
+        const hasZipCode = Boolean(deviceConfig.zipCode)
+        const hasLatitude = deviceConfig.latitude !== undefined && deviceConfig.latitude !== null
+        const hasLongitude = deviceConfig.longitude !== undefined && deviceConfig.longitude !== null
+
         if (!deviceConfig.apiKey) {
-          await this.errorLog('Missing Your AirNow ApiKey')
+          await this.errorLog(`Missing API key for ${provider || 'unknown'} provider`)
         }
-        if (deviceConfig.zipCode || deviceConfig.city) {
-          if (!deviceConfig.zipCode || !deviceConfig.city) {
-            const missing = !deviceConfig.zipCode ? 'Zip Code' : 'City'
-            await this.errorLog(`Missing your ${missing}`)
-          }
+
+        if (hasLatitude !== hasLongitude) {
+          const missing = !hasLatitude ? 'Latitude' : 'Longitude'
+          await this.errorLog(`Missing your ${missing}`)
         }
-        if (deviceConfig.latitude || deviceConfig.longitude) {
-          if (!deviceConfig.latitude || !deviceConfig.longitude) {
-            const missing = !deviceConfig.latitude ? 'Latitude' : 'Longitude'
-            await this.errorLog(`Missing your ${missing}`)
+
+        if (provider === 'airnow') {
+          const hasZipAndCity = hasZipCode && hasCity
+          const hasCoordinates = hasLatitude && hasLongitude
+          if (!hasZipAndCity && !hasCoordinates) {
+            await this.errorLog('AirNow requires either (zipCode + city) or (latitude + longitude)')
           }
+        } else if (provider === 'aqicn') {
+          const hasCoordinates = hasLatitude && hasLongitude
+          if (!hasCity && !hasCoordinates) {
+            await this.errorLog('AQICN requires either city/station path/URL or (latitude + longitude)')
+          }
+        } else {
+          await this.errorLog(`Unknown provider '${deviceConfig.provider}'. Supported providers: airnow, aqicn`)
         }
       }
     } else {
@@ -299,6 +337,22 @@ export class AirPlatform implements DynamicPlatformPlugin {
    * @returns A clean display name suitable for HomeKit
    */
   generateAqicnDisplayName(city: string): string {
+    // Allow full AQICN URLs as input and convert to path form first.
+    if (city.startsWith('http://') || city.startsWith('https://')) {
+      try {
+        const parsed = new URL(city)
+        city = `/${parsed.pathname.replace(/^\/+|\/+$/g, '')}`
+      } catch {
+        // Keep original value if URL parsing fails.
+      }
+    }
+
+    if (!city.startsWith('/')) {
+      if (city.startsWith('station/') || city.startsWith('city/')) {
+        city = `/${city}`
+      }
+    }
+
     // Handle AQICN station ID format: /station/@12345 -> Station 12345
     if (city.startsWith('/station/@')) {
       const stationId = city.replace('/station/@', '')
@@ -342,7 +396,18 @@ export class AirPlatform implements DynamicPlatformPlugin {
       return value
     } else {
       // For AQICN provider and city field, handle special station/city formats
-      if (provider === 'aqicn' && name === 'city' && (value.startsWith('/station/') || value.startsWith('/city/'))) {
+      if (
+        provider === 'aqicn'
+        && name === 'city'
+        && (
+          value.startsWith('/station/')
+          || value.startsWith('/city/')
+          || value.startsWith('station/')
+          || value.startsWith('city/')
+          || value.startsWith('http://')
+          || value.startsWith('https://')
+        )
+      ) {
         const cleanDisplayName = this.generateAqicnDisplayName(value)
         await this.debugLog(`Generated clean display name for AQICN ${name}: '${value}' -> '${cleanDisplayName}'`)
         return cleanDisplayName

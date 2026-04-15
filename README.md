@@ -33,8 +33,18 @@ plugin allows you monitor the current AirQuality for your Zip Code from HomeKit 
 2. Select your Provider: AirNow or Apicn
 3. Enter your AirNow.gov or Aqicn API Key
 4. Enter your City and Latitude / Longitude (4 decimal places is sufficient). Note that City may be ambiguous, so you should always enter Latitude and Longitude for location accuracy
-5. Click Save
-6. Restart Homebridge
+5. Optional Matter settings (Homebridge v2.0+):
+
+	- `options.enableMatter: true` to explicitly request Matter. If Matter is unavailable or disabled, the plugin logs a warning and falls back to HAP.
+	- `options.preferMatter: true` to use Matter when available and enabled, but silently fall back to HAP otherwise.
+
+6. Migration behavior:
+
+	- Switching from HAP to Matter removes stale cached HAP accessories.
+	- Switching from Matter to HAP removes stale cached Matter accessories.
+
+7. Click Save
+8. Restart Homebridge
 
 ## Supported Air Quality Providers
 
