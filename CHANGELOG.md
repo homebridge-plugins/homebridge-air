@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file. This projec
 - docs: refresh the readme
 - docs: add claude and copilot instructions files
 - docs: use the standard org readme banner
+- fix: keep matter display names within the 32 character limit
 
 ## [2.0.0](https://github.com/homebridge-plugins/homebridge-air/compare/v1.0.8...v2.0.0) (2026-04-15)
 

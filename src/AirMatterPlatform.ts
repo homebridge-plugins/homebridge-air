@@ -75,6 +75,20 @@ export class AirMatterPlatform extends AirPlatform {
   }
 
   /**
+   * Matter's BridgedDeviceBasicInformation.NodeLabel is constrained to 32 characters.
+   * Homebridge sets the nodeLabel from the accessory displayName, so longer names make
+   * the whole endpoint fail to register with "Behaviors have errors".
+   */
+  private clampMatterDisplayName(displayName: string): string {
+    if (displayName.length <= 32) {
+      return displayName
+    }
+    const clamped = displayName.slice(0, 32).trim()
+    this.log.debug(`Display name "${displayName}" exceeds Matter's 32 character limit, using "${clamped}"`)
+    return clamped
+  }
+
+  /**
    * Called when Homebridge restores cached Matter accessories from disk at startup.
    */
   configureMatterAccessory(accessory: MatterAccessory): void {
@@ -132,12 +146,12 @@ export class AirMatterPlatform extends AirPlatform {
       return
     }
 
-    const displayName = await this.validateAndCleanDisplayName(
+    const displayName = this.clampMatterDisplayName(await this.validateAndCleanDisplayName(
       device.city ?? 'Unknown',
       'city',
       device.city ?? 'Unknown',
       device.provider,
-    )
+    ))
 
     const manufacturer = device.provider === 'airnow' ? 'AirNow' : device.provider === 'aqicn' ? 'Aqicn' : 'Unknown'
     const firmwareRevision = device.firmware ?? await this.getVersion()
