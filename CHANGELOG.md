@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## v2.0.3 (Pending Release)
+
+### Changed
+
+- fix: stop the config ui failing validation over the optional logging settings (#70) (@jsiegenthaler)
+
 ## v2.0.2 (2026-07-15)
 
 ### Changed

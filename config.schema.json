@@ -121,7 +121,6 @@
             "logging": {
               "title": "Device Logging Override Setting",
               "type": "string",
-              "required": true,
               "default": "",
               "condition": {
                 "functionBody": "return (model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].zipCode);"
@@ -192,7 +191,6 @@
       "logging": {
         "title": "Plugin Logging Setting",
         "type": "string",
-        "required": true,
         "default": "",
         "oneOf": [
           {
