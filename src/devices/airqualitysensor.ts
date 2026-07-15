@@ -15,6 +15,7 @@ import { Agent, request } from 'undici'
 import {
   AirNowUrl,
   AqicnUrl,
+  getAqicnError,
   HomeKitAQI,
   normaliseAqicnAqi,
   REQUEST_RATE_LIMIT_CONFIG,
@@ -439,9 +440,12 @@ export class AirQualitySensor extends deviceBase {
 
           if (this.device.provider === 'aqicn') {
             const aqicnResponse = response as AqicnData
-            if (aqicnResponse.status !== 'ok' || !aqicnResponse.data) {
-              const statusMessage = aqicnResponse.status || 'unknown'
-              await this.errorLog(`AQICN API Error - Status: ${statusMessage}`)
+            // Surface the real API reason, including errors AQICN nests inside
+            // data while still reporting an 'ok' top-level status (#7)
+            const aqicnError = getAqicnError(aqicnResponse)
+            if (aqicnError) {
+              await this.errorLog(`AQICN API Error - ${aqicnError}`)
+              await this.debugLog(`AQICN response structure: ${JSON.stringify(aqicnResponse)}`)
               this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
               await this.apiError(aqicnResponse)
               return

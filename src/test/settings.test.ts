@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { AqicnUrl, HomeKitAQI, normaliseAqicnAqi, REQUEST_RATE_LIMIT_CONFIG, REQUEST_TIMEOUT_CONFIG, resolveAqicnLocationSegment } from '../settings.js'
+import { AqicnUrl, getAqicnError, HomeKitAQI, normaliseAqicnAqi, REQUEST_RATE_LIMIT_CONFIG, REQUEST_TIMEOUT_CONFIG, resolveAqicnLocationSegment } from '../settings.js'
 
 describe('homeKitAQI', () => {
   it('should return 0 for undefined AQI', () => {
@@ -139,5 +139,28 @@ describe('normaliseAqicnAqi', () => {
   it('should return undefined when neither aqi nor pollutants are usable', () => {
     expect(normaliseAqicnAqi({ ...base, aqi: '-', iaqi: {} })).toBeUndefined()
     expect(normaliseAqicnAqi(undefined)).toBeUndefined()
+  })
+})
+
+describe('getAqicnError', () => {
+  it('should return null for a healthy response', () => {
+    expect(getAqicnError({ status: 'ok', data: { aqi: 77, iaqi: {} } })).toBeNull()
+  })
+
+  it('should report a top-level error with a string data reason', () => {
+    expect(getAqicnError({ status: 'error', data: 'Unknown station' })).toBe('Unknown station')
+  })
+
+  it('should report an error nested inside data under an ok status (#7)', () => {
+    expect(getAqicnError({ status: 'ok', data: { status: 'error', msg: 'Unknown ID' } })).toBe('Unknown ID')
+  })
+
+  it('should fall back to a generic reason when a nested error has no message', () => {
+    expect(getAqicnError({ status: 'ok', data: { status: 'error' } })).toBe('unknown station')
+  })
+
+  it('should treat a non-object response as an empty response', () => {
+    expect(getAqicnError(undefined)).toBe('empty response')
+    expect(getAqicnError('')).toBe('empty response')
   })
 })

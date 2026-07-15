@@ -12,6 +12,7 @@ import { Agent, request } from 'undici'
 import {
   AirNowUrl,
   AqicnUrl,
+  getAqicnError,
   HomeKitAQI,
   normaliseAqicnAqi,
   REQUEST_RATE_LIMIT_CONFIG,
@@ -177,6 +178,13 @@ export class AirQualitySensorMatter {
   private parseAqi(response: unknown): number | null {
     try {
       if (this.device.provider === 'aqicn') {
+        // Surface the real API reason (including errors AQICN nests inside data
+        // under an 'ok' status) before trying to read a value (#7)
+        const aqicnError = getAqicnError(response)
+        if (aqicnError) {
+          this.platform.log.error(`[${this.device.city}] Matter: AQICN API Error - ${aqicnError}`)
+          return null
+        }
         // The overall aqi can be a numeric string, '-' or missing on
         // community stations; normalise it (falling back to the highest
         // pollutant sub-index) before converting (#7)

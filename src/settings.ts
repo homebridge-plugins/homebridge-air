@@ -161,6 +161,29 @@ export function resolveAqicnLocationSegment(device: Pick<devicesConfig, 'city' |
 }
 
 /**
+ * Detect an error inside an AQICN feed response.
+ *
+ * AQICN reports failures two ways: a top-level `status` of something other
+ * than 'ok' (with the reason in `data`), or - for an unknown station id - a
+ * top-level `status` of 'ok' with the error nested inside `data` (#7). Returns
+ * the human-readable reason, or null when the response looks healthy.
+ */
+export function getAqicnError(response: unknown): string | null {
+  if (!response || typeof response !== 'object') {
+    return 'empty response'
+  }
+  const outer = response as { status?: string, msg?: string, data?: unknown }
+  if (outer.status && outer.status !== 'ok') {
+    return typeof outer.data === 'string' ? outer.data : (outer.msg ?? outer.status)
+  }
+  const data = outer.data as { status?: string, msg?: string } | undefined
+  if (data && data.status === 'error') {
+    return data.msg ?? 'unknown station'
+  }
+  return null
+}
+
+/**
  * Normalise the overall AQI from an AQICN feed response.
  *
  * Community stations can report the overall aqi as a numeric string, as '-'
