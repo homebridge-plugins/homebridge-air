@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { AqicnUrl, HomeKitAQI, REQUEST_RATE_LIMIT_CONFIG, REQUEST_TIMEOUT_CONFIG, resolveAqicnLocationSegment } from '../settings.js'
+import { AqicnUrl, HomeKitAQI, normaliseAqicnAqi, REQUEST_RATE_LIMIT_CONFIG, REQUEST_TIMEOUT_CONFIG, resolveAqicnLocationSegment } from '../settings.js'
 
 describe('homeKitAQI', () => {
   it('should return 0 for undefined AQI', () => {
@@ -110,5 +110,34 @@ describe('resolveAqicnLocationSegment', () => {
       longitude: 8.7,
     })
     expect(segment).toBe('geo:47.5;8.7')
+  })
+})
+
+describe('normaliseAqicnAqi', () => {
+  const base = { idx: 1, time: { s: '', tz: '' }, city: { name: '', geo: [0, 0] as [number, number], url: '' }, attributions: [], forecast: { daily: { pm25: [], pm10: [], o3: [], uvi: [] } } }
+
+  it('should return a numeric aqi unchanged', () => {
+    expect(normaliseAqicnAqi({ ...base, aqi: 77, iaqi: {} })).toBe(77)
+  })
+
+  it('should keep an aqi of zero', () => {
+    expect(normaliseAqicnAqi({ ...base, aqi: 0, iaqi: {} })).toBe(0)
+  })
+
+  it('should parse a numeric string aqi', () => {
+    expect(normaliseAqicnAqi({ ...base, aqi: '42', iaqi: {} })).toBe(42)
+  })
+
+  it('should fall back to the highest pollutant sub-index when aqi is a dash', () => {
+    expect(normaliseAqicnAqi({ ...base, aqi: '-', iaqi: { pm25: { v: 61 }, pm10: { v: 17 } } })).toBe(61)
+  })
+
+  it('should fall back to the highest pollutant sub-index when aqi is missing', () => {
+    expect(normaliseAqicnAqi({ ...base, aqi: undefined as any, iaqi: { pm10: { v: 23 }, o3: { v: 12 } } })).toBe(23)
+  })
+
+  it('should return undefined when neither aqi nor pollutants are usable', () => {
+    expect(normaliseAqicnAqi({ ...base, aqi: '-', iaqi: {} })).toBeUndefined()
+    expect(normaliseAqicnAqi(undefined)).toBeUndefined()
   })
 })

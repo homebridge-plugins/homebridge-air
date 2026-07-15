@@ -13,6 +13,7 @@ import {
   AirNowUrl,
   AqicnUrl,
   HomeKitAQI,
+  normaliseAqicnAqi,
   REQUEST_RATE_LIMIT_CONFIG,
   REQUEST_TIMEOUT_CONFIG,
   resolveAqicnLocationSegment,
@@ -176,11 +177,14 @@ export class AirQualitySensorMatter {
   private parseAqi(response: unknown): number | null {
     try {
       if (this.device.provider === 'aqicn') {
-        const data = (response as AqicnData).data
-        if (!data || (data.aqi !== 0 && !data.aqi)) {
+        // The overall aqi can be a numeric string, '-' or missing on
+        // community stations; normalise it (falling back to the highest
+        // pollutant sub-index) before converting (#7)
+        const aqi = normaliseAqicnAqi((response as AqicnData).data)
+        if (aqi === undefined) {
           return null
         }
-        return HomeKitAQI(Math.max(0, data.aqi))
+        return HomeKitAQI(Math.max(0, aqi))
       }
 
       if (this.device.provider === 'airnow') {

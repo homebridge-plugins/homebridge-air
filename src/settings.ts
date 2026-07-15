@@ -160,11 +160,34 @@ export function resolveAqicnLocationSegment(device: Pick<devicesConfig, 'city' |
   return rawCity || ''
 }
 
+/**
+ * Normalise the overall AQI from an AQICN feed response.
+ *
+ * Community stations can report the overall aqi as a numeric string, as '-'
+ * or not at all while still providing pollutant readings in iaqi. AQICN's
+ * overall AQI is the highest pollutant sub-index, so fall back to that (#7).
+ * Returns undefined when no usable value exists.
+ */
+export function normaliseAqicnAqi(data: AqicnData['data'] | undefined): number | undefined {
+  if (!data) {
+    return undefined
+  }
+  const direct = typeof data.aqi === 'number' ? data.aqi : Number.parseFloat(String(data.aqi))
+  if (Number.isFinite(direct)) {
+    return direct
+  }
+  const iaqi = data.iaqi as Record<string, { v?: number }> | undefined
+  const subIndices = ['pm25', 'pm10', 'o3', 'no2', 'so2', 'co']
+    .map(pollutant => iaqi?.[pollutant]?.v)
+    .filter((v): v is number => typeof v === 'number' && Number.isFinite(v))
+  return subIndices.length > 0 ? Math.max(...subIndices) : undefined
+}
+
 export interface AqicnData {
   status: string
   data: {
     idx: number
-    aqi: number
+    aqi: number | string
     time: {
       s: string
       tz: string

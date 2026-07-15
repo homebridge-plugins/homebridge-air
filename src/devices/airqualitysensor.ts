@@ -16,6 +16,7 @@ import {
   AirNowUrl,
   AqicnUrl,
   HomeKitAQI,
+  normaliseAqicnAqi,
   REQUEST_RATE_LIMIT_CONFIG,
   REQUEST_TIMEOUT_CONFIG,
   resolveAqicnLocationSegment,
@@ -445,12 +446,17 @@ export class AirQualitySensor extends deviceBase {
               await this.apiError(aqicnResponse)
               return
             }
-            // Additional validation for AQICN data structure
-            if (!aqicnResponse.data.aqi && aqicnResponse.data.aqi !== 0) {
+            // The overall aqi can be a numeric string, '-' or missing on
+            // community stations; normalise it (falling back to the highest
+            // pollutant sub-index) before validating (#7)
+            const normalisedAqi = normaliseAqicnAqi(aqicnResponse.data)
+            if (normalisedAqi === undefined) {
               await this.errorLog('AQICN API Error - Missing AQI data in response')
+              await this.debugLog(`AQICN response structure: ${JSON.stringify(aqicnResponse.data)}`)
               this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
               return
             }
+            aqicnResponse.data.aqi = normalisedAqi
             this.deviceStatus = aqicnResponse.data
             // Cache the successful response (following AirNow best practices for hourly updates)
             this.lastResponseData = aqicnResponse.data
