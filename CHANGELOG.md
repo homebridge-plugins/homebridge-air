@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file. This projec
 - fix: report the real aqicn api error message instead of a generic missing data error (#7) (@rafalkarolczyk)
 - fix: request aqicn community sensors using their a prefixed feed id (#7) (#49) (@jsiegenthaler)
 - fix: remove cached accessories for devices that are no longer configured (#49) (@jsiegenthaler)
+- fix: accept a prefixed sensor ids written inside a station path (#7) (@rafalkarolczyk)
 
 ## [2.0.0](https://github.com/homebridge-plugins/homebridge-air/compare/v1.0.8...v2.0.0) (2026-04-15)
 

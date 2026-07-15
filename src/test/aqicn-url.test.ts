@@ -110,6 +110,26 @@ describe('aQICN URL Construction', () => {
     expect(url).toBe('https://api.waqi.info/feed/@92323/?token=test-api-key')
   })
 
+  it('should strip the station prefix from a station/A12345 path (#7)', () => {
+    const device: Partial<devicesConfig> = {
+      city: 'station/A524776',
+      apiKey: 'test-api-key',
+    }
+
+    const url = constructAqicnUrl(device)
+    expect(url).toBe('https://api.waqi.info/feed/A524776/?token=test-api-key')
+  })
+
+  it('should support a full URL containing an A prefixed sensor id (#7)', () => {
+    const device: Partial<devicesConfig> = {
+      city: 'https://aqicn.org/station/A524776',
+      apiKey: 'test-api-key',
+    }
+
+    const url = constructAqicnUrl(device)
+    expect(url).toBe('https://api.waqi.info/feed/A524776/?token=test-api-key')
+  })
+
   it('should support a local sensor id value (A12345)', () => {
     const device: Partial<devicesConfig> = {
       city: 'A92323',

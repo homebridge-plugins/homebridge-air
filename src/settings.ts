@@ -144,10 +144,12 @@ export function resolveAqicnLocationSegment(device: Pick<devicesConfig, 'city' |
       // The website lists community sensors as station/@12345, but the feed
       // addresses those as A12345 - AQICN documents this itself on each
       // sensor's API page (aqicn.org/data-platform/api/A12345/) (#7, #49).
+      // Accept the A12345 spelling under station/ too, since that is what a
+      // user ends up with after copying the id back into a station URL.
       //
       // Station-name paths (station/<slug>) have no feed equivalent and are
       // passed through unchanged; the API will report an unknown station.
-      const stationId = cityPath.match(/^station\/@(\d+)$/)
+      const stationId = cityPath.match(/^station\/[@a](\d+)$/i)
       if (stationId) {
         return `A${stationId[1]}`
       }
