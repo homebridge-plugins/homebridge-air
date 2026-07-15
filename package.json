@@ -42,8 +42,8 @@
   ],
   "main": "dist/index.js",
   "engines": {
-    "homebridge": "^2.0.0-beta.41",
-    "node": "^20 || ^22 || ^24"
+    "homebridge": "^2.0.0",
+    "node": "^22.12.0 || ^24.0.0"
   },
   "scripts": {
     "check": "npm install && npm outdated --json | node -e \"let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{const o=d.trim()?JSON.parse(d):{};delete o.homebridge;const keys=Object.keys(o);if(keys.length){console.error('Outdated packages (excluding homebridge beta track):');console.error(JSON.stringify(o,null,2));process.exit(1)}console.log('Check passed: no outdated packages (homebridge beta track ignored).')})\"",
@@ -65,23 +65,26 @@
     "access": "public"
   },
   "dependencies": {
-    "@homebridge/plugin-ui-utils": "^2.2.3",
+    "@homebridge/plugin-ui-utils": "^2.2.5",
     "rxjs": "^7.8.1",
     "striptags": "^3.2.0",
-    "undici": "^8.1.0"
+    "undici": "^8.7.0"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^8.2.0",
+    "@antfu/eslint-config": "^9.1.0",
     "@types/debug": "^4.1.13",
-    "@types/node": "^25.6.0",
-    "@vitest/coverage-v8": "^4.1.4",
-    "eslint": "^10.2.0",
+    "@types/node": "^26.1.1",
+    "@vitest/coverage-v8": "^4.1.10",
+    "eslint": "^10.7.0",
     "eslint-plugin-format": "^2.0.1",
-    "homebridge": "^2.0.0-beta.89",
+    "homebridge": "^2.1.1",
     "nodemon": "^3.1.14",
     "shx": "^0.4.0",
-    "typedoc": "^0.28.19",
+    "typedoc": "^0.28.20",
     "typescript": "^6.0.2",
-    "vitest": "^4.1.4"
+    "vitest": "^4.1.10"
+  },
+  "allowScripts": {
+    "fsevents@2.3.3": true
   }
 }

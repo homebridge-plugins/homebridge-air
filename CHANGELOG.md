@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## v2.0.1 (Pending Release)
+
+### Changed
+
+- chore(deps): update dependencies
+
 ## [2.0.0](https://github.com/homebridge-plugins/homebridge-air/compare/v1.0.8...v2.0.0) (2026-04-15)
 
 ### What's Changed
