@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file. This projec
 - docs: use the standard org readme banner
 - fix: keep matter display names within the 32 character limit
 - chore(github): update the setup-node action to v7
+- fix: convert aqicn station and city website paths into valid feed api paths (#49) (@jsiegenthaler)
 
 ## [2.0.0](https://github.com/homebridge-plugins/homebridge-air/compare/v1.0.8...v2.0.0) (2026-04-15)
 

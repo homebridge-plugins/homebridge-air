@@ -116,27 +116,39 @@ export function resolveAqicnLocationSegment(device: Pick<devicesConfig, 'city' |
   const rawCity = device.city?.trim()
 
   if (rawCity) {
+    let cityPath = rawCity
+    let pastedUrl = false
+
     // Allow users to paste a full AQICN URL (issue #7)
     if (rawCity.startsWith('http://') || rawCity.startsWith('https://')) {
       try {
-        const parsed = new URL(rawCity)
-        const path = parsed.pathname.replace(/^\/+|\/+$/g, '')
-        if (path.startsWith('city/') || path.startsWith('station/')) {
-          return path
-        }
+        cityPath = new URL(rawCity).pathname
+        pastedUrl = true
       } catch {
         // Fall through to other path/city handling.
       }
     }
 
-    const cityPath = rawCity.replace(/^\/+|\/+$/g, '')
-    const looksLikeExplicitPath = cityPath.startsWith('city/')
+    cityPath = cityPath.replace(/^\/+|\/+$/g, '')
+    const looksLikeExplicitPath = pastedUrl
+      || cityPath.startsWith('city/')
       || cityPath.startsWith('station/')
       || cityPath.includes('/city/')
       || cityPath.includes('/station/')
 
     // If the user supplied an explicit path, prefer it over geo coordinates.
     if (looksLikeExplicitPath) {
+      // The feed API does not understand the website's path prefixes (#49):
+      // station/@12345 must become @12345, and city/<path> must become <path>.
+      // Station-name paths (station/<slug>) have no feed equivalent and are
+      // passed through unchanged; the API will report an unknown station.
+      const stationId = cityPath.match(/^station\/(@\d+)$/)
+      if (stationId) {
+        return stationId[1]
+      }
+      if (cityPath.startsWith('city/')) {
+        return cityPath.slice('city/'.length)
+      }
       return cityPath
     }
   }
