@@ -158,3 +158,5 @@ dist
 persist/
 .DS_Store
 .idea
+docs
+/test/hbConfig
