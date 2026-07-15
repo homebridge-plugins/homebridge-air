@@ -163,7 +163,7 @@ export class AirMatterPlatform extends AirPlatform {
       // Update context with latest device info
       if (existingAccessory.context) {
         existingAccessory.context.device = device as unknown as Record<string, unknown>
-        existingAccessory.context.serialNumber = device.zipCode ?? '00000'
+        existingAccessory.context.serialNumber = this.generateSerialNumber(device)
         existingAccessory.context.model = manufacturer
         existingAccessory.context.FirmwareRevision = firmwareRevision
       }
@@ -175,13 +175,13 @@ export class AirMatterPlatform extends AirPlatform {
         UUID: uuid,
         displayName,
         deviceType: devices.AirQualitySensorDevice,
-        serialNumber: device.zipCode ?? '00000',
+        serialNumber: this.generateSerialNumber(device),
         manufacturer,
         model: manufacturer,
         firmwareRevision,
         context: {
           device,
-          serialNumber: device.zipCode ?? '00000',
+          serialNumber: this.generateSerialNumber(device),
           model: manufacturer,
           FirmwareRevision: firmwareRevision,
         },

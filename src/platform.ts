@@ -10,7 +10,7 @@ import { readFileSync } from 'node:fs'
 import { argv } from 'node:process'
 
 import { AirQualitySensor } from './devices/airqualitysensor.js'
-import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js'
+import { PLATFORM_NAME, PLUGIN_NAME, resolveAqicnLocationSegment } from './settings.js'
 
 /**
  * HomebridgePlatform
@@ -225,6 +225,20 @@ export class AirPlatform implements DynamicPlatformPlugin {
   }
 
   /**
+   * Build the serial number shown in HomeKit.
+   *
+   * AirNow devices are identified by their zip code, but AQICN devices have
+   * none, so every one of them fell back to a meaningless shared '00000'.
+   * Use the station id instead, which is already unique per station (#49).
+   */
+  public generateSerialNumber(device: any): string {
+    if (device.provider === 'aqicn') {
+      return resolveAqicnLocationSegment(device) || '00000'
+    }
+    return device.zipCode ?? '00000'
+  }
+
+  /**
    * Remove cached accessories for devices that are no longer in the config.
    *
    * Without this, editing or deleting a device leaves its accessory in
@@ -251,7 +265,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
         // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
         existingAccessory.context.device = device
         existingAccessory.displayName = await this.validateAndCleanDisplayName(device.city, 'city', device.city, device.provider)
-        existingAccessory.context.serialNumber = device.zipCode
+        existingAccessory.context.serialNumber = this.generateSerialNumber(device)
         existingAccessory.context.model = device.provider === 'airnow' ? 'AirNow' : device.provider === 'aqicn' ? 'Aqicn' : 'Unknown'
         existingAccessory.context.FirmwareRevision = device.firmware ?? await this.getVersion()
         this.api.updatePlatformAccessories([existingAccessory])
@@ -273,7 +287,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
       // the `context` property can be used to store any data about the accessory you may need
       accessory.context.device = device
       accessory.displayName = cleanedDisplayName
-      accessory.context.serialNumber = device.zipCode
+      accessory.context.serialNumber = this.generateSerialNumber(device)
       accessory.context.model = device.provider === 'airnow' ? 'AirNow' : device.provider === 'aqicn' ? 'Aqicn' : 'Unknown'
       accessory.context.FirmwareRevision = device.firmware ?? await this.getVersion()
       // the accessory does not yet exist, so we need to create it

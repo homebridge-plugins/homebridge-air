@@ -287,3 +287,42 @@ describe('airPlatform removeStaleAccessories', () => {
     expect(platform.accessories).toEqual([])
   })
 })
+
+describe('airPlatform generateSerialNumber', () => {
+  let platform: AirPlatform
+
+  beforeEach(() => {
+    platform = new (AirPlatform as any)(mockLog, mockConfig, mockAPI)
+    vi.clearAllMocks()
+  })
+
+  it('should use the zip code for airnow devices', () => {
+    const serial = platform.generateSerialNumber({ provider: 'airnow', zipCode: '90210' })
+    expect(serial).toBe('90210')
+  })
+
+  it('should use the station id for aqicn community sensors (#49)', () => {
+    const serial = platform.generateSerialNumber({
+      provider: 'aqicn',
+      city: 'https://aqicn.org/station/@92323/',
+      zipCode: '00000',
+    })
+    expect(serial).toBe('A92323')
+  })
+
+  it('should use the city name for aqicn city devices', () => {
+    const serial = platform.generateSerialNumber({ provider: 'aqicn', city: 'winterthur', zipCode: '00000' })
+    expect(serial).toBe('winterthur')
+  })
+
+  it('should give aqicn devices distinct serial numbers', () => {
+    const first = platform.generateSerialNumber({ provider: 'aqicn', city: 'station/@92323', zipCode: '00000' })
+    const second = platform.generateSerialNumber({ provider: 'aqicn', city: 'station/@524776', zipCode: '00000' })
+    expect(first).not.toBe(second)
+  })
+
+  it('should fall back to 00000 when an aqicn device has no location at all', () => {
+    const serial = platform.generateSerialNumber({ provider: 'aqicn', city: '', zipCode: '00000' })
+    expect(serial).toBe('00000')
+  })
+})
