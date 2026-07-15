@@ -43,10 +43,12 @@ export abstract class deviceBase {
     this.getDeviceConfigSettings(device)
     this.getDeviceContext(accessory, device)
 
-    // Set accessory information
+    // Set accessory information. The manufacturer was hardcoded to AirNow,
+    // which mislabelled every AQICN station (#68); context.model already holds
+    // the provider name, which is what the Matter platform reports too.
     accessory
       .getService(this.hap.Service.AccessoryInformation)!
-      .setCharacteristic(this.hap.Characteristic.Manufacturer, 'AirNow')
+      .setCharacteristic(this.hap.Characteristic.Manufacturer, accessory.context.model)
       .setCharacteristic(this.hap.Characteristic.Name, accessory.displayName)
       .setCharacteristic(this.hap.Characteristic.ConfiguredName, accessory.displayName)
       .setCharacteristic(this.hap.Characteristic.Model, accessory.context.model)

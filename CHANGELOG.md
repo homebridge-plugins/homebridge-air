@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. This projec
 ### Changed
 
 - fix: give aqicn accessories a unique serial number instead of a shared placeholder (#49) (@jsiegenthaler)
+- fix: report the air quality provider as the manufacturer instead of always airnow (#68) (@jsiegenthaler)
 
 ## v2.0.1 (2026-07-15)
 
