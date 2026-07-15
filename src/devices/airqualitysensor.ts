@@ -241,7 +241,7 @@ export class AirQualitySensor extends deviceBase {
         }
       }
 
-      await this.debugLog(`Reverse geocoding failed or incomplete data received`)
+      await this.debugLog('Reverse geocoding failed or incomplete data received')
       return null
     } catch (error: any) {
       await this.debugLog(`Reverse geocoding error: ${error.message}`)
@@ -293,7 +293,7 @@ export class AirQualitySensor extends deviceBase {
       // Use correct AirNow API endpoint paths from official docs
       // https://docs.airnowapi.org/CurrentObservationsByZip/docs
       // https://docs.airnowapi.org/CurrentObservationsByLatLon/docs
-      const AirNowCurrentObservationBy = this.device.latitude && this.device.longitude ? `latLong` : 'zipCode'
+      const AirNowCurrentObservationBy = this.device.latitude && this.device.longitude ? 'latLong' : 'zipCode'
       // Support flexible AQICN URL patterns: geo coordinates, city names, and full URL paths
       const AqicnCurrentObservationBy = resolveAqicnLocationSegment(this.device)
       const AirNowCurrentObservationByValue = this.device.latitude && this.device.longitude ? `latitude=${this.device.latitude}&longitude=${this.device.longitude}` : `zipCode=${this.device.zipCode}`
@@ -321,7 +321,7 @@ export class AirQualitySensor extends deviceBase {
 
             // If using lat/lon with AirNow, try reverse geocoding to get zip code as fallback
             if (this.device.provider === 'airnow' && this.device.latitude && this.device.longitude) {
-              await this.infoLog(`Attempting reverse geocoding to find zip code as fallback...`)
+              await this.infoLog('Attempting reverse geocoding to find zip code as fallback...')
               const geoData = await this.reverseGeocodeToZipCode(this.device.latitude, this.device.longitude)
 
               if (geoData?.zipCode) {
@@ -361,12 +361,12 @@ export class AirQualitySensor extends deviceBase {
                   }
                 }
               } else {
-                await this.warnLog(`Could not determine zip code from coordinates`)
+                await this.warnLog('Could not determine zip code from coordinates')
               }
             }
 
-            await this.errorLog(`The AirNow API endpoint may have changed or requires different parameters.`)
-            await this.debugLog(`Try using zipCode in your config, or check if your API key is valid.`)
+            await this.errorLog('The AirNow API endpoint may have changed or requires different parameters.')
+            await this.debugLog('Try using zipCode in your config, or check if your API key is valid.')
             this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
             return
           }
@@ -374,7 +374,7 @@ export class AirQualitySensor extends deviceBase {
           if (!responseText || responseText.trim().length === 0) {
             // Try reverse geocoding fallback for empty responses too
             if (this.device.provider === 'airnow' && this.device.latitude && this.device.longitude && !this.device.zipCode) {
-              await this.infoLog(`Empty response - attempting reverse geocoding fallback...`)
+              await this.infoLog('Empty response - attempting reverse geocoding fallback...')
               const geoData = await this.reverseGeocodeToZipCode(this.device.latitude, this.device.longitude)
 
               if (geoData?.zipCode) {
@@ -405,8 +405,8 @@ export class AirQualitySensor extends deviceBase {
             }
 
             await this.errorLog(`Empty response body received from ${this.device.provider} API (Status: ${statusCode})`)
-            await this.errorLog(`This usually means no air quality data is available for your location.`)
-            await this.errorLog(`Try adjusting the distance parameter or verify your coordinates are correct.`)
+            await this.errorLog('This usually means no air quality data is available for your location.')
+            await this.errorLog('Try adjusting the distance parameter or verify your coordinates are correct.')
             await this.debugLog(`Current settings - Lat: ${this.device.latitude}, Lon: ${this.device.longitude}, Distance: ${distance}`)
             this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
             return
@@ -447,7 +447,7 @@ export class AirQualitySensor extends deviceBase {
             }
             // Additional validation for AQICN data structure
             if (!aqicnResponse.data.aqi && aqicnResponse.data.aqi !== 0) {
-              await this.errorLog(`AQICN API Error - Missing AQI data in response`)
+              await this.errorLog('AQICN API Error - Missing AQI data in response')
               this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
               return
             }
@@ -460,7 +460,7 @@ export class AirQualitySensor extends deviceBase {
             // Validate AirNow response structure
             const airnowResponse = response as AirNowAirQualityDataArray
             if (!Array.isArray(airnowResponse) || airnowResponse.length === 0) {
-              await this.errorLog(`AirNow API Error - Invalid response structure or empty data`)
+              await this.errorLog('AirNow API Error - Invalid response structure or empty data')
               this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
               return
             }

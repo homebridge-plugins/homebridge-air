@@ -24,7 +24,6 @@ export function createPlatformProxy(
   HapPlatform: new (log: Logging, config: AirPlatformConfig, api: API) => DynamicPlatformPlugin,
   MatterPlatformClass: new (log: Logging, config: AirPlatformConfig, api: API) => DynamicPlatformPlugin,
 ): new (log: Logging, config: AirPlatformConfig, api: API) => DynamicPlatformPlugin {
-  // eslint-disable-next-line ts/no-extraneous-class
   class PlatformProxy {
     constructor(log: Logging, config: AirPlatformConfig, api: API) {
       // Guard: no config means the plugin is not configured; let HapPlatform handle it gracefully.

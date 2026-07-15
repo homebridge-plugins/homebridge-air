@@ -4,10 +4,10 @@
 
 # Homebridge Air
 
-<a href="https://www.npmjs.com/package/homebridge-air"><img title="npm version" src="https://badgen.net/npm/v/homebridge-air?icon=npm&label" ></a>
-<a href="https://www.npmjs.com/package/homebridge-air"><img title="npm downloads" src="https://badgen.net/npm/dt/homebridge-air?label=downloads" ></a>
-<a href="https://discord.gg/8fpZA4S"><img title="discord-air" src="https://badgen.net/discord/online-members/8fpZA4S?icon=discord&label=discord" ></a>
-<a href="https://paypal.me/donavanbecker"><img title="donate" src="https://badgen.net/badge/donate/paypal/yellow" ></a>
+<a href="https://www.npmjs.com/package/homebridge-air"><img alt="npm version" title="npm version" src="https://badgen.net/npm/v/homebridge-air?icon=npm&label" ></a>
+<a href="https://www.npmjs.com/package/homebridge-air"><img alt="npm downloads" title="npm downloads" src="https://badgen.net/npm/dt/homebridge-air?label=downloads" ></a>
+<a href="https://discord.gg/8fpZA4S"><img alt="discord" title="discord-air" src="https://badgen.net/discord/online-members/8fpZA4S?icon=discord&label=discord" ></a>
+<a href="https://paypal.me/donavanbecker"><img alt="donate" title="donate" src="https://badgen.net/badge/donate/paypal/yellow" ></a>
 
 <p>The Homebridge <a href="https://www.airnow.gov/">Air</a>
 plugin allows you monitor the current AirQuality for your Zip Code from HomeKit and Siri.
@@ -26,7 +26,7 @@ plugin allows you monitor the current AirQuality for your Zip Code from HomeKit 
 
 <p align="center">
 
-<img src="https://user-images.githubusercontent.com/9875439/133934622-05a9c19e-c5ba-46ee-b0db-0748420813d7.png" width="450px">
+<img alt="AirNow API key signup form" src="https://user-images.githubusercontent.com/9875439/133934622-05a9c19e-c5ba-46ee-b0db-0748420813d7.png" width="450px">
 
 </p>
 

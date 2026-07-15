@@ -51,7 +51,7 @@ describe('createPlatformProxy', () => {
         MockMatterPlatform as unknown as new (...args: any[]) => DynamicPlatformPlugin,
       )
       const api = makeApi(true, true)
-      new Proxy(mockLog, makeConfig(), api)
+      void new Proxy(mockLog, makeConfig(), api)
       expect(MockHapPlatform).toHaveBeenCalledOnce()
       expect(MockMatterPlatform).not.toHaveBeenCalled()
     })
@@ -62,7 +62,7 @@ describe('createPlatformProxy', () => {
         MockMatterPlatform as unknown as new (...args: any[]) => DynamicPlatformPlugin,
       )
       const api = makeApi(true, true)
-      new Proxy(mockLog, undefined as unknown as AirPlatformConfig, api)
+      void new Proxy(mockLog, undefined as unknown as AirPlatformConfig, api)
       expect(MockHapPlatform).toHaveBeenCalledOnce()
       expect(MockMatterPlatform).not.toHaveBeenCalled()
     })
@@ -75,7 +75,7 @@ describe('createPlatformProxy', () => {
         MockMatterPlatform as unknown as new (...args: any[]) => DynamicPlatformPlugin,
       )
       const api = makeApi(true, true)
-      new Proxy(mockLog, makeConfig(true), api)
+      void new Proxy(mockLog, makeConfig(true), api)
       expect(MockMatterPlatform).toHaveBeenCalledOnce()
       expect(MockHapPlatform).not.toHaveBeenCalled()
     })
@@ -86,7 +86,7 @@ describe('createPlatformProxy', () => {
         MockMatterPlatform as unknown as new (...args: any[]) => DynamicPlatformPlugin,
       )
       const api = makeApi(true, true)
-      new Proxy(mockLog, makeConfig(false, true), api)
+      void new Proxy(mockLog, makeConfig(false, true), api)
       expect(MockMatterPlatform).toHaveBeenCalledOnce()
       expect(MockHapPlatform).not.toHaveBeenCalled()
     })
@@ -99,7 +99,7 @@ describe('createPlatformProxy', () => {
         MockMatterPlatform as unknown as new (...args: any[]) => DynamicPlatformPlugin,
       )
       const api = makeApi(false, false)
-      new Proxy(mockLog, makeConfig(true), api)
+      void new Proxy(mockLog, makeConfig(true), api)
       expect(MockHapPlatform).toHaveBeenCalledOnce()
       expect(MockMatterPlatform).not.toHaveBeenCalled()
     })
@@ -110,7 +110,7 @@ describe('createPlatformProxy', () => {
         MockMatterPlatform as unknown as new (...args: any[]) => DynamicPlatformPlugin,
       )
       const api = makeApi(true, false)
-      new Proxy(mockLog, makeConfig(true), api)
+      void new Proxy(mockLog, makeConfig(true), api)
       expect(MockHapPlatform).toHaveBeenCalledOnce()
       expect(MockMatterPlatform).not.toHaveBeenCalled()
     })
@@ -121,7 +121,7 @@ describe('createPlatformProxy', () => {
         MockMatterPlatform as unknown as new (...args: any[]) => DynamicPlatformPlugin,
       )
       const api = makeApi(false, false)
-      new Proxy(mockLog, makeConfig(false, true), api)
+      void new Proxy(mockLog, makeConfig(false, true), api)
       expect(MockHapPlatform).toHaveBeenCalledOnce()
       expect(MockMatterPlatform).not.toHaveBeenCalled()
     })
@@ -134,7 +134,7 @@ describe('createPlatformProxy', () => {
         MockMatterPlatform as unknown as new (...args: any[]) => DynamicPlatformPlugin,
       )
       const api = makeApi(false, false)
-      new Proxy(mockLog, makeConfig(true), api)
+      void new Proxy(mockLog, makeConfig(true), api)
       expect(mockLog.warn).toHaveBeenCalledWith(expect.stringContaining('Matter'))
     })
 
@@ -144,7 +144,7 @@ describe('createPlatformProxy', () => {
         MockMatterPlatform as unknown as new (...args: any[]) => DynamicPlatformPlugin,
       )
       const api = makeApi(true, false)
-      new Proxy(mockLog, makeConfig(true), api)
+      void new Proxy(mockLog, makeConfig(true), api)
       expect(mockLog.warn).toHaveBeenCalledWith(expect.stringContaining('Matter'))
     })
 
@@ -154,7 +154,7 @@ describe('createPlatformProxy', () => {
         MockMatterPlatform as unknown as new (...args: any[]) => DynamicPlatformPlugin,
       )
       const api = makeApi(false, false)
-      new Proxy(mockLog, makeConfig(false, true), api)
+      void new Proxy(mockLog, makeConfig(false, true), api)
       expect(mockLog.warn).not.toHaveBeenCalled()
     })
 
@@ -164,7 +164,7 @@ describe('createPlatformProxy', () => {
         MockMatterPlatform as unknown as new (...args: any[]) => DynamicPlatformPlugin,
       )
       const api = makeApi(false, false)
-      new Proxy(mockLog, makeConfig(), api)
+      void new Proxy(mockLog, makeConfig(), api)
       expect(mockLog.warn).not.toHaveBeenCalled()
     })
   })
@@ -177,7 +177,7 @@ describe('createPlatformProxy', () => {
       )
       const api = makeApi(false, false)
       const config = makeConfig()
-      new Proxy(mockLog, config, api)
+      void new Proxy(mockLog, config, api)
       expect(MockHapPlatform).toHaveBeenCalledWith(mockLog, config, api)
     })
   })
