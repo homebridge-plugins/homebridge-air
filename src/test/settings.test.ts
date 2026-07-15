@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { AqicnUrl, getAqicnError, HomeKitAQI, normaliseAqicnAqi, REQUEST_RATE_LIMIT_CONFIG, REQUEST_TIMEOUT_CONFIG, resolveAqicnLocationSegment } from '../settings.js'
+import { AqicnUrl, getAqicnError, HomeKitAQI, normaliseAqicnAqi, REQUEST_RATE_LIMIT_CONFIG, REQUEST_TIMEOUT_CONFIG, resolveAqicnLocationSegment, resolveProviderStationName } from '../settings.js'
 
 describe('homeKitAQI', () => {
   it('should return 0 for undefined AQI', () => {
@@ -162,5 +162,39 @@ describe('getAqicnError', () => {
   it('should treat a non-object response as an empty response', () => {
     expect(getAqicnError(undefined)).toBe('empty response')
     expect(getAqicnError('')).toBe('empty response')
+  })
+})
+
+describe('resolveProviderStationName', () => {
+  it('should use city.name for aqicn (#69)', () => {
+    const status = { aqi: 25, city: { name: 'Kirchackerstrasse' } }
+    expect(resolveProviderStationName('aqicn', status)).toBe('Kirchackerstrasse')
+  })
+
+  it('should trim surrounding whitespace', () => {
+    expect(resolveProviderStationName('aqicn', { city: { name: '  Urodzajna  ' } })).toBe('Urodzajna')
+  })
+
+  it('should return undefined when aqicn omits a usable name', () => {
+    expect(resolveProviderStationName('aqicn', { city: { name: '' } })).toBeUndefined()
+    expect(resolveProviderStationName('aqicn', { city: {} })).toBeUndefined()
+    expect(resolveProviderStationName('aqicn', {})).toBeUndefined()
+    expect(resolveProviderStationName('aqicn', undefined)).toBeUndefined()
+  })
+
+  it('should use ReportingArea for airnow (#69)', () => {
+    const status = [{ ReportingArea: 'Winterthur', StateCode: 'ZH', AQI: 12 }]
+    expect(resolveProviderStationName('airnow', status)).toBe('Winterthur')
+  })
+
+  it('should return undefined when airnow gives no records or no area', () => {
+    expect(resolveProviderStationName('airnow', [])).toBeUndefined()
+    expect(resolveProviderStationName('airnow', [{ AQI: 12 }])).toBeUndefined()
+    expect(resolveProviderStationName('airnow', undefined)).toBeUndefined()
+  })
+
+  it('should return undefined for an unknown provider', () => {
+    expect(resolveProviderStationName('somethingelse', { city: { name: 'Nope' } })).toBeUndefined()
+    expect(resolveProviderStationName(undefined, { city: { name: 'Nope' } })).toBeUndefined()
   })
 })

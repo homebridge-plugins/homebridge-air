@@ -326,3 +326,35 @@ describe('airPlatform generateSerialNumber', () => {
     expect(serial).toBe('00000')
   })
 })
+
+describe('airPlatform resolveDisplayName', () => {
+  let platform: AirPlatform
+
+  beforeEach(() => {
+    platform = new (AirPlatform as any)(mockLog, mockConfig, mockAPI)
+    vi.clearAllMocks()
+  })
+
+  it('should keep using an adopted station name across restarts (#69)', async () => {
+    const accessory = { context: { providerName: 'Kirchackerstrasse' } } as any
+    const device = { provider: 'aqicn', city: 'https://aqicn.org/station/@92323/' }
+
+    expect(await platform.resolveDisplayName(device, accessory)).toBe('Kirchackerstrasse')
+  })
+
+  it('should keep the existing name when no station name was ever adopted (#69)', async () => {
+    // Accessories added before this feature must not be renamed - their
+    // current name was the user's decision
+    const accessory = { context: {} } as any
+    const device = { provider: 'aqicn', city: 'https://aqicn.org/station/@92323/' }
+
+    expect(await platform.resolveDisplayName(device, accessory)).toBe('Station 92323')
+  })
+
+  it('should still name airnow devices from their city', async () => {
+    const accessory = { context: {} } as any
+    const device = { provider: 'airnow', city: 'Winterthur', zipCode: '8400' }
+
+    expect(await platform.resolveDisplayName(device, accessory)).toBe('Winterthur')
+  })
+})

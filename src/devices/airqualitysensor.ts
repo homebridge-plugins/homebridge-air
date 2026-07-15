@@ -21,6 +21,7 @@ import {
   REQUEST_RATE_LIMIT_CONFIG,
   REQUEST_TIMEOUT_CONFIG,
   resolveAqicnLocationSegment,
+  resolveProviderStationName,
 } from '../settings.js'
 import { deviceBase } from './device.js'
 
@@ -201,6 +202,7 @@ export class AirQualitySensor extends deviceBase {
           this.infoLog(`${provider} air quality AQI is: ${this.AirQualitySensor.AirQuality} (${pollutantCount} pollutants found)`)
         }
         this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.NO_FAULT
+        await this.applyProviderStationName()
       } else {
         await this.errorLog('Unknown air quality provider: %s.', provider)
       }
@@ -208,6 +210,43 @@ export class AirQualitySensor extends deviceBase {
       await this.errorLog(`failed to parseStatus, Error Message: ${JSON.stringify(e.message ?? e)}`)
       await this.apiError(e)
     }
+  }
+
+  /**
+   * Name a newly added accessory after the station its data describes, e.g.
+   * 'Kirchackerstrasse' rather than 'Station 92323' (#69).
+   *
+   * This only ever runs for accessories the plugin has just created. Anything
+   * already in HomeKit keeps its current name, because that name was the
+   * user's decision. If the provider gives us no name we leave the flag set so
+   * the next refresh can try again.
+   */
+  async applyProviderStationName(): Promise<void> {
+    if (!this.accessory.context.nameFromProvider) {
+      return
+    }
+
+    const stationName = resolveProviderStationName(this.device.provider, this.deviceStatus)
+    if (!stationName) {
+      return
+    }
+
+    const cleanName = await this.platform.validateAndCleanDisplayName(stationName, 'station name', stationName)
+    this.accessory.context.nameFromProvider = false
+    if (!cleanName || cleanName === this.accessory.displayName) {
+      return
+    }
+
+    await this.infoLog(`Naming accessory after its station: '${this.accessory.displayName}' -> '${cleanName}'`)
+    this.accessory.context.providerName = cleanName
+    this.accessory.displayName = cleanName
+    this.AirQualitySensor.Name = cleanName
+    this.AirQualitySensor.Service.updateCharacteristic(this.hap.Characteristic.Name, cleanName)
+    this.accessory
+      .getService(this.hap.Service.AccessoryInformation)
+      ?.updateCharacteristic(this.hap.Characteristic.Name, cleanName)
+      .updateCharacteristic(this.hap.Characteristic.ConfiguredName, cleanName)
+    this.api.updatePlatformAccessories([this.accessory])
   }
 
   /**

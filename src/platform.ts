@@ -251,6 +251,22 @@ export class AirPlatform implements DynamicPlatformPlugin {
     }
   }
 
+  /**
+   * Work out what a restored accessory should be called.
+   *
+   * Once an accessory has adopted the provider's station name we keep using
+   * it, otherwise every restart would rename it back to the id from the
+   * config. Accessories that never adopted one are named as they always were
+   * (#69).
+   */
+  public async resolveDisplayName(device: any, accessory: PlatformAccessory): Promise<string> {
+    const providerName = accessory.context.providerName
+    if (typeof providerName === 'string' && providerName) {
+      return await this.validateAndCleanDisplayName(providerName, 'station name', providerName)
+    }
+    return await this.validateAndCleanDisplayName(device.city, 'city', device.city, device.provider)
+  }
+
   public async createAirQualitySensor(device: any) {
     // generate a unique id for the accessory
     const uuid = this.generateAccessoryUUID(device)
@@ -264,7 +280,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
       if (!device.hide_device) {
         // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
         existingAccessory.context.device = device
-        existingAccessory.displayName = await this.validateAndCleanDisplayName(device.city, 'city', device.city, device.provider)
+        existingAccessory.displayName = await this.resolveDisplayName(device, existingAccessory)
         existingAccessory.context.serialNumber = this.generateSerialNumber(device)
         existingAccessory.context.model = device.provider === 'airnow' ? 'AirNow' : device.provider === 'aqicn' ? 'Aqicn' : 'Unknown'
         existingAccessory.context.FirmwareRevision = device.firmware ?? await this.getVersion()
@@ -287,6 +303,9 @@ export class AirPlatform implements DynamicPlatformPlugin {
       // the `context` property can be used to store any data about the accessory you may need
       accessory.context.device = device
       accessory.displayName = cleanedDisplayName
+      // This accessory is new to HomeKit, so nobody has named it yet and we are
+      // free to adopt the provider's own station name once we have data (#69)
+      accessory.context.nameFromProvider = true
       accessory.context.serialNumber = this.generateSerialNumber(device)
       accessory.context.model = device.provider === 'airnow' ? 'AirNow' : device.provider === 'aqicn' ? 'Aqicn' : 'Unknown'
       accessory.context.FirmwareRevision = device.firmware ?? await this.getVersion()

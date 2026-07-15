@@ -289,6 +289,29 @@ export interface AqicnData {
   }
 }
 
+/**
+ * Pull the station name out of a provider response, so an accessory can be
+ * named after the place it reports on rather than a bare id (#69).
+ *
+ * AQICN calls it city.name ('Kirchackerstrasse'); AirNow calls it
+ * ReportingArea. Returns undefined when the provider gives us nothing usable.
+ */
+export function resolveProviderStationName(provider: string | undefined, status: unknown): string | undefined {
+  const clean = (value: unknown): string | undefined => (typeof value === 'string' && value.trim() ? value.trim() : undefined)
+
+  if (provider === 'aqicn') {
+    return clean((status as AqicnData['data'] | undefined)?.city?.name)
+  }
+
+  if (provider === 'airnow') {
+    // AirNow returns one record per pollutant, all for the same reporting area
+    const records = status as AirNowAirQualityDataArray | undefined
+    return Array.isArray(records) ? clean(records[0]?.ReportingArea) : undefined
+  }
+
+  return undefined
+}
+
 export function HomeKitAQI(aqi: number | undefined): number {
   if (aqi === undefined || aqi < 0) {
     return 0

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## v2.1.0 (Pending Release)
+
+### Changed
+
+- feat: name new accessories after the station their data describes (#69) (@jsiegenthaler)
+
 ## v2.0.3 (2026-07-15)
 
 ### Changed
