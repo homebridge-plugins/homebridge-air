@@ -1,75 +1,59 @@
+<p align="center">
+   <a href="https://github.com/homebridge-plugins/homebridge-air"><img alt="homebridge-air" src="https://raw.githubusercontent.com/homebridge-plugins/homebridge-air/latest/branding/Homebridge_x_Air.svg?sanitize=true" width="350px"></a>
+</p>
 <span align="center">
 
-<a href="https://github.com/homebridge/verified/blob/master/verified-plugins.json"><img alt="homebridge-verified" src="https://raw.githubusercontent.com/homebridge-plugins/homebridge-air/latest/branding/Homebridge_x_Air.svg?sanitize=true" width="350px"></a>
+## homebridge-air
 
-# Homebridge Air
+Homebridge plugin to integrate air quality data into HomeKit
 
-<a href="https://www.npmjs.com/package/homebridge-air"><img alt="npm version" title="npm version" src="https://badgen.net/npm/v/homebridge-air?icon=npm&label" ></a>
-<a href="https://www.npmjs.com/package/homebridge-air"><img alt="npm downloads" title="npm downloads" src="https://badgen.net/npm/dt/homebridge-air?label=downloads" ></a>
-<a href="https://discord.gg/8fpZA4S"><img alt="discord" title="discord-air" src="https://badgen.net/discord/online-members/8fpZA4S?icon=discord&label=discord" ></a>
-<a href="https://paypal.me/donavanbecker"><img alt="donate" title="donate" src="https://badgen.net/badge/donate/paypal/yellow" ></a>
-
-<p>The Homebridge <a href="https://www.airnow.gov/">Air</a>
-plugin allows you monitor the current AirQuality for your Zip Code from HomeKit and Siri.
-</p>
+[![npm](https://img.shields.io/npm/v/@homebridge-plugins/homebridge-air/latest?label=latest)](https://www.npmjs.com/package/@homebridge-plugins/homebridge-air)
+[![npm](https://img.shields.io/npm/v/@homebridge-plugins/homebridge-air/beta?label=beta)](https://github.com/homebridge/homebridge/wiki/How-to-Install-Alternate-Plugin-Versions)<br>
+[![verified-by-homebridge](https://img.shields.io/badge/homebridge-verified-blueviolet?color=%23491F59&style=flat)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)<br>
+[![npm](https://img.shields.io/npm/dt/@homebridge-plugins/homebridge-air)](https://www.npmjs.com/package/@homebridge-plugins/homebridge-air)
+[![Discord](https://img.shields.io/discord/432663330281226270?color=728ED5&logo=discord&label=hb-discord)](https://discord.gg/bHjKNkN)
 
 </span>
 
-## Installation
+### Plugin Information
 
-1. Search for "Air" on the plugin screen of [Homebridge Config UI X](https://github.com/oznu/homebridge-config-ui-x).
-2. Click **Install**.
+- This plugin allows you to view live air quality data for your location within HomeKit. The plugin:
+  - creates a HomeKit air quality sensor for each city you configure
+  - retrieves its data from [AirNow](https://www.airnow.gov) (USA) or [Aqicn](https://aqicn.org) (international)
+  - requires a free API key from the provider you choose
 
-## Configuration
+### Setup
 
-1. Login / create an account at https://www.airnow.gov/ or at https://aqicn.org/api/ as applicable for your location
+- Installation
+  - Search for "Air" on the plugin screen of the [Homebridge UI](https://github.com/homebridge/homebridge-config-ui-x) and click **Install**.
+- Configuration
+  1. Obtain an API key from [AirNow](https://docs.airnowapi.org/account/request/) or [Aqicn](https://aqicn.org/data-platform/token/) as applicable for your location.
+  2. Enter your provider, API key, city and location details in the plugin settings.
+     - City names can be ambiguous, so also enter your latitude and longitude for accuracy (4 decimal places is sufficient). AirNow also requires your zip code.
+  3. Click **Save** and restart Homebridge.
 
-<p align="center">
+### Features
 
-<img alt="AirNow API key signup form" src="https://user-images.githubusercontent.com/9875439/133934622-05a9c19e-c5ba-46ee-b0db-0748420813d7.png" width="450px">
+- Measurements retrieved are PM2.5, PM10 and O3 for AirNow. Aqicn adds NO2, SO2 and CO.
+  - The Home app shows the overall air quality; the Eve app shows more of the individual measurements.
+- **Matter** support is available when running Homebridge v2.0+ with Matter enabled:
+  - `options.enableMatter: true` explicitly requests Matter. If Matter is unavailable or disabled, the plugin logs a warning and falls back to HAP.
+  - `options.preferMatter: true` uses Matter when available and enabled, but silently falls back to HAP otherwise.
+  - Switching between HAP and Matter removes stale cached accessories from the previous mode.
 
-</p>
+### Help/About
 
-2. Select your Provider: AirNow or Apicn
-3. Enter your AirNow.gov or Aqicn API Key
-4. Enter your City and Latitude / Longitude (4 decimal places is sufficient). Note that City may be ambiguous, so you should always enter Latitude and Longitude for location accuracy
-5. Optional Matter settings (Homebridge v2.0+):
+- [Support Request](https://github.com/homebridge-plugins/homebridge-air/issues/new/choose)
+- [Changelog](https://github.com/homebridge-plugins/homebridge-air/blob/latest/CHANGELOG.md)
+- [About Me](https://github.com/sponsors/bwp91)
 
-	- `options.enableMatter: true` to explicitly request Matter. If Matter is unavailable or disabled, the plugin logs a warning and falls back to HAP.
-	- `options.preferMatter: true` to use Matter when available and enabled, but silently fall back to HAP otherwise.
+### Credits
 
-6. Migration behavior:
+- To [@donavanbecker](https://github.com/donavanbecker): the original creator and maintainer of this plugin.
+- To [@ToddGreenfield](https://github.com/ToddGreenfield): the author of the original accessory-based plugin [homebridge-airnow](https://github.com/ToddGreenfield/homebridge-airnow).
+- To the creators/contributors of [Homebridge](https://homebridge.io) who make this plugin possible.
 
-	- Switching from HAP to Matter removes stale cached HAP accessories.
-	- Switching from Matter to HAP removes stale cached Matter accessories.
+### Disclaimer
 
-7. Click Save
-8. Restart Homebridge
-
-## Supported Air Quality Providers
-
-Currently supports AQI Services:
-
-- [AirNow](https://www.airnow.gov/) which is limited to the USA. A valid ZipCode is required.
-- [Aqicn](https://www.aqicn.org/) which has international support, provided by the [World Air Quality Index Project](http://waqi.info/).
-
-Depending on where exactly you would like to monitor AQI, one service may be more appropriate than the other.
-
-## Supported Air Quality Features
-
-This plugin will create an AirQualitySensor element. The Home app works well, but the Eve app seems to show more measurements. Measurements retrieved are PM2.5, PM10, & O3 for AirNow. Aqicn adds NO2, SO2, CO...
-
-## Contributing
-
-We welcome contributions! Please note our **beta branch strategy**:
-
-- **All PRs must target a beta branch first** (format: `beta-X.Y.Z`)
-- **Issues must have semantic versioning labels** (`patch`, `minor`, `major`) before assignment
-- **Use our helper script** to create beta branches: `./scripts/create-beta-branch.sh`
-- **See our [Contributing Guide](./CONTRIBUTING.md)** for detailed instructions
-
-For GitHub Copilot users, please review our [Copilot Instructions](./.github/copilot-instructions.md).
-
-## Thanks
-
-Thank you to [ToddGreenfield](https://github.com/ToddGreenfield) for the the work done on the accesorry based plugin [homebridge-airnow](https://github.com/ToddGreenfield/homebridge-airnow/blob/master/README.md).
+- I am in no way affiliated with AirNow, Aqicn or the World Air Quality Index Project, and this plugin is a personal project that I maintain in my free time.
+- Use this plugin entirely at your own risk - please see licence for more information.

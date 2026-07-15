@@ -9,6 +9,16 @@ All notable changes to this project will be documented in this file. This projec
 - chore(deps): update dependencies
 - chore: add .idea to .gitignore
 - fix: guard Matter API calls for optional api.matter
+- chore(github): align workflows, funding and issue templates with the other org plugins
+- chore: align npm publishing files with the other org plugins
+- chore: standardise the eslint setup with the other org plugins
+- refactor: store device instances on their accessories like the other org plugins
+- style: apply the standardised lint rules
+- chore: standardise the package scripts and publishing config
+- chore: update the plugin metadata for the new maintainer
+- docs: refresh the readme
+- docs: add claude and copilot instructions files
+- docs: use the standard org readme banner
 
 ## [2.0.0](https://github.com/homebridge-plugins/homebridge-air/compare/v1.0.8...v2.0.0) (2026-04-15)
 
