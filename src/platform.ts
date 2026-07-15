@@ -127,7 +127,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
 
   private async removeStaleMatterAccessory(accessory: MatterAccessory): Promise<void> {
     await this.warnLog(`Removing stale Matter accessory (HAP mode active): ${accessory.displayName}`)
-    await this.api.matter.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory])
+    await this.api.matter?.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory])
     this.matterAccessories.delete(accessory.UUID)
   }
 

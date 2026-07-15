@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. This projec
 
 - chore(deps): update dependencies
 - chore: add .idea to .gitignore
+- fix: guard Matter API calls for optional api.matter
 
 ## [2.0.0](https://github.com/homebridge-plugins/homebridge-air/compare/v1.0.8...v2.0.0) (2026-04-15)
 

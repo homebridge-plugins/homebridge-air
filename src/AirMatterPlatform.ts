@@ -121,7 +121,7 @@ export class AirMatterPlatform extends AirPlatform {
       const existingAccessory = this.matterAccessories.get(uuid)
       if (existingAccessory) {
         await this.warnLog(`Removing Matter accessory for hidden device: ${existingAccessory.displayName}`)
-        await this.api.matter.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [existingAccessory])
+        await this.api.matter?.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [existingAccessory])
         this.matterAccessories.delete(uuid)
       } else {
         await this.debugLog(`Skipping hidden device (no cached Matter accessory): ${device.city}`)
@@ -150,7 +150,7 @@ export class AirMatterPlatform extends AirPlatform {
         existingAccessory.context.model = manufacturer
         existingAccessory.context.FirmwareRevision = firmwareRevision
       }
-      await this.api.matter.updatePlatformAccessories([existingAccessory])
+      await this.api.matter?.updatePlatformAccessories([existingAccessory])
     } else {
       await this.infoLog(`Adding new Matter accessory: ${displayName}`)
 
@@ -176,7 +176,7 @@ export class AirMatterPlatform extends AirPlatform {
       }
 
       this.matterAccessories.set(uuid, accessory)
-      await this.api.matter.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory])
+      await this.api.matter?.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory])
       await this.debugLog(`${device.city} uuid: ${uuidString}`)
     }
 
@@ -192,7 +192,7 @@ export class AirMatterPlatform extends AirPlatform {
    */
   public async updateMatterAirQuality(uuid: string, homeKitAQI: number): Promise<void> {
     const matterAQ = toMatterAirQuality(homeKitAQI)
-    await this.api.matter.updateAccessoryState(uuid, 'airQuality', { airQuality: matterAQ })
+    await this.api.matter?.updateAccessoryState(uuid, 'airQuality', { airQuality: matterAQ })
     await this.debugLog(`Updated Matter air quality for ${uuid}: ${matterAQ}`)
   }
 }
