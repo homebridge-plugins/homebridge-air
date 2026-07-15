@@ -139,12 +139,17 @@ export function resolveAqicnLocationSegment(device: Pick<devicesConfig, 'city' |
     // If the user supplied an explicit path, prefer it over geo coordinates.
     if (looksLikeExplicitPath) {
       // The feed API does not understand the website's path prefixes (#49):
-      // station/@12345 must become @12345, and city/<path> must become <path>.
+      // city/<path> must become <path>.
+      //
+      // The website lists community sensors as station/@12345, but the feed
+      // addresses those as A12345 - AQICN documents this itself on each
+      // sensor's API page (aqicn.org/data-platform/api/A12345/) (#7, #49).
+      //
       // Station-name paths (station/<slug>) have no feed equivalent and are
       // passed through unchanged; the API will report an unknown station.
-      const stationId = cityPath.match(/^station\/(@\d+)$/)
+      const stationId = cityPath.match(/^station\/@(\d+)$/)
       if (stationId) {
-        return stationId[1]
+        return `A${stationId[1]}`
       }
       if (cityPath.startsWith('city/')) {
         return cityPath.slice('city/'.length)

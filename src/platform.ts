@@ -191,6 +191,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
   async discoverDevices() {
     try {
       if (this.config.devices) {
+        const configuredUUIDs = new Set<string>()
         for (const device of this.config.devices) {
           device.city = device.city ? device.city : 'Unknown'
           device.zipCode = device.zipCode ? device.zipCode : '00000'
@@ -203,19 +204,42 @@ export class AirPlatform implements DynamicPlatformPlugin {
               await this.errorLog('Latitude and Longitude must be a number')
             }
           }
+          configuredUUIDs.add(this.generateAccessoryUUID(device))
           await this.debugLog(`Discovered ${device.city}`)
-          this.createAirQualitySensor(device)
+          await this.createAirQualitySensor(device)
         }
+        await this.removeStaleAccessories(configuredUUIDs)
       }
     } catch {
       await this.errorLog('discoverDevices, No Device Config')
     }
   }
 
+  /**
+   * Build the accessory uuid for a configured device. Shared by discovery and
+   * registration so the two can never disagree on an accessory's identity.
+   */
+  public generateAccessoryUUID(device: any): string {
+    const uuidString = (device.latitude && device.longitude) ? (`${device.latitude}` + `${device.longitude}` + `${device.provider}`) : (`${device.zipCode}` + `${device.city}` + `${device.provider}`)
+    return this.api.hap.uuid.generate(uuidString)
+  }
+
+  /**
+   * Remove cached accessories for devices that are no longer in the config.
+   *
+   * Without this, editing or deleting a device leaves its accessory in
+   * HomeKit forever with no way for the user to clear it (#49).
+   */
+  private async removeStaleAccessories(configuredUUIDs: Set<string>) {
+    const staleAccessories = this.accessories.filter(accessory => !configuredUUIDs.has(accessory.UUID))
+    for (const staleAccessory of staleAccessories) {
+      await this.unregisterPlatformAccessories(staleAccessory)
+    }
+  }
+
   public async createAirQualitySensor(device: any) {
     // generate a unique id for the accessory
-    const uuidString = (device.latitude && device.longitude) ? (`${device.latitude}` + `${device.longitude}` + `${device.provider}`) : (`${device.zipCode}` + `${device.city}` + `${device.provider}`)
-    const uuid = this.api.hap.uuid.generate(uuidString)
+    const uuid = this.generateAccessoryUUID(device)
 
     // see if an accessory with the same uuid has already been registered and restored from
     // the cached devices we stored in the `configureAccessory` method above
@@ -236,7 +260,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
         // create the accessory handler for the restored accessory
         // this is imported from `platformAccessory.ts`
         existingAccessory.control = new AirQualitySensor(this, existingAccessory, device)
-        await this.debugLog(`${device.city} uuid: ${uuidString}`)
+        await this.debugLog(`${device.city} uuid: ${uuid}`)
       } else {
         this.unregisterPlatformAccessories(existingAccessory)
       }
@@ -257,7 +281,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
       // create the accessory handler for the newly create accessory
       // this is imported from `platformAccessory.ts`
       accessory.control = new AirQualitySensor(this, accessory, device)
-      await this.debugLog(`${device.city} uuid: ${uuidString}`)
+      await this.debugLog(`${device.city} uuid: ${uuid}`)
 
       // link the accessory to your platform
       this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory])
@@ -270,6 +294,11 @@ export class AirPlatform implements DynamicPlatformPlugin {
   public async unregisterPlatformAccessories(existingAccessory: PlatformAccessory) {
     // remove platform accessories when no longer present
     this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [existingAccessory])
+    // drop it from the tracked list too, so it cannot be unregistered twice
+    const index = this.accessories.indexOf(existingAccessory)
+    if (index > -1) {
+      this.accessories.splice(index, 1)
+    }
     await this.warnLog(`Removing existing accessory from cache: ${existingAccessory.displayName}`)
   }
 

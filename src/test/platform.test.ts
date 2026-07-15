@@ -240,3 +240,50 @@ describe('airPlatform verifyConfig provider validation', () => {
     expect(errorSpy).toHaveBeenCalledWith('Missing your Longitude')
   })
 })
+
+describe('airPlatform removeStaleAccessories', () => {
+  let platform: AirPlatform
+
+  beforeEach(() => {
+    platform = new (AirPlatform as any)(mockLog, mockConfig, mockAPI)
+    vi.clearAllMocks()
+  })
+
+  it('should unregister cached accessories that are no longer configured (#49)', async () => {
+    const configured = { UUID: 'configured-uuid', displayName: 'Winterthur' } as any
+    const stale = { UUID: 'stale-uuid', displayName: 'Unknown' } as any
+    platform.accessories.push(configured, stale)
+
+    await (platform as any).removeStaleAccessories(new Set(['configured-uuid']))
+
+    expect(mockAPI.unregisterPlatformAccessories).toHaveBeenCalledTimes(1)
+    expect(mockAPI.unregisterPlatformAccessories).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(String),
+      [stale],
+    )
+    // the removed accessory should no longer be tracked
+    expect(platform.accessories).toEqual([configured])
+  })
+
+  it('should keep accessories that are still configured', async () => {
+    const configured = { UUID: 'configured-uuid', displayName: 'Winterthur' } as any
+    platform.accessories.push(configured)
+
+    await (platform as any).removeStaleAccessories(new Set(['configured-uuid']))
+
+    expect(mockAPI.unregisterPlatformAccessories).not.toHaveBeenCalled()
+    expect(platform.accessories).toEqual([configured])
+  })
+
+  it('should remove every cached accessory when no devices are configured', async () => {
+    const first = { UUID: 'a', displayName: 'A' } as any
+    const second = { UUID: 'b', displayName: 'B' } as any
+    platform.accessories.push(first, second)
+
+    await (platform as any).removeStaleAccessories(new Set<string>())
+
+    expect(mockAPI.unregisterPlatformAccessories).toHaveBeenCalledTimes(2)
+    expect(platform.accessories).toEqual([])
+  })
+})

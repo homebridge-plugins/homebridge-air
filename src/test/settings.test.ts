@@ -91,7 +91,7 @@ describe('resolveAqicnLocationSegment', () => {
       latitude: 47.5,
       longitude: 8.7,
     })
-    expect(segment).toBe('@92323')
+    expect(segment).toBe('A92323')
   })
 
   it('should parse full AQICN station URL', () => {
@@ -100,7 +100,7 @@ describe('resolveAqicnLocationSegment', () => {
       latitude: undefined,
       longitude: undefined,
     })
-    expect(segment).toBe('@92323')
+    expect(segment).toBe('A92323')
   })
 
   it('should fall back to geo when explicit path is absent', () => {

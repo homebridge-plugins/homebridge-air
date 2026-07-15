@@ -24,6 +24,8 @@ All notable changes to this project will be documented in this file. This projec
 - fix: convert aqicn station and city website paths into valid feed api paths (#49) (@jsiegenthaler)
 - fix: fall back to the highest pollutant reading when aqicn omits the overall aqi (#7) (@rafalkarolczyk)
 - fix: report the real aqicn api error message instead of a generic missing data error (#7) (@rafalkarolczyk)
+- fix: request aqicn community sensors using their a prefixed feed id (#7) (#49) (@jsiegenthaler)
+- fix: remove cached accessories for devices that are no longer configured (#49) (@jsiegenthaler)
 
 ## [2.0.0](https://github.com/homebridge-plugins/homebridge-air/compare/v1.0.8...v2.0.0) (2026-04-15)
 

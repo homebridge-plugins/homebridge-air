@@ -68,14 +68,14 @@ describe('aQICN URL Construction', () => {
     expect(url).toBe('https://api.waqi.info/feed/switzerland/tanikon/?token=test-api-key')
   })
 
-  it('should convert /station/@stationid syntax to the @stationid feed format', () => {
+  it('should convert /station/@stationid syntax to the A-prefixed feed format', () => {
     const device: Partial<devicesConfig> = {
       city: '/station/@92323',
       apiKey: 'test-api-key',
     }
 
     const url = constructAqicnUrl(device)
-    expect(url).toBe('https://api.waqi.info/feed/@92323/?token=test-api-key')
+    expect(url).toBe('https://api.waqi.info/feed/A92323/?token=test-api-key')
   })
 
   it('should convert station/@stationid syntax without leading slash', () => {
@@ -85,7 +85,7 @@ describe('aQICN URL Construction', () => {
     }
 
     const url = constructAqicnUrl(device)
-    expect(url).toBe('https://api.waqi.info/feed/@231133/?token=test-api-key')
+    expect(url).toBe('https://api.waqi.info/feed/A231133/?token=test-api-key')
   })
 
   it('should pass /station/station-name/locale syntax through unchanged (no feed equivalent)', () => {
@@ -98,12 +98,14 @@ describe('aQICN URL Construction', () => {
     expect(url).toBe('https://api.waqi.info/feed/station/bielsko-bia%C5%82a-poland-bielsko-biala-urodzajna/pl/?token=test-api-key')
   })
 
-  it('should support a bare @stationid value', () => {
+  it('should pass a bare @stationid value through as the official feed format', () => {
     const device: Partial<devicesConfig> = {
       city: '@92323',
       apiKey: 'test-api-key',
     }
 
+    // A bare @id is the feed's own format for official stations, so it must
+    // not be rewritten to the A-prefixed community sensor form
     const url = constructAqicnUrl(device)
     expect(url).toBe('https://api.waqi.info/feed/@92323/?token=test-api-key')
   })
@@ -137,7 +139,7 @@ describe('aQICN URL Construction', () => {
     }
 
     const url = constructAqicnUrl(device)
-    expect(url).toBe('https://api.waqi.info/feed/@92323/?token=test-api-key')
+    expect(url).toBe('https://api.waqi.info/feed/A92323/?token=test-api-key')
   })
 
   it('should support full AQICN city URL input', () => {
@@ -175,8 +177,8 @@ describe('aQICN URL Construction', () => {
       // Original examples from the issue, mapped to their valid feed paths
       { input: '/city/switzerland/winterthur-veltheim', expected: 'https://api.waqi.info/feed/switzerland/winterthur-veltheim/?token=test-key' },
       { input: '/city/switzerland/tanikon', expected: 'https://api.waqi.info/feed/switzerland/tanikon/?token=test-key' },
-      { input: '/station/@92323', expected: 'https://api.waqi.info/feed/@92323/?token=test-key' },
-      { input: '/station/@231133', expected: 'https://api.waqi.info/feed/@231133/?token=test-key' },
+      { input: '/station/@92323', expected: 'https://api.waqi.info/feed/A92323/?token=test-key' },
+      { input: '/station/@231133', expected: 'https://api.waqi.info/feed/A231133/?token=test-key' },
       { input: '/station/bielsko-bia%C5%82a-poland-bielsko-biala-urodzajna/pl', expected: 'https://api.waqi.info/feed/station/bielsko-bia%C5%82a-poland-bielsko-biala-urodzajna/pl/?token=test-key' },
 
       // Backward compatibility examples
