@@ -7,6 +7,14 @@ import type { API, CharacteristicValue, HAP, Logging, PlatformAccessory, Service
 import type { AirPlatform } from '../platform.js'
 import type { AirPlatformConfig, devicesConfig } from '../settings.js'
 
+// Devices keep their controlling class instance on the accessory itself,
+// the same pattern as the other plugins in this org
+declare module 'homebridge' {
+  interface PlatformAccessory {
+    control?: deviceBase
+  }
+}
+
 export abstract class deviceBase {
   public readonly api: API
   public readonly log: Logging

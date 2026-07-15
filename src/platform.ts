@@ -235,7 +235,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
         await this.infoLog(`Restoring existing accessory from cache: ${existingAccessory.displayName}`)
         // create the accessory handler for the restored accessory
         // this is imported from `platformAccessory.ts`
-        new AirQualitySensor(this, existingAccessory, device)
+        existingAccessory.control = new AirQualitySensor(this, existingAccessory, device)
         await this.debugLog(`${device.city} uuid: ${uuidString}`)
       } else {
         this.unregisterPlatformAccessories(existingAccessory)
@@ -256,7 +256,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
       await this.infoLog(`Adding new accessory: ${device.city}`)
       // create the accessory handler for the newly create accessory
       // this is imported from `platformAccessory.ts`
-      new AirQualitySensor(this, accessory, device)
+      accessory.control = new AirQualitySensor(this, accessory, device)
       await this.debugLog(`${device.city} uuid: ${uuidString}`)
 
       // link the accessory to your platform

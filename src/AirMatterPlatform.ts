@@ -43,6 +43,9 @@ export class AirMatterPlatform extends AirPlatform {
   // Track cached Matter accessories (keyed by UUID)
   public readonly matterAccessories: Map<string, MatterAccessory> = new Map()
 
+  // Track the polling sensor instance for each Matter accessory (keyed by UUID)
+  public readonly matterSensors: Map<string, AirQualitySensorMatter> = new Map()
+
   constructor(
     log: Logging,
     config: AirPlatformConfig,
@@ -181,7 +184,7 @@ export class AirMatterPlatform extends AirPlatform {
     }
 
     // Start polling loop: fetch AQI from the provider API and push to Matter state.
-    new AirQualitySensorMatter(this, device, uuid)
+    this.matterSensors.set(uuid, new AirQualitySensorMatter(this, device, uuid))
   }
 
   /**
