@@ -1,5 +1,5 @@
 <p align="center">
-   <a href="https://github.com/homebridge-plugins/homebridge-air"><img alt="homebridge-air" src="https://raw.githubusercontent.com/homebridge-plugins/homebridge-air/latest/branding/Homebridge_x_Air.svg?sanitize=true" width="350px"></a>
+   <a href="https://github.com/homebridge-plugins/homebridge-air"><img alt="homebridge-air" src="https://raw.githubusercontent.com/homebridge-plugins/homebridge-air/latest/branding/Homebridge_x_Air.png" width="600px"></a>
 </p>
 <span align="center">
 
