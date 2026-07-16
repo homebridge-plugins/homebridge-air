@@ -88,14 +88,14 @@ describe('aQICN URL Construction', () => {
     expect(url).toBe('https://api.waqi.info/feed/A231133/?token=test-api-key')
   })
 
-  it('should pass /station/station-name/locale syntax through unchanged (no feed equivalent)', () => {
+  it('should strip the station prefix from a station-name path (#72)', () => {
     const device: Partial<devicesConfig> = {
       city: '/station/bielsko-bia%C5%82a-poland-bielsko-biala-urodzajna/pl',
       apiKey: 'test-api-key',
     }
 
     const url = constructAqicnUrl(device)
-    expect(url).toBe('https://api.waqi.info/feed/station/bielsko-bia%C5%82a-poland-bielsko-biala-urodzajna/pl/?token=test-api-key')
+    expect(url).toBe('https://api.waqi.info/feed/bielsko-bia%C5%82a-poland-bielsko-biala-urodzajna/pl/?token=test-api-key')
   })
 
   it('should pass a bare @stationid value through as the official feed format', () => {
@@ -199,7 +199,7 @@ describe('aQICN URL Construction', () => {
       { input: '/city/switzerland/tanikon', expected: 'https://api.waqi.info/feed/switzerland/tanikon/?token=test-key' },
       { input: '/station/@92323', expected: 'https://api.waqi.info/feed/A92323/?token=test-key' },
       { input: '/station/@231133', expected: 'https://api.waqi.info/feed/A231133/?token=test-key' },
-      { input: '/station/bielsko-bia%C5%82a-poland-bielsko-biala-urodzajna/pl', expected: 'https://api.waqi.info/feed/station/bielsko-bia%C5%82a-poland-bielsko-biala-urodzajna/pl/?token=test-key' },
+      { input: '/station/bielsko-bia%C5%82a-poland-bielsko-biala-urodzajna/pl', expected: 'https://api.waqi.info/feed/bielsko-bia%C5%82a-poland-bielsko-biala-urodzajna/pl/?token=test-key' },
 
       // Backward compatibility examples
       { input: 'winterthur', expected: 'https://api.waqi.info/feed/winterthur/?token=test-key' },
@@ -215,5 +215,34 @@ describe('aQICN URL Construction', () => {
       const url = constructAqicnUrl(device)
       expect(url).toBe(expected)
     })
+  })
+})
+
+describe('aQICN station path handling (#72)', () => {
+  function constructAqicnUrl(device: Partial<devicesConfig>): string {
+    const segment = resolveAqicnLocationSegment({
+      city: device.city,
+      latitude: device.latitude,
+      longitude: device.longitude,
+    })
+    return `${AqicnUrl}${segment}${segment ? '/' : ''}?token=${device.apiKey}`
+  }
+
+  it('should strip the station prefix from a pasted station URL', () => {
+    // Verified against the live API: feed/station/switzerland/tanikon/ is
+    // rejected, feed/switzerland/tanikon/ returns data
+    const device: Partial<devicesConfig> = {
+      city: 'https://aqicn.org/station/switzerland/tanikon/',
+      apiKey: 'test-api-key',
+    }
+
+    expect(constructAqicnUrl(device)).toBe('https://api.waqi.info/feed/switzerland/tanikon/?token=test-api-key')
+  })
+
+  it('should treat station/ and city/ prefixes the same way', () => {
+    const asStation: Partial<devicesConfig> = { city: 'station/switzerland/tanikon', apiKey: 'k' }
+    const asCity: Partial<devicesConfig> = { city: 'city/switzerland/tanikon', apiKey: 'k' }
+
+    expect(constructAqicnUrl(asStation)).toBe(constructAqicnUrl(asCity))
   })
 })

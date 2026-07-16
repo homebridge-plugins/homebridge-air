@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file. This projec
 ### Changed
 
 - feat: name new accessories after the station their data describes (#69) (@jsiegenthaler)
+- fix: strip the station prefix from aqicn station name paths (#72) (@jsiegenthaler)
+- docs: spell airnow consistently (#71) (@jsiegenthaler)
 
 ## v2.0.3 (2026-07-15)
 

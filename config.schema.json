@@ -28,7 +28,7 @@
               "default": "airnow",
               "oneOf": [
                 {
-                  "title": "Air Now",
+                  "title": "AirNow",
                   "description": "AirNow is a U.S. government agency that provides air quality data for the United States.",
                   "enum": [
                     "airnow"

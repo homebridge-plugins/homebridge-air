@@ -147,14 +147,16 @@ export function resolveAqicnLocationSegment(device: Pick<devicesConfig, 'city' |
       // Accept the A12345 spelling under station/ too, since that is what a
       // user ends up with after copying the id back into a station URL.
       //
-      // Station-name paths (station/<slug>) have no feed equivalent and are
-      // passed through unchanged; the API will report an unknown station.
       const stationId = cityPath.match(/^station\/[@a](\d+)$/i)
       if (stationId) {
         return `A${stationId[1]}`
       }
-      if (cityPath.startsWith('city/')) {
-        return cityPath.slice('city/'.length)
+      // Neither prefix means anything to the feed: a page at
+      // /station/switzerland/tanikon is fetched as switzerland/tanikon (#72)
+      for (const prefix of ['city/', 'station/']) {
+        if (cityPath.startsWith(prefix)) {
+          return cityPath.slice(prefix.length)
+        }
       }
       return cityPath
     }
