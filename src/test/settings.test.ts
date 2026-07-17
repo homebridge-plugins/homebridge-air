@@ -175,6 +175,19 @@ describe('resolveProviderStationName', () => {
     expect(resolveProviderStationName('aqicn', { city: { name: '  Urodzajna  ' } })).toBe('Urodzajna')
   })
 
+  it('should drop the country from place-country names (#74)', () => {
+    expect(resolveProviderStationName('aqicn', { city: { name: 'Tanikon, Switzerland' } })).toBe('Tanikon')
+  })
+
+  it('should keep the city but drop the country from street-city-country names (#74)', () => {
+    expect(resolveProviderStationName('aqicn', { city: { name: 'Kirchackerstrasse, Winterthur, Switzerland' } })).toBe('Kirchackerstrasse Winterthur')
+  })
+
+  it('should handle stray commas and empty segments (#74)', () => {
+    expect(resolveProviderStationName('aqicn', { city: { name: 'Tanikon,, Switzerland' } })).toBe('Tanikon')
+    expect(resolveProviderStationName('aqicn', { city: { name: ',' } })).toBeUndefined()
+  })
+
   it('should return undefined when aqicn omits a usable name', () => {
     expect(resolveProviderStationName('aqicn', { city: { name: '' } })).toBeUndefined()
     expect(resolveProviderStationName('aqicn', { city: {} })).toBeUndefined()

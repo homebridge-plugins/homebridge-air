@@ -302,7 +302,19 @@ export function resolveProviderStationName(provider: string | undefined, status:
   const clean = (value: unknown): string | undefined => (typeof value === 'string' && value.trim() ? value.trim() : undefined)
 
   if (provider === 'aqicn') {
-    return clean((status as AqicnData['data'] | undefined)?.city?.name)
+    const name = clean((status as AqicnData['data'] | undefined)?.city?.name)
+    if (!name) {
+      return undefined
+    }
+    // AQICN names follow 'Place, Country' or 'Street, City, Country'. The
+    // country is superfluous to the user and the commas trip HomeKit's name
+    // rules (#74) — so drop the final segment when there is more than one,
+    // and join the rest without commas
+    const segments = name.split(',').map(segment => segment.trim()).filter(segment => segment.length)
+    if (segments.length > 1) {
+      return segments.slice(0, -1).join(' ')
+    }
+    return segments[0]
   }
 
   if (provider === 'airnow') {
