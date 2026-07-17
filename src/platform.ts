@@ -497,6 +497,10 @@ export class AirPlatform implements DynamicPlatformPlugin {
           value = value.replace(invalidStartEndPattern, '')
           this.warnLog(`${name} Before: '${before}' After: '${value}'`)
         }
+
+        // Stripping characters can leave doubled spaces behind
+        // (e.g. 'Square - DEP' -> 'Square  DEP'), so collapse them (#74)
+        value = value.replace(/ {2,}/g, ' ')
       }
 
       return value
