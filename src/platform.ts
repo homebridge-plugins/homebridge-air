@@ -282,7 +282,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
         existingAccessory.context.device = device
         existingAccessory.displayName = await this.resolveDisplayName(device, existingAccessory)
         existingAccessory.context.serialNumber = this.generateSerialNumber(device)
-        existingAccessory.context.model = device.provider === 'airnow' ? 'AirNow' : device.provider === 'aqicn' ? 'Aqicn' : 'Unknown'
+        existingAccessory.context.model = device.provider === 'airnow' ? 'AirNow' : device.provider === 'aqicn' ? 'AQICN' : 'Unknown'
         existingAccessory.context.FirmwareRevision = device.firmware ?? await this.getVersion()
         this.api.updatePlatformAccessories([existingAccessory])
         // Restore accessory
@@ -307,7 +307,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
       // free to adopt the provider's own station name once we have data (#69)
       accessory.context.nameFromProvider = true
       accessory.context.serialNumber = this.generateSerialNumber(device)
-      accessory.context.model = device.provider === 'airnow' ? 'AirNow' : device.provider === 'aqicn' ? 'Aqicn' : 'Unknown'
+      accessory.context.model = device.provider === 'airnow' ? 'AirNow' : device.provider === 'aqicn' ? 'AQICN' : 'Unknown'
       accessory.context.FirmwareRevision = device.firmware ?? await this.getVersion()
       // the accessory does not yet exist, so we need to create it
       await this.infoLog(`Adding new accessory: ${device.city}`)

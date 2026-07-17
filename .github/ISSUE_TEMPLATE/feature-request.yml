@@ -16,7 +16,7 @@ body:
   - type: input
     id: devices
     attributes:
-      label: Does this relate to a particular air quality provider (AirNow or Aqicn)?
+      label: Does this relate to a particular air quality provider (AirNow or AQICN)?
   - type: textarea
     id: anything-else
     attributes:

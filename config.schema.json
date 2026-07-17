@@ -35,8 +35,8 @@
                   ]
                 },
                 {
-                  "title": "Aqicn",
-                  "description": "Aqicn is a global air quality data provider.",
+                  "title": "AQICN",
+                  "description": "AQICN is a global air quality data provider.",
                   "enum": [
                     "aqicn"
                   ]
@@ -113,7 +113,7 @@
               "type": "number",
               "minimum": 1800,
               "placeholder": 1800,
-              "description": "Indicates the number of seconds between polls of the AirNow or Aqicn service.",
+              "description": "Indicates the number of seconds between polls of the AirNow or AQICN service.",
               "condition": {
                 "functionBody": "return (model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].zipCode);"
               }
@@ -168,7 +168,7 @@
         "type": "number",
         "minimum": 1800,
         "placeholder": 1800,
-        "description": "Indicates the number of seconds between polls of the AirNow or Aqicn service."
+        "description": "Indicates the number of seconds between polls of the AirNow or AQICN service."
       },
       "options": {
         "title": "Platform Options",
@@ -253,7 +253,7 @@
       "items": [
         {
           "type": "help",
-          "helpvalue": "<h5>Refresh Rate</h5><em class='primary-text'>Refresh Rate indicates the number of seconds between polls of the AirNow or Aqicn service.</em>"
+          "helpvalue": "<h5>Refresh Rate</h5><em class='primary-text'>Refresh Rate indicates the number of seconds between polls of the AirNow or AQICN service.</em>"
         },
         {
           "key": "refreshRate",

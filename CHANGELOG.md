@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. This projec
 - fix: strip the station prefix from aqicn station name paths (#72) (@jsiegenthaler)
 - docs: spell airnow consistently (#71) (@jsiegenthaler)
 - docs: mention both air quality providers in the plugin description (#74) (@jsiegenthaler)
+- docs: spell aqicn consistently as uppercase across the project (#74) (@jsiegenthaler)
 
 ## v2.0.3 (2026-07-15)
 

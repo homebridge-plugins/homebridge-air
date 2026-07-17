@@ -34,7 +34,7 @@ Homebridge plugin to integrate air quality data into HomeKit
 
 ### Features
 
-- Measurements retrieved are PM2.5, PM10 and O3 for AirNow. Aqicn adds NO2, SO2 and CO.
+- Measurements retrieved are PM2.5, PM10 and O3 for AirNow. AQICN adds NO2, SO2 and CO.
   - The Home app shows the overall air quality; the Eve app shows more of the individual measurements.
 - **Matter** support is available when running Homebridge v2.0+ with Matter enabled:
   - `options.enableMatter: true` explicitly requests Matter. If Matter is unavailable or disabled, the plugin logs a warning and falls back to HAP.
@@ -55,5 +55,5 @@ Homebridge plugin to integrate air quality data into HomeKit
 
 ### Disclaimer
 
-- I am in no way affiliated with AirNow, Aqicn or the World Air Quality Index Project, and this plugin is a personal project that I maintain in my free time.
+- I am in no way affiliated with AirNow, AQICN or the World Air Quality Index Project, and this plugin is a personal project that I maintain in my free time.
 - Use this plugin entirely at your own risk - please see licence for more information.
