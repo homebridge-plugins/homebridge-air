@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## v2.1.1 (2026-07-18)
+
+### Changed
+
+- chore(deps): dependency updates
+
 ## v2.1.0 (2026-07-17)
 
 ### Changed
