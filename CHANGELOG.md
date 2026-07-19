@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## v2.1.2 (Pending Release)
+
+### Changed
+
+- fix(schema): show the city field as soon as a provider is chosen and use 'location' for the add button (#75) (@jsiegenthaler)
+
 ## v2.1.1 (2026-07-18)
 
 ### Changed
