@@ -22,15 +22,18 @@ Homebridge plugin to integrate air quality data into HomeKit
   - retrieves its data from [AirNow](https://www.airnow.gov) (USA) or [Aqicn](https://aqicn.org) (international)
   - requires a free API key from the provider you choose
 
+### Prerequisites
+
+- To use this plugin, you will need to already have:
+  - [Node](https://nodejs.org): latest version of `v22` or `v24` - any other major version is not supported.
+  - [Homebridge](https://homebridge.io): `v2` - refer to link for more information and installation instructions.
+
 ### Setup
 
-- Installation
-  - Search for "Air" on the plugin screen of the [Homebridge UI](https://github.com/homebridge/homebridge-config-ui-x) and click **Install**.
-- Configuration
-  1. Obtain an API key from [AirNow](https://docs.airnowapi.org/account/request/) or [Aqicn](https://aqicn.org/data-platform/token/) as applicable for your location.
-  2. Enter your provider, API key, city and location details in the plugin settings.
-     - City names can be ambiguous, so also enter your latitude and longitude for accuracy (4 decimal places is sufficient). AirNow also requires your zip code.
-  3. Click **Save** and restart Homebridge.
+- [Installation](https://github.com/homebridge-plugins/homebridge-air/wiki/Installation)
+- [Configuration](https://github.com/homebridge-plugins/homebridge-air/wiki/Configuration)
+- [Beta Version](https://github.com/homebridge-plugins/homebridge-air/wiki/Beta-Version)
+- [Node Version](https://github.com/homebridge-plugins/homebridge-air/wiki/Node-Version)
 
 ### Features
 
@@ -43,6 +46,7 @@ Homebridge plugin to integrate air quality data into HomeKit
 
 ### Help/About
 
+- [Common Errors](https://github.com/homebridge-plugins/homebridge-air/wiki/Common-Errors)
 - [Support Request](https://github.com/homebridge-plugins/homebridge-air/issues/new/choose)
 - [Changelog](https://github.com/homebridge-plugins/homebridge-air/blob/latest/CHANGELOG.md)
 - [About Me](https://github.com/sponsors/bwp91)
