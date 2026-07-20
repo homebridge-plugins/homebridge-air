@@ -511,10 +511,10 @@ export class AirQualitySensor extends deviceBase {
             }
             aqicnResponse.data.aqi = normalisedAqi
             this.deviceStatus = aqicnResponse.data
-            // Cache the successful response (following AirNow best practices for hourly updates)
+            // Cache the successful response (stations publish roughly hourly)
             this.lastResponseData = aqicnResponse.data
             this.lastRequestTime = Date.now()
-            await this.debugLog(`Data cached. Will reuse for ${this.cacheMaxAge / 1000}s (AirNow updates hourly)`)
+            await this.debugLog(`Data cached. Will reuse for ${this.cacheMaxAge / 1000}s (AQICN updates hourly)`)
           } else {
             // Validate AirNow response structure
             const airnowResponse = response as AirNowAirQualityDataArray

@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. This projec
 ### Changed
 
 - fix: report pollutant readings as concentrations rather than aqi index values (#77) (@dougrs007)
+- fix: name the correct provider in the cached data debug message (#73) (@jsiegenthaler)
 
 ## v2.1.2 (2026-07-19)
 
