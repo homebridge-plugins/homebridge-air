@@ -326,6 +326,126 @@ export function resolveProviderStationName(provider: string | undefined, status:
   return undefined
 }
 
+/**
+ * Pollutants that both providers report a sub-index for, in the order the
+ * accessory processes them.
+ */
+export type Pollutant = 'co' | 'no2' | 'o3' | 'pm10' | 'pm25' | 'so2'
+
+/**
+ * US EPA AQI breakpoint tables, as [aqiLow, aqiHigh, concLow, concHigh].
+ *
+ * Concentrations are in the units the EPA defines the breakpoints in, which is
+ * not the same for every pollutant: pm25 and pm10 in µg/m³, o3 and co in ppm,
+ * no2 and so2 in ppb. `EPA_TO_HOMEKIT` converts each into the unit its HomeKit
+ * characteristic expects. The pm25 table uses the breakpoints EPA revised in
+ * May 2024.
+ */
+const EPA_BREAKPOINTS: Record<Pollutant, [number, number, number, number][]> = {
+  pm25: [
+    [0, 50, 0, 9],
+    [51, 100, 9.1, 35.4],
+    [101, 150, 35.5, 55.4],
+    [151, 200, 55.5, 125.4],
+    [201, 300, 125.5, 225.4],
+    [301, 500, 225.5, 325.4],
+  ],
+  pm10: [
+    [0, 50, 0, 54],
+    [51, 100, 55, 154],
+    [101, 150, 155, 254],
+    [151, 200, 255, 354],
+    [201, 300, 355, 424],
+    [301, 400, 425, 504],
+    [401, 500, 505, 604],
+  ],
+  o3: [
+    [0, 50, 0, 0.054],
+    [51, 100, 0.055, 0.07],
+    [101, 150, 0.071, 0.085],
+    [151, 200, 0.086, 0.105],
+    [201, 300, 0.106, 0.2],
+  ],
+  co: [
+    [0, 50, 0, 4.4],
+    [51, 100, 4.5, 9.4],
+    [101, 150, 9.5, 12.4],
+    [151, 200, 12.5, 15.4],
+    [201, 300, 15.5, 30.4],
+    [301, 400, 30.5, 40.4],
+    [401, 500, 40.5, 50.4],
+  ],
+  no2: [
+    [0, 50, 0, 53],
+    [51, 100, 54, 100],
+    [101, 150, 101, 360],
+    [151, 200, 361, 649],
+    [201, 300, 650, 1249],
+    [301, 500, 1250, 2049],
+  ],
+  so2: [
+    [0, 50, 0, 35],
+    [51, 100, 36, 75],
+    [101, 150, 76, 185],
+    [151, 200, 186, 304],
+    [201, 300, 305, 604],
+    [301, 500, 605, 1004],
+  ],
+}
+
+/**
+ * Factor converting an EPA breakpoint concentration into the unit the matching
+ * HomeKit characteristic expects, at 25°C and 1 atm.
+ *
+ * The density characteristics are all µg/m³, so the gas pollutants have to come
+ * off their EPA units: µg/m³ = ppb × molecularWeight / 24.45. CarbonMonoxideLevel
+ * is defined in ppm, which is already the unit EPA uses for CO, so it stays 1.
+ */
+const EPA_TO_HOMEKIT: Record<Pollutant, number> = {
+  pm25: 1, // already µg/m³
+  pm10: 1, // already µg/m³
+  o3: 1962.5, // ppm -> µg/m³ (48.00 g/mol)
+  no2: 1.8816, // ppb -> µg/m³ (46.01 g/mol)
+  so2: 2.6203, // ppb -> µg/m³ (64.07 g/mol)
+  co: 1, // ppm, matches CarbonMonoxideLevel
+}
+
+/**
+ * Convert an AQI sub-index back into a pollutant concentration (#77).
+ *
+ * Both providers hand us AQI index values, never raw concentrations: AirNow's
+ * current-observation endpoint only carries `AQI`, and AQICN's `iaqi` entries
+ * are sub-indices too. Writing those straight into HomeKit's density
+ * characteristics reports the wrong quantity entirely — an index on a 0-500
+ * scale shown as though it were µg/m³.
+ *
+ * Running the EPA breakpoint formula backwards recovers the concentration the
+ * index was derived from. It is an approximation, because the forward
+ * conversion rounds the index to a whole number, so expect to be within about
+ * one unit of the true reading rather than exact.
+ *
+ * Returns undefined when the index is unusable or sits above the top
+ * breakpoint, so the caller can leave the characteristic alone.
+ */
+export function aqiToConcentration(pollutant: Pollutant, aqi: number | undefined): number | undefined {
+  if (aqi === undefined || !Number.isFinite(aqi) || aqi < 0) {
+    return undefined
+  }
+
+  const band = EPA_BREAKPOINTS[pollutant].find(([aqiLow, aqiHigh]) => aqi >= aqiLow && aqi <= aqiHigh)
+  if (!band) {
+    return undefined
+  }
+
+  const [aqiLow, aqiHigh, concLow, concHigh] = band
+  const concentration = ((aqi - aqiLow) / (aqiHigh - aqiLow)) * (concHigh - concLow) + concLow
+  const converted = concentration * EPA_TO_HOMEKIT[pollutant]
+
+  // Two decimals is well past the precision the source index can justify, but
+  // keeps small ppm values for CO from collapsing to zero.
+  return Math.round(converted * 100) / 100
+}
+
 export function HomeKitAQI(aqi: number | undefined): number {
   if (aqi === undefined || aqi < 0) {
     return 0

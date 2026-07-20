@@ -5,7 +5,7 @@
 import type { CharacteristicValue, PlatformAccessory, Service } from 'homebridge'
 
 import type { AirPlatform } from '../platform.js'
-import type { AirNowAirQualityDataArray, AqicnData, devicesConfig } from '../settings.js'
+import type { AirNowAirQualityDataArray, AqicnData, devicesConfig, Pollutant } from '../settings.js'
 
 import { interval } from 'rxjs'
 import { skipWhile } from 'rxjs/operators'
@@ -15,6 +15,7 @@ import { Agent, request } from 'undici'
 import {
   AirNowUrl,
   AqicnUrl,
+  aqiToConcentration,
   getAqicnError,
   HomeKitAQI,
   normaliseAqicnAqi,
@@ -158,33 +159,42 @@ export class AirQualitySensor extends deviceBase {
             const aqi = provider === 'airnow' ? Number.parseFloat(param.AQI.toString()) : Number.parseFloat(param.toString())
             if (!Number.isNaN(aqi)) {
               pollutantCount++
-              await this.debugLog(`${provider} ${pollutant} AQI: ${aqi}`)
-              switch (pollutant.toLowerCase()) {
-                case 'o3':
-                  this.AirQualitySensor.OzoneDensity = aqi
-                  this.availablePollutants.add('OzoneDensity')
-                  break
-                case 'pm2.5':
-                case 'pm25': // Handle both formats
-                  this.AirQualitySensor.PM2_5Density = aqi
-                  this.availablePollutants.add('PM2_5Density')
-                  break
-                case 'pm10':
-                  this.AirQualitySensor.PM10Density = aqi
-                  this.availablePollutants.add('PM10Density')
-                  break
-                case 'no2':
-                  this.AirQualitySensor.NitrogenDioxideDensity = aqi
-                  this.availablePollutants.add('NitrogenDioxideDensity')
-                  break
-                case 'so2':
-                  this.AirQualitySensor.SulphurDioxideDensity = aqi
-                  this.availablePollutants.add('SulphurDioxideDensity')
-                  break
-                case 'co':
-                  this.AirQualitySensor.CarbonMonoxideLevel = aqi
-                  this.availablePollutants.add('CarbonMonoxideLevel')
-                  break
+
+              // Both providers give us an AQI sub-index, never a concentration,
+              // so convert before writing to a density characteristic (#77).
+              const key = pollutant.toLowerCase() === 'pm2.5' ? 'pm25' : pollutant.toLowerCase() as Pollutant
+              const concentration = aqiToConcentration(key, aqi)
+              await this.debugLog(`${provider} ${pollutant} AQI: ${aqi} -> ${concentration ?? 'no concentration'}`)
+
+              if (concentration !== undefined) {
+                switch (key) {
+                  case 'o3':
+                    this.AirQualitySensor.OzoneDensity = concentration
+                    this.availablePollutants.add('OzoneDensity')
+                    break
+                  case 'pm25':
+                    this.AirQualitySensor.PM2_5Density = concentration
+                    this.availablePollutants.add('PM2_5Density')
+                    break
+                  case 'pm10':
+                    this.AirQualitySensor.PM10Density = concentration
+                    this.availablePollutants.add('PM10Density')
+                    break
+                  case 'no2':
+                    this.AirQualitySensor.NitrogenDioxideDensity = concentration
+                    this.availablePollutants.add('NitrogenDioxideDensity')
+                    break
+                  case 'so2':
+                    this.AirQualitySensor.SulphurDioxideDensity = concentration
+                    this.availablePollutants.add('SulphurDioxideDensity')
+                    break
+                  case 'co':
+                    this.AirQualitySensor.CarbonMonoxideLevel = concentration
+                    this.availablePollutants.add('CarbonMonoxideLevel')
+                    break
+                }
+              } else {
+                await this.debugWarnLog(`${provider} ${pollutant} AQI ${aqi} is outside the EPA breakpoints, leaving the reading unchanged`)
               }
               // For AirNow, set main AirQuality based on individual pollutant values (existing behavior)
               if (provider === 'airnow') {
