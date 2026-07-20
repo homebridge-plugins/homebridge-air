@@ -119,7 +119,7 @@
               }
             },
             "logging": {
-              "title": "Device Logging Override Setting",
+              "title": "Device Logging Level Override",
               "type": "string",
               "default": "",
               "condition": {
@@ -127,30 +127,31 @@
               },
               "oneOf": [
                 {
-                  "title": "Default Logging",
+                  "title": "Default (same as Standard)",
                   "enum": [
                     ""
                   ]
                 },
                 {
-                  "title": "Standard Logging",
-                  "enum": [
-                    "standard"
-                  ]
-                },
-                {
-                  "title": "No Logging",
+                  "title": "None",
                   "enum": [
                     "none"
                   ]
                 },
                 {
-                  "title": "Debug Logging",
+                  "title": "Standard",
+                  "enum": [
+                    "standard"
+                  ]
+                },
+                {
+                  "title": "Debug",
                   "enum": [
                     "debug"
                   ]
                 }
-              ]
+              ],
+              "description": "Overrides the plugin logging level for this station only. None turns off all messages from this plugin. Standard shows normal activity, warnings and errors. Debug adds detailed messages, and is what to use when reporting a problem. Default behaves the same as Standard."
             },
             "hide_device": {
               "title": "Delete Device",
@@ -189,35 +190,36 @@
         }
       },
       "logging": {
-        "title": "Plugin Logging Setting",
+        "title": "Plugin Logging Level",
         "type": "string",
         "default": "",
         "oneOf": [
           {
-            "title": "Default Logging",
+            "title": "Default (same as Standard)",
             "enum": [
               ""
             ]
           },
           {
-            "title": "Standard Logging",
-            "enum": [
-              "standard"
-            ]
-          },
-          {
-            "title": "No Logging",
+            "title": "None",
             "enum": [
               "none"
             ]
           },
           {
-            "title": "Debug Logging",
+            "title": "Standard",
+            "enum": [
+              "standard"
+            ]
+          },
+          {
+            "title": "Debug",
             "enum": [
               "debug"
             ]
           }
-        ]
+        ],
+        "description": "None turns off all messages from this plugin. Standard shows normal activity, warnings and errors. Debug adds detailed messages, and is what to use when reporting a problem. Default behaves the same as Standard."
       }
     }
   },
