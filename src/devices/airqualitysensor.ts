@@ -163,7 +163,7 @@ export class AirQualitySensor extends deviceBase {
               // Both providers give us an AQI sub-index, never a concentration,
               // so convert before writing to a density characteristic (#77).
               const key = pollutant.toLowerCase() === 'pm2.5' ? 'pm25' : pollutant.toLowerCase() as Pollutant
-              const concentration = aqiToConcentration(key, aqi)
+              const concentration = aqiToConcentration(key, aqi, provider)
               await this.debugLog(`${provider} ${pollutant} AQI: ${aqi} -> ${concentration ?? 'no concentration'}`)
 
               if (concentration !== undefined) {

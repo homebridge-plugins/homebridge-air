@@ -341,6 +341,24 @@ export type Pollutant = 'co' | 'no2' | 'o3' | 'pm10' | 'pm25' | 'so2'
  * characteristic expects. The pm25 table uses the breakpoints EPA revised in
  * May 2024.
  */
+/**
+ * PM2.5 breakpoints as they stood before the EPA's 2024 revision, which moved
+ * the top of the "good" band from 12.0 down to 9.0 µg/m³.
+ *
+ * AQICN still publishes its index on the older scale. Confirmed from their own
+ * station pages, which show both figures on hover: an index of 35 is labelled
+ * as a raw concentration of 8.3 µg/m³, and 8.3 only maps back to 35 on this
+ * table (it would be 46 on the revised one). Reported on #79 by @jsiegenthaler.
+ */
+const EPA_BREAKPOINTS_PM25_PRE_2024: [number, number, number, number][] = [
+  [0, 50, 0, 12],
+  [51, 100, 12.1, 35.4],
+  [101, 150, 35.5, 55.4],
+  [151, 200, 55.5, 150.4],
+  [201, 300, 150.5, 250.4],
+  [301, 500, 250.5, 500.4],
+]
+
 const EPA_BREAKPOINTS: Record<Pollutant, [number, number, number, number][]> = {
   pm25: [
     [0, 50, 0, 9],
@@ -427,12 +445,18 @@ const EPA_TO_HOMEKIT: Record<Pollutant, number> = {
  * Returns undefined when the index is unusable or sits above the top
  * breakpoint, so the caller can leave the characteristic alone.
  */
-export function aqiToConcentration(pollutant: Pollutant, aqi: number | undefined): number | undefined {
+export function aqiToConcentration(pollutant: Pollutant, aqi: number | undefined, provider?: string): number | undefined {
   if (aqi === undefined || !Number.isFinite(aqi) || aqi < 0) {
     return undefined
   }
 
-  const band = EPA_BREAKPOINTS[pollutant].find(([aqiLow, aqiHigh]) => aqi >= aqiLow && aqi <= aqiHigh)
+  // AQICN publishes its PM2.5 index on the pre-2024 scale, so it has to be read
+  // back with the breakpoints it was built from (#79)
+  const table = pollutant === 'pm25' && provider === 'aqicn'
+    ? EPA_BREAKPOINTS_PM25_PRE_2024
+    : EPA_BREAKPOINTS[pollutant]
+
+  const band = table.find(([aqiLow, aqiHigh]) => aqi >= aqiLow && aqi <= aqiHigh)
   if (!band) {
     return undefined
   }

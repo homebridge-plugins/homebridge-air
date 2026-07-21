@@ -62,6 +62,35 @@ describe('aqiToConcentration', () => {
     expect(aqiToConcentration('pm25', 600)).toBeUndefined()
   })
 
+  it('reads an aqicn pm25 index off the pre-2024 scale', () => {
+    // AQICN's own station page shows both figures on hover. @jsiegenthaler
+    // reported an index of 35 labelled as a raw concentration of 8.3 µg/m³,
+    // which only holds on the older scale — the revised one gives 6.3 (#79).
+    expect(aqiToConcentration('pm25', 35, 'aqicn')).toBeCloseTo(8.4, 1)
+    expect(aqiToConcentration('pm25', 35, 'airnow')).toBeCloseTo(6.3, 1)
+  })
+
+  it('only shifts the scale for aqicn pm25, not for other pollutants', () => {
+    // Only PM2.5 changed in the 2024 revision
+    expect(aqiToConcentration('pm10', 35, 'aqicn')).toBe(aqiToConcentration('pm10', 35, 'airnow'))
+    expect(aqiToConcentration('o3', 35, 'aqicn')).toBe(aqiToConcentration('o3', 35, 'airnow'))
+    expect(aqiToConcentration('co', 35, 'aqicn')).toBe(aqiToConcentration('co', 35, 'airnow'))
+  })
+
+  it('keeps the revised scale when no provider is given', () => {
+    expect(aqiToConcentration('pm25', 35)).toBe(aqiToConcentration('pm25', 35, 'airnow'))
+  })
+
+  it('rises monotonically on the aqicn scale too', () => {
+    let previous = -1
+    for (let aqi = 0; aqi <= 300; aqi += 10) {
+      const value = aqiToConcentration('pm25', aqi, 'aqicn')
+      expect(value).toBeDefined()
+      expect(value!).toBeGreaterThan(previous)
+      previous = value!
+    }
+  })
+
   it('rises monotonically with the index', () => {
     let previous = -1
     for (let aqi = 0; aqi <= 300; aqi += 10) {

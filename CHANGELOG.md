@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## v2.2.1 (Pending Release)
+
+### Changed
+
+- fix: read the aqicn pm2.5 index off the scale it is published on (#79) (@jsiegenthaler)
+
 ## v2.2.0 (2026-07-20)
 
 ### Changed
