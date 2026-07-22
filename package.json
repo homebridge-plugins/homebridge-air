@@ -41,6 +41,7 @@
   },
   "keywords": [
     "homebridge-plugin",
+    "supports-matter",
     "air",
     "Air Quality",
     "homebridge",
