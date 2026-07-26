@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file. This projec
 - fix: read the aqicn pm2.5 index off the scale it is published on (#79) (@jsiegenthaler)
 - style(ui): standardise the custom ui layout and sync the support tab with the readme
 - fix(schema): declare required fields the standard way so the homebridge ui stops reporting a config validation failure
+- chore: declare the supports-hap and supports-matter transport keywords for the homebridge ui
 
 ## v2.2.0 (2026-07-20)
 
