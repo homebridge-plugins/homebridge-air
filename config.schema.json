@@ -12,8 +12,7 @@
       "name": {
         "type": "string",
         "title": "Name",
-        "default": "Air",
-        "required": true
+        "default": "Air"
       },
       "devices": {
         "type": "array",
@@ -24,7 +23,6 @@
             "provider": {
               "title": "Provider",
               "type": "string",
-              "required": true,
               "default": "airnow",
               "oneOf": [
                 {
@@ -46,7 +44,6 @@
             "apiKey": {
               "title": "API Key",
               "type": "string",
-              "required": true,
               "x-schema-form": {
                 "type": "email"
               }
@@ -54,7 +51,6 @@
             "city": {
               "title": "City",
               "type": "string",
-              "required": false,
               "description": "For AirNow: city name. For AQICN: city name, full AQICN URL, or full URL path like '/city/country/cityname', '/station/@stationid', or '/station/station-name/locale'. Explicit AQICN station/city paths are preferred over geo coordinates.",
               "condition": {
                 "functionBody": "return (model.devices && (model.devices[arrayIndices].provider || model.devices[arrayIndices].apiKey));"
@@ -63,7 +59,6 @@
             "latitude": {
               "title": "Latitude",
               "type": "string",
-              "required": false,
               "condition": {
                 "functionBody": "return !(model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].state && model.devices[arrayIndices].zipCode);"
               }
@@ -71,7 +66,6 @@
             "longitude": {
               "title": "Longitude",
               "type": "string",
-              "required": false,
               "condition": {
                 "functionBody": "return !(model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].state && model.devices[arrayIndices].zipCode);"
               }
@@ -79,7 +73,6 @@
             "state": {
               "title": "State",
               "type": "string",
-              "required": false,
               "condition": {
                 "functionBody": "return !(model.devices && model.devices[arrayIndices].latitude && model.devices[arrayIndices].longitude);"
               }
@@ -87,7 +80,6 @@
             "zipCode": {
               "title": "Zip Code",
               "type": "string",
-              "required": false,
               "condition": {
                 "functionBody": "return !(model.devices && model.devices[arrayIndices].latitude && model.devices[arrayIndices].longitude);"
               }
@@ -95,7 +87,6 @@
             "distance": {
               "title": "Distance",
               "type": "string",
-              "required": false,
               "condition": {
                 "functionBody": "return (model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].zipCode);"
               }
@@ -161,7 +152,11 @@
                 "functionBody": "return (model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].zipCode);"
               }
             }
-          }
+          },
+          "required": [
+            "provider",
+            "apiKey"
+          ]
         }
       },
       "refreshRate": {
@@ -221,7 +216,10 @@
         ],
         "description": "None turns off all messages from this plugin. Standard shows normal activity, warnings and errors. Debug adds detailed messages, and is what to use when reporting a problem. Default behaves the same as Standard."
       }
-    }
+    },
+    "required": [
+      "name"
+    ]
   },
   "layout": [
     {
