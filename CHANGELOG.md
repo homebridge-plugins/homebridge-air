@@ -6,10 +6,17 @@ All notable changes to this project will be documented in this file. This projec
 
 ### Changed
 
+- chore(deps): dependency updates
+- chore(github): allow the codeql scan to be started manually
+- chore(deps): bump undici from 8.7.0 to 8.8.0 (#78)
+- chore(github): stop concurrent release runs racing for the same version
 - fix: read the aqicn pm2.5 index off the scale it is published on (#79) (@jsiegenthaler)
+- chore: add the supports-matter keyword
+- chore(github): use the shared homebridge action to deprecate past pre-releases
 - style(ui): standardise the custom ui layout and sync the support tab with the readme
 - fix(schema): declare required fields the standard way so the homebridge ui stops reporting a config validation failure
 - chore: declare the supports-hap and supports-matter transport keywords for the homebridge ui
+- chore(deps): dependency updates
 
 ## v2.2.0 (2026-07-20)
 
