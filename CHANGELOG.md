@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file. This projec
 - chore: add a changelog:sync script to populate the pending section from the commits
 - chore: count a repeated commit subject once when syncing the changelog
 - chore(github): check the changelog against the commits in ci
+- chore: restore the original author and remove personal funding links
 
 ## v2.2.1 (2026-07-28)
 

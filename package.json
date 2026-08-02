@@ -5,8 +5,8 @@
   "version": "2.2.1",
   "description": "The Air plugin allows you to monitor the current air quality for your location from HomeKit and Siri, via AirNow or AQICN.",
   "author": {
-    "name": "bwp91",
-    "email": "bwp91@icloud.com"
+    "name": "donavanbecker",
+    "url": "https://github.com/donavanbecker"
   },
   "contributors": [
     {
@@ -18,20 +18,6 @@
     "donavanbecker"
   ],
   "license": "ISC",
-  "funding": [
-    {
-      "type": "github",
-      "url": "https://github.com/sponsors/bwp91"
-    },
-    {
-      "type": "kofi",
-      "url": "https://ko-fi.com/bwp91"
-    },
-    {
-      "type": "paypal",
-      "url": "https://www.paypal.me/BenPotter"
-    }
-  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/homebridge-plugins/homebridge-air.git"

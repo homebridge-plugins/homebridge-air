@@ -49,7 +49,6 @@ Homebridge plugin to integrate air quality data into HomeKit
 - [Common Errors](https://github.com/homebridge-plugins/homebridge-air/wiki/Common-Errors)
 - [Support Request](https://github.com/homebridge-plugins/homebridge-air/issues/new/choose)
 - [Changelog](https://github.com/homebridge-plugins/homebridge-air/blob/latest/CHANGELOG.md)
-- [About Me](https://github.com/sponsors/bwp91)
 
 ### Credits
 
