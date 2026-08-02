@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file. This projec
 - chore: count a repeated commit subject once when syncing the changelog
 - chore(github): check the changelog against the commits in ci
 - chore: restore the original author and remove personal funding links
+- docs: add node 26 to the supported node versions
 
 ## v2.2.1 (2026-07-28)
 
