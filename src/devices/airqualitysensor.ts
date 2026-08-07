@@ -153,6 +153,13 @@ export class AirQualitySensor extends deviceBase {
         const pollutants = provider === 'airnow' ? ['O3', 'PM2.5', 'PM10'] : ['o3', 'no2', 'so2', 'pm25', 'pm10', 'co']
         let pollutantCount = 0
 
+        // AirNow publishes an index per pollutant and defines the overall AQI as
+        // the worst of them. This used to be assigned inside the loop, so the
+        // last pollutant processed won instead - during an ozone alert HomeKit
+        // could read 'Excellent' because PM10 happened to be reported last, and
+        // no air quality automation would ever fire.
+        let airNowWorstAqi = -1
+
         for (const pollutant of pollutants) {
           const param = provider === 'airnow' ? this.deviceStatus.find((p: { ParameterName: string }) => p.ParameterName === pollutant) : this.deviceStatus.iaqi[pollutant]?.v
           if (param !== undefined) {
@@ -196,14 +203,19 @@ export class AirQualitySensor extends deviceBase {
               } else {
                 await this.debugWarnLog(`${provider} ${pollutant} AQI ${aqi} is outside the EPA breakpoints, leaving the reading unchanged`)
               }
-              // For AirNow, set main AirQuality based on individual pollutant values (existing behavior)
+              // For AirNow, the overall reading is the worst of the pollutants
               if (provider === 'airnow') {
-                this.AirQualitySensor.AirQuality = HomeKitAQI(Math.max(0, aqi))
+                airNowWorstAqi = Math.max(airNowWorstAqi, aqi)
               }
             }
           } else {
             await this.debugLog(`${provider} ${pollutant} data not available`)
           }
+        }
+
+        if (provider === 'airnow' && airNowWorstAqi >= 0) {
+          this.AirQualitySensor.AirQuality = HomeKitAQI(airNowWorstAqi)
+          await this.debugLog(`${provider} worst pollutant AQI: ${airNowWorstAqi} -> HomeKit category: ${this.AirQualitySensor.AirQuality}`)
         }
 
         if (pollutantCount === 0) {

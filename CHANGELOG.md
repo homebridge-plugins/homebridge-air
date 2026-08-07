@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file. This projec
 - chore: exclude test files and the test config from the published package
 - fix: restore debug logging when the plugin runs in a child bridge
 - fix: stop dropping the platform options, so the advanced settings take effect
+- fix: report the worst airnow pollutant as the overall air quality, not the last one read
 
 ## v2.2.1 (2026-07-28)
 
