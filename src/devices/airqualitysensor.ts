@@ -399,7 +399,7 @@ export class AirQualitySensor extends deviceBase {
                 this.device.city = geoData.city
 
                 // Build new URL with zip code
-                const fallbackUrl = `${AirNowUrl}ByZipCode/current/?format=application/json&zipCode=${geoData.zipCode}&distance=${distance}&API_KEY=${this.device.apiKey}`
+                const fallbackUrl = `${AirNowUrl}zipCode/current/?format=application/json&zipCode=${geoData.zipCode}&distance=${distance}&API_KEY=${this.device.apiKey}`
                 await this.debugLog(`Fallback URL: ${fallbackUrl}`)
 
                 try {
@@ -449,7 +449,7 @@ export class AirQualitySensor extends deviceBase {
                 this.device.zipCode = geoData.zipCode
                 this.device.city = geoData.city
 
-                const fallbackUrl = `${AirNowUrl}ByZipCode/current/?format=application/json&zipCode=${geoData.zipCode}&distance=${distance}&API_KEY=${this.device.apiKey}`
+                const fallbackUrl = `${AirNowUrl}zipCode/current/?format=application/json&zipCode=${geoData.zipCode}&distance=${distance}&API_KEY=${this.device.apiKey}`
 
                 try {
                   const fallbackResponse = await this.executeApiRequestWithFallback(fallbackUrl)
