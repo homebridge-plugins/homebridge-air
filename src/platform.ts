@@ -98,6 +98,12 @@ export class AirPlatform implements DynamicPlatformPlugin {
         await this.errorLog(`Failed to Discover Devices ${JSON.stringify(e.message ?? e)}`)
       }
     })
+
+    // Stop polling on the way out, so the intervals do not keep calling the
+    // provider - or hold the process open - after Homebridge has said stop
+    this.api.on('shutdown', () => {
+      this.accessories.forEach(accessory => (accessory as any).control?.shutdown?.())
+    })
   }
 
   /**

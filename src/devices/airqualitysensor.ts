@@ -3,12 +3,12 @@
  * airqualitysensor.ts: @homebridge-plugins/homebridge-air.
  */
 import type { CharacteristicValue, PlatformAccessory, Service } from 'homebridge'
+import type { Subscription } from 'rxjs'
 
 import type { AirPlatform } from '../platform.js'
 import type { AirNowAirQualityDataArray, AqicnData, devicesConfig, Pollutant } from '../settings.js'
 
 import { interval } from 'rxjs'
-import { skipWhile } from 'rxjs/operators'
 import striptags from 'striptags'
 import { Agent, request } from 'undici'
 
@@ -66,6 +66,7 @@ export class AirQualitySensor extends deviceBase {
 
   // Updates
   SensorUpdateInProgress!: boolean
+  private updateSubscription?: Subscription
   deviceStatus: any
 
   // Caching to follow AirNow best practices - observations update hourly
@@ -109,9 +110,12 @@ export class AirQualitySensor extends deviceBase {
     // Retrieve initial values and updateHomekit
     this.refreshStatus()
 
-    // Start an update interval
-    interval(this.deviceRefreshRate * 1000)
-      .pipe(skipWhile(() => this.SensorUpdateInProgress))
+    // Start an update interval. The overlap guard is checked inside refreshStatus
+    // now: it used to be a `skipWhile`, which stops testing its predicate for good
+    // after the first false, and nothing ever raised the flag anyway - so a stalled
+    // request could be joined by a second one on the next tick, both writing to the
+    // same fields and each counting against the provider's rate limit.
+    this.updateSubscription = interval(this.deviceRefreshRate * 1000)
       .subscribe(async () => {
         await this.refreshStatus()
       })
@@ -320,6 +324,11 @@ export class AirQualitySensor extends deviceBase {
    * Asks the Air API for the latest device information
    */
   async refreshStatus() {
+    if (this.SensorUpdateInProgress) {
+      await this.debugLog('Skipping this refresh, the previous one has not finished')
+      return
+    }
+    this.SensorUpdateInProgress = true
     try {
       // Check cache first to reduce API calls and follow AirNow best practices
       const currentTime = Date.now()
@@ -578,7 +587,18 @@ export class AirQualitySensor extends deviceBase {
       await this.debugLog(`Provider: ${this.device.provider}, City: ${this.device.city || 'N/A'}`)
 
       await this.apiError(e)
+    } finally {
+      this.SensorUpdateInProgress = false
     }
+  }
+
+  /**
+   * Stop polling. Without this the interval keeps the process alive and keeps
+   * calling the provider after Homebridge has asked the plugin to stop.
+   */
+  public shutdown(): void {
+    this.updateSubscription?.unsubscribe()
+    this.updateSubscription = undefined
   }
 
   private isTimeoutError(error: any): boolean {

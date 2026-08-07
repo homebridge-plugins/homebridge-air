@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file. This projec
 - fix: stop adding a carbon monoxide reading the air quality sensor cannot show
 - fix: use the real airnow zip code endpoint on the fallback lookup, so it can succeed
 - fix: stop filling in a placeholder zip code that blocked the coordinates fallback
+- fix: stop two refreshes running at once, and stop polling when homebridge shuts down
 
 ## v2.2.1 (2026-07-28)
 
