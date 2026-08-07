@@ -7,7 +7,6 @@ import type { API, DynamicPlatformPlugin, HAP, Logging, MatterAccessory, Platfor
 import type { AirPlatformConfig, devicesConfig, options } from './settings.js'
 
 import { readFileSync } from 'node:fs'
-import { argv } from 'node:process'
 
 import { AirQualitySensor } from './devices/airqualitysensor.js'
 import { PLATFORM_NAME, PLUGIN_NAME, resolveAqicnLocationSegment } from './settings.js'
@@ -30,7 +29,6 @@ export class AirPlatform implements DynamicPlatformPlugin {
   platformRefreshRate!: options['refreshRate']
   platformPushRate!: options['pushRate']
   platformUpdateRate!: options['updateRate']
-  debugMode!: boolean
   version!: string
 
   constructor(
@@ -336,13 +334,21 @@ export class AirPlatform implements DynamicPlatformPlugin {
   }
 
   async getPlatformLogSettings() {
-    this.debugMode = argv.includes('-D') ?? argv.includes('--debug')
+    // `debugMode` was worked out here by looking for `-D` in the plugin's own
+    // process arguments. That is right in the main Homebridge process and wrong
+    // in a child bridge, which only receives `-D` when that bridge has its own
+    // debug setting turned on - so with debug enabled globally the plugin
+    // decided debug was off and printed nothing.
+    //
+    // Nothing needs deciding: 'debugMode' routes debug lines to Homebridge's
+    // own debug logger, which prints them only when debug is actually on, in
+    // either kind of process. An explicit `logging` in the config still wins.
     // Check both config.logging (root level) and config.options.logging for backward compatibility
     const configLogging = this.config.logging || this.config.options?.logging
     this.platformLogging = (configLogging === 'debug' || configLogging === 'standard' || configLogging === 'none')
       ? configLogging
-      : this.debugMode ? 'debugMode' : 'standard'
-    const loggingSource = this.config.logging ? 'Platform Config (root)' : this.config.options?.logging ? 'Platform Config (options)' : this.debugMode ? 'debugMode' : 'Default'
+      : 'debugMode'
+    const loggingSource = this.config.logging ? 'Platform Config (root)' : this.config.options?.logging ? 'Platform Config (options)' : 'Default'
     await this.debugLog(`Using ${loggingSource} Logging: ${this.platformLogging}`)
   }
 
