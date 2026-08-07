@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file. This projec
 - chore: allow dependency install scripts by package name rather than pinned version, so a version bump cannot silently block a native build
 - chore: exclude test files and the test config from the published package
 - fix: restore debug logging when the plugin runs in a child bridge
+- fix: stop dropping the platform options, so the advanced settings take effect
 
 ## v2.2.1 (2026-07-28)
 

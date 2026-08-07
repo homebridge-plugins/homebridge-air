@@ -53,6 +53,10 @@ export class AirPlatform implements DynamicPlatformPlugin {
       devices: config.devices as devicesConfig[],
       refreshRate: config.refreshRate as number,
       logging: config.logging as string,
+      // `options` was left out of this rebuild, so every later read of
+      // `this.config.options` was undefined - the platform rate settings, the
+      // logging fallback and `allowInvalidCharacters` all silently did nothing
+      options: config.options,
     }
 
     // Plugin Configuration
