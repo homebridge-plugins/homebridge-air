@@ -196,8 +196,12 @@ export class AirQualitySensor extends deviceBase {
                     this.availablePollutants.add('SulphurDioxideDensity')
                     break
                   case 'co':
+                    // Recorded for the log only. CarbonMonoxideLevel is not a
+                    // characteristic of the Air Quality Sensor service, so adding
+                    // it produces a Homebridge characteristic warning and the
+                    // Home app never shows the value - it only reads carbon
+                    // monoxide from a Carbon Monoxide Sensor service.
                     this.AirQualitySensor.CarbonMonoxideLevel = concentration
-                    this.availablePollutants.add('CarbonMonoxideLevel')
                     break
                 }
               } else {
@@ -634,11 +638,6 @@ export class AirQualitySensor extends deviceBase {
     }
     if (this.availablePollutants.has('PM10Density')) {
       await this.updateCharacteristic(this.AirQualitySensor.Service, this.hap.Characteristic.PM10Density, this.AirQualitySensor.PM10Density, 'PM10Density')
-    }
-
-    // Only update CarbonMonoxideLevel if CO data is available
-    if (this.availablePollutants.has('CarbonMonoxideLevel')) {
-      await this.updateCharacteristic(this.AirQualitySensor.Service, this.hap.Characteristic.CarbonMonoxideLevel, this.AirQualitySensor.CarbonMonoxideLevel, 'CarbonMonoxideLevel')
     }
 
     // StatusFault (always available)

@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file. This projec
 - fix: restore debug logging when the plugin runs in a child bridge
 - fix: stop dropping the platform options, so the advanced settings take effect
 - fix: report the worst airnow pollutant as the overall air quality, not the last one read
+- fix: stop adding a carbon monoxide reading the air quality sensor cannot show
 
 ## v2.2.1 (2026-07-28)
 
