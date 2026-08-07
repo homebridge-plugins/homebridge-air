@@ -196,7 +196,13 @@ export class AirPlatform implements DynamicPlatformPlugin {
         const configuredUUIDs = new Set<string>()
         for (const device of this.config.devices) {
           device.city = device.city ? device.city : 'Unknown'
-          device.zipCode = device.zipCode ? device.zipCode : '00000'
+          // Only stand in a placeholder zip code when there is nothing else to
+          // locate the station by. Setting it unconditionally made the
+          // reverse-geocode fallback for a lat/long device unreachable, because
+          // its `!device.zipCode` guard could never be true.
+          if (!device.zipCode && !(device.latitude && device.longitude)) {
+            device.zipCode = '00000'
+          }
           device.provider = device.provider ? device.provider : 'Unknown'
           if (device.latitude && device.longitude) {
             try {
