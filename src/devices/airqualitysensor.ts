@@ -342,9 +342,7 @@ export class AirQualitySensor extends deviceBase {
       await this.debugLog(`API call ${this.apiCallCount}/${maxCallsPerHour} this hour`)
 
       // Use correct AirNow API endpoint paths from official docs
-      // https://docs.airnowapi.org/CurrentObservationsByZip/docs
-      // https://docs.airnowapi.org/CurrentObservationsByLatLon/docs
-      const AirNowCurrentObservationBy = this.device.latitude && this.device.longitude ? 'latLong' : 'zipcode'
+      // https://docs.airnowapi.org/ObservationsByZipCodeLatLon/query
       // Support flexible AQICN URL patterns: geo coordinates, city names, and full URL paths
       const AqicnCurrentObservationBy = resolveAqicnLocationSegment(this.device)
       const AirNowCurrentObservationByValue = this.device.latitude && this.device.longitude ? `latitude=${this.device.latitude}&longitude=${this.device.longitude}` : `zipcode=${this.device.zipCode}`
