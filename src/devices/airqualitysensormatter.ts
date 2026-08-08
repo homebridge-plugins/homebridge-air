@@ -157,7 +157,7 @@ export class AirQualitySensorMatter {
 
     const airNowByValue = this.device.latitude && this.device.longitude
       ? `latitude=${this.device.latitude}&longitude=${this.device.longitude}`
-      : `zipcode=${this.device.zipCode}`
+      : `zipCode=${this.device.zipCode}`
 
     const distance = this.device.distance || '25'
 
