@@ -371,14 +371,17 @@ export class AirQualitySensor extends deviceBase {
       // Use correct AirNow API endpoint paths from official docs
       // https://docs.airnowapi.org/CurrentObservationsByZip/docs
       // https://docs.airnowapi.org/CurrentObservationsByLatLon/docs
-      const AirNowCurrentObservationBy = this.device.latitude && this.device.longitude ? 'latLong' : 'zipCode'
       // Support flexible AQICN URL patterns: geo coordinates, city names, and full URL paths
       const AqicnCurrentObservationBy = resolveAqicnLocationSegment(this.device)
       const AirNowCurrentObservationByValue = this.device.latitude && this.device.longitude ? `latitude=${this.device.latitude}&longitude=${this.device.longitude}` : `zipCode=${this.device.zipCode}`
-      const distance = this.device.distance || '25' // Default distance of 25 miles if not specified
       // Use correct format as per official AirNow API docs
       const providerUrls = {
-        airnow: `${AirNowUrl}${AirNowCurrentObservationBy}/current/?format=application/json&${AirNowCurrentObservationByValue}&distance=${distance}&API_KEY=${this.device.apiKey}`,
+        // AirNow's newer endpoint. It finds the closest reading for each pollutant
+        // separately rather than needing them all inside one radius, which is the only
+        // way somewhere remote gets a reading at all - 93546 came back empty from the
+        // older endpoint even at 150 miles (#84). It takes zip or lat/long, and ignores
+        // `distance` entirely: its own boundary is fixed at 50 miles.
+        airnow: `${AirNowUrl}current/ziplatlong/?format=application/json&${AirNowCurrentObservationByValue}&API_KEY=${this.device.apiKey}`,
         aqicn: `${AqicnUrl}${AqicnCurrentObservationBy}${AqicnCurrentObservationBy ? '/' : ''}?token=${this.device.apiKey}`,
       }
       const url = providerUrls[this.device.provider]
@@ -410,7 +413,7 @@ export class AirQualitySensor extends deviceBase {
                 this.device.city = geoData.city
 
                 // Build new URL with zip code
-                const fallbackUrl = `${AirNowUrl}zipCode/current/?format=application/json&zipCode=${geoData.zipCode}&distance=${distance}&API_KEY=${this.device.apiKey}`
+                const fallbackUrl = `${AirNowUrl}current/ziplatlong/?format=application/json&zipCode=${geoData.zipCode}&API_KEY=${this.device.apiKey}`
                 await this.debugLog(`Fallback URL: ${fallbackUrl}`)
 
                 try {
@@ -460,7 +463,7 @@ export class AirQualitySensor extends deviceBase {
                 this.device.zipCode = geoData.zipCode
                 this.device.city = geoData.city
 
-                const fallbackUrl = `${AirNowUrl}zipCode/current/?format=application/json&zipCode=${geoData.zipCode}&distance=${distance}&API_KEY=${this.device.apiKey}`
+                const fallbackUrl = `${AirNowUrl}current/ziplatlong/?format=application/json&zipCode=${geoData.zipCode}&API_KEY=${this.device.apiKey}`
 
                 try {
                   const fallbackResponse = await this.executeApiRequestWithFallback(fallbackUrl)
@@ -484,8 +487,8 @@ export class AirQualitySensor extends deviceBase {
 
             await this.errorLog(`Empty response body received from ${this.device.provider} API (Status: ${statusCode})`)
             await this.errorLog('This usually means no air quality data is available for your location.')
-            await this.errorLog('Try adjusting the distance parameter or verify your coordinates are correct.')
-            await this.debugLog(`Current settings - Lat: ${this.device.latitude}, Lon: ${this.device.longitude}, Distance: ${distance}`)
+            await this.errorLog('Verify your zip code or coordinates are correct - AirNow looks up to 50 miles for each pollutant.')
+            await this.debugLog(`Current settings - Lat: ${this.device.latitude}, Lon: ${this.device.longitude}, Zip: ${this.device.zipCode}`)
             this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
             return
           }
@@ -549,7 +552,7 @@ export class AirQualitySensor extends deviceBase {
             // Normalise both onto the shape the rest of this file reads (#84).
             const airnowResponse = normaliseAirNowRecords(response) as AirNowAirQualityDataArray
             if (!Array.isArray(airnowResponse) || airnowResponse.length === 0) {
-              for (const message of airNowEmptyResultMessages(airnowResponse, distance)) {
+              for (const message of airNowEmptyResultMessages(airnowResponse)) {
                 await this.errorLog(message)
               }
               await this.debugLog(`AirNow response structure: ${JSON.stringify(airnowResponse)}`)

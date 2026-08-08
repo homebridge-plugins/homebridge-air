@@ -154,18 +154,14 @@ export class AirQualitySensorMatter {
    * Build the provider API URL using the same logic as AirQualitySensor.refreshStatus.
    */
   private buildUrl(): string | undefined {
-    const airNowBy = this.device.latitude && this.device.longitude ? 'latLong' : 'zipCode'
-
     const aqicnBy = resolveAqicnLocationSegment(this.device)
 
     const airNowByValue = this.device.latitude && this.device.longitude
       ? `latitude=${this.device.latitude}&longitude=${this.device.longitude}`
       : `zipCode=${this.device.zipCode}`
 
-    const distance = this.device.distance || '25'
-
     const urls: Record<string, string> = {
-      airnow: `${AirNowUrl}${airNowBy}/current/?format=application/json&${airNowByValue}&distance=${distance}&API_KEY=${this.device.apiKey}`,
+      airnow: `${AirNowUrl}current/ziplatlong/?format=application/json&${airNowByValue}&API_KEY=${this.device.apiKey}`,
       aqicn: `${AqicnUrl}${aqicnBy}${aqicnBy ? '/' : ''}?token=${this.device.apiKey}`,
     }
 

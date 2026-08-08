@@ -85,19 +85,22 @@ export function safeTimerMs(ms: number): number {
  * The messages to log when AirNow returns no usable observation.
  *
  * An empty array is a valid answer, not a broken endpoint: it means no reporting
- * station was found within `distance` miles. Saying only "invalid response structure"
- * sent one reporter looking for a retired API rather than widening the radius (#84),
- * so the empty-array case now explains itself the way the empty-body case already did.
+ * station was found. Saying only "invalid response structure" sent one reporter
+ * looking for a retired API rather than checking their location (#84).
+ *
+ * The lookup boundary is AirNow's own and fixed at 50 miles - the `distance`
+ * parameter the older endpoint honoured is ignored by the current one - so the
+ * message names that rather than pointing at a setting that no longer does
+ * anything.
  *
  * @param response - the parsed AirNow response
- * @param distance - the search radius in miles that produced it
  * @returns the error lines to log, in order
  */
-export function airNowEmptyResultMessages(response: unknown, distance: string): string[] {
+export function airNowEmptyResultMessages(response: unknown): string[] {
   if (Array.isArray(response)) {
     return [
-      `AirNow API Error - no air quality data returned for your location within ${distance} miles`,
-      'Try increasing the distance parameter, or verify your zip code / coordinates are correct.',
+      'AirNow API Error - no air quality data returned for your location',
+      'AirNow looks up to 50 miles for each pollutant, so check your zip code or coordinates are correct.',
     ]
   }
 
