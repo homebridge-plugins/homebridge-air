@@ -342,16 +342,14 @@ export class AirQualitySensor extends deviceBase {
       await this.debugLog(`API call ${this.apiCallCount}/${maxCallsPerHour} this hour`)
 
       // Use correct AirNow API endpoint paths from official docs
-      // https://docs.airnowapi.org/CurrentObservationsByZip/docs
-      // https://docs.airnowapi.org/CurrentObservationsByLatLon/docs
-      const AirNowCurrentObservationBy = this.device.latitude && this.device.longitude ? 'latLong' : 'zipCode'
+      // https://docs.airnowapi.org/ObservationsByZipCodeLatLon/docs
       // Support flexible AQICN URL patterns: geo coordinates, city names, and full URL paths
       const AqicnCurrentObservationBy = resolveAqicnLocationSegment(this.device)
-      const AirNowCurrentObservationByValue = this.device.latitude && this.device.longitude ? `latitude=${this.device.latitude}&longitude=${this.device.longitude}` : `zipCode=${this.device.zipCode}`
+      const AirNowCurrentObservationByValue = this.device.latitude && this.device.longitude ? `latitude=${this.device.latitude}&longitude=${this.device.longitude}` : `zipcode=${this.device.zipCode}`
       const distance = this.device.distance || '25' // Default distance of 25 miles if not specified
       // Use correct format as per official AirNow API docs
       const providerUrls = {
-        airnow: `${AirNowUrl}${AirNowCurrentObservationBy}/current/?format=application/json&${AirNowCurrentObservationByValue}&distance=${distance}&API_KEY=${this.device.apiKey}`,
+        airnow: `${AirNowUrl}current/ziplatlong/?format=application/json&${AirNowCurrentObservationByValue}&distance=${distance}&API_KEY=${this.device.apiKey}`,
         aqicn: `${AqicnUrl}${AqicnCurrentObservationBy}${AqicnCurrentObservationBy ? '/' : ''}?token=${this.device.apiKey}`,
       }
       const url = providerUrls[this.device.provider]
@@ -383,7 +381,7 @@ export class AirQualitySensor extends deviceBase {
                 this.device.city = geoData.city
 
                 // Build new URL with zip code
-                const fallbackUrl = `${AirNowUrl}ByZipCode/current/?format=application/json&zipCode=${geoData.zipCode}&distance=${distance}&API_KEY=${this.device.apiKey}`
+                const fallbackUrl = `${AirNowUrl}current/ziplatlong/?format=application/json&zipcode=${geoData.zipCode}&distance=${distance}&API_KEY=${this.device.apiKey}`
                 await this.debugLog(`Fallback URL: ${fallbackUrl}`)
 
                 try {
@@ -433,7 +431,7 @@ export class AirQualitySensor extends deviceBase {
                 this.device.zipCode = geoData.zipCode
                 this.device.city = geoData.city
 
-                const fallbackUrl = `${AirNowUrl}ByZipCode/current/?format=application/json&zipCode=${geoData.zipCode}&distance=${distance}&API_KEY=${this.device.apiKey}`
+                const fallbackUrl = `${AirNowUrl}current/ziplatlong/?format=application/json&zipcode=${geoData.zipCode}&distance=${distance}&API_KEY=${this.device.apiKey}`
 
                 try {
                   const fallbackResponse = await this.executeApiRequestWithFallback(fallbackUrl)
