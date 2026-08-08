@@ -153,7 +153,6 @@ export class AirQualitySensorMatter {
    * Build the provider API URL using the same logic as AirQualitySensor.refreshStatus.
    */
   private buildUrl(): string | undefined {
-
     const aqicnBy = resolveAqicnLocationSegment(this.device)
 
     const airNowByValue = this.device.latitude && this.device.longitude
