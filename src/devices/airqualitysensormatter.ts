@@ -19,6 +19,7 @@ import {
   REQUEST_TIMEOUT_CONFIG,
   resolveAqicnLocationSegment,
 } from '../settings.js'
+import { safeTimerMs } from '../utils.js'
 
 const defaultApiAgent = new Agent({
   connect: {
@@ -64,7 +65,7 @@ export class AirQualitySensorMatter {
     void this.refreshStatus()
 
     // Start polling interval
-    interval(refreshRate * 1000)
+    interval(safeTimerMs(refreshRate * 1000))
       .pipe(skipWhile(() => this.updateInProgress))
       .subscribe(async () => {
         await this.refreshStatus()

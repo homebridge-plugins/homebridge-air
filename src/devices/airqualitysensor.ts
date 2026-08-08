@@ -24,6 +24,7 @@ import {
   resolveAqicnLocationSegment,
   resolveProviderStationName,
 } from '../settings.js'
+import { safeTimerMs } from '../utils.js'
 import { deviceBase } from './device.js'
 
 const defaultApiAgent = new Agent({
@@ -115,7 +116,7 @@ export class AirQualitySensor extends deviceBase {
     // after the first false, and nothing ever raised the flag anyway - so a stalled
     // request could be joined by a second one on the next tick, both writing to the
     // same fields and each counting against the provider's rate limit.
-    this.updateSubscription = interval(this.deviceRefreshRate * 1000)
+    this.updateSubscription = interval(safeTimerMs(this.deviceRefreshRate * 1000))
       .subscribe(async () => {
         await this.refreshStatus()
       })

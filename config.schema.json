@@ -103,6 +103,7 @@
               "title": "Device Refresh Rate",
               "type": "number",
               "minimum": 1800,
+              "maximum": 2073600,
               "placeholder": 1800,
               "description": "Indicates the number of seconds between polls of the AirNow or AQICN service.",
               "condition": {
@@ -163,6 +164,7 @@
         "title": "Refresh Rate",
         "type": "number",
         "minimum": 1800,
+        "maximum": 2073600,
         "placeholder": 1800,
         "description": "Indicates the number of seconds between polls of the AirNow or AQICN service."
       },

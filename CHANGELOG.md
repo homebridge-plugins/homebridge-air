@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file. This projec
 - fix: stop filling in a placeholder zip code that blocked the coordinates fallback
 - fix: stop two refreshes running at once, and stop polling when homebridge shuts down
 - fix: stop confirming updateRate and pushRate in the log, when nothing reads either
+- fix: clamp the poll interval, so a very large refresh rate cannot make it poll every millisecond
 
 ## v2.2.1 (2026-07-28)
 
