@@ -80,3 +80,26 @@ export function safeTimerMs(ms: number): number {
   }
   return Math.min(Math.floor(ms), MAX_TIMER_MS)
 }
+
+/**
+ * The messages to log when AirNow returns no usable observation.
+ *
+ * An empty array is a valid answer, not a broken endpoint: it means no reporting
+ * station was found within `distance` miles. Saying only "invalid response structure"
+ * sent one reporter looking for a retired API rather than widening the radius (#84),
+ * so the empty-array case now explains itself the way the empty-body case already did.
+ *
+ * @param response - the parsed AirNow response
+ * @param distance - the search radius in miles that produced it
+ * @returns the error lines to log, in order
+ */
+export function airNowEmptyResultMessages(response: unknown, distance: string): string[] {
+  if (Array.isArray(response)) {
+    return [
+      `AirNow API Error - no air quality data returned for your location within ${distance} miles`,
+      'Try increasing the distance parameter, or verify your zip code / coordinates are correct.',
+    ]
+  }
+
+  return ['AirNow API Error - Invalid response structure or empty data']
+}

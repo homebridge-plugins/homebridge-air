@@ -24,7 +24,7 @@ import {
   resolveAqicnLocationSegment,
   resolveProviderStationName,
 } from '../settings.js'
-import { safeTimerMs } from '../utils.js'
+import { airNowEmptyResultMessages, safeTimerMs } from '../utils.js'
 import { deviceBase } from './device.js'
 
 const defaultApiAgent = new Agent({
@@ -545,7 +545,10 @@ export class AirQualitySensor extends deviceBase {
             // Validate AirNow response structure
             const airnowResponse = response as AirNowAirQualityDataArray
             if (!Array.isArray(airnowResponse) || airnowResponse.length === 0) {
-              await this.errorLog('AirNow API Error - Invalid response structure or empty data')
+              for (const message of airNowEmptyResultMessages(airnowResponse, distance)) {
+                await this.errorLog(message)
+              }
+              await this.debugLog(`AirNow response structure: ${JSON.stringify(airnowResponse)}`)
               this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
               return
             }
