@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file. This projec
 - fix: use the real airnow zip code endpoint on the fallback lookup, so it can succeed
 - fix: stop filling in a placeholder zip code that blocked the coordinates fallback
 - fix: stop two refreshes running at once, and stop polling when homebridge shuts down
+- fix: stop confirming updateRate and pushRate in the log, when nothing reads either
 
 ## v2.2.1 (2026-07-28)
 

@@ -68,8 +68,6 @@ export interface devicesConfig {
   distance?: string
   firmware: string
   refreshRate?: number
-  updateRate?: number
-  pushRate?: number
   logging?: string
   hide_device?: boolean
 }
@@ -77,8 +75,6 @@ export interface devicesConfig {
 export interface options {
   allowInvalidCharacters?: boolean
   refreshRate?: number
-  updateRate?: number
-  pushRate?: number
   logging?: string
   enableMatter?: boolean
   preferMatter?: boolean

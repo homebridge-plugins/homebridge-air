@@ -27,8 +27,6 @@ export class AirPlatform implements DynamicPlatformPlugin {
   platformConfig!: AirPlatformConfig
   platformLogging!: options['logging']
   platformRefreshRate!: options['refreshRate']
-  platformPushRate!: options['pushRate']
-  platformUpdateRate!: options['updateRate']
   version!: string
 
   constructor(
@@ -373,14 +371,6 @@ export class AirPlatform implements DynamicPlatformPlugin {
     this.platformRefreshRate = this.config.refreshRate ?? this.config.options?.refreshRate ?? undefined
     const refreshRateSource = this.config.refreshRate ? 'Platform Config (root)' : this.config.options?.refreshRate ? 'Platform Config (options)' : 'Not Set'
     await this.debugLog(`Using ${refreshRateSource} refreshRate: ${this.platformRefreshRate}`)
-    // UpdateRate
-    this.platformUpdateRate = this.config.options?.updateRate ? this.config.options.updateRate : undefined
-    const updateRate = this.config.options?.updateRate ? 'Using Platform Config updateRate' : 'Platform Config updateRate Not Set'
-    await this.debugLog(`${updateRate}: ${this.platformUpdateRate}`)
-    // PushRate
-    this.platformPushRate = this.config.options?.pushRate ? this.config.options.pushRate : undefined
-    const pushRate = this.config.options?.pushRate ? 'Using Platform Config pushRate' : 'Platform Config pushRate Not Set'
-    await this.debugLog(`${pushRate}: ${this.platformPushRate}`)
   }
 
   async getPlatformConfigSettings() {
@@ -390,8 +380,6 @@ export class AirPlatform implements DynamicPlatformPlugin {
       }
       platformConfig.logging = this.config.options.logging ? this.config.options.logging : undefined
       platformConfig.refreshRate = this.config.options.refreshRate ? this.config.options.refreshRate : undefined
-      platformConfig.updateRate = this.config.options.updateRate ? this.config.options.updateRate : undefined
-      platformConfig.pushRate = this.config.options.pushRate ? this.config.options.pushRate : undefined
       if (Object.entries(platformConfig).length !== 0) {
         await this.debugLog(`Platform Config: ${JSON.stringify(platformConfig)}`)
       }
