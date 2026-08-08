@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file. This projec
 - fix: restore debug logging when the plugin runs in a child bridge
 - Update airqualitysensor.ts
 - Update airqualitysensormatter.ts
+- Update CHANGELOG.md
 
 ## v2.2.1 (2026-07-28)
 
