@@ -481,3 +481,72 @@ export function HomeKitAQI(aqi: number | undefined): number {
     return 5
   }
 }
+
+/**
+ * A record as the newer `current/ziplatlong` AirNow endpoint returns it.
+ *
+ * Every field is camelCase where the older `zipCode/current` endpoint used
+ * PascalCase, the AQI arrives as `nowcastAQI`, and ozone is spelled out as
+ * `OZONE` rather than `O3` (#84).
+ */
+interface AirNowZipLatLongRecord {
+  dateObserved?: string
+  hourObserved?: string
+  localTimeZone?: string
+  reportingAreaName?: string
+  parameterName?: string
+  nowcastAQI?: number
+  aqiCategoryName?: string
+}
+
+/**
+ * Pollutant names the newer endpoint uses, mapped onto the ones the accessory
+ * already looks for. Only ozone actually differs.
+ */
+const AIRNOW_PARAMETER_ALIASES: Record<string, string> = {
+  OZONE: 'O3',
+}
+
+/**
+ * Normalise an AirNow response onto the record shape the accessory consumes.
+ *
+ * AirNow appears to be migrating between two endpoints that answer with
+ * different shapes, and a remote location can be served by one and not the
+ * other (#84). Rather than betting on either, accept both: a response already
+ * in the older shape is passed through untouched, and the newer one is mapped.
+ *
+ * Only the fields the plugin actually reads are mapped - `AQI`,
+ * `ParameterName` and `ReportingArea`. The rest of the newer payload (site id,
+ * reporting agency, lookup behaviour) has no consumer here.
+ *
+ * @param response - the parsed AirNow response
+ * @returns records in the accessory's shape, or undefined if unrecognisable
+ */
+export function normaliseAirNowRecords(response: unknown): AirNowAirQualityDataArray | undefined {
+  if (!Array.isArray(response)) {
+    return undefined
+  }
+
+  return response.map((record) => {
+    if (record && typeof record === 'object' && 'ParameterName' in record) {
+      return record as AirNowAirQualityData // already the older shape
+    }
+
+    const source = record as AirNowZipLatLongRecord
+    const parameter = typeof source?.parameterName === 'string' ? source.parameterName : ''
+
+    return {
+      DateObserved: source?.dateObserved ?? '',
+      // the newer endpoint sends "10:00" where the older one sent 10
+      HourObserved: Number.parseInt(source?.hourObserved ?? '', 10),
+      LocalTimeZone: source?.localTimeZone ?? '',
+      ReportingArea: source?.reportingAreaName ?? '',
+      StateCode: '',
+      Latitude: Number.NaN,
+      Longitude: Number.NaN,
+      ParameterName: AIRNOW_PARAMETER_ALIASES[parameter] ?? parameter,
+      AQI: source?.nowcastAQI as number,
+      Category: { Number: Number.NaN, Name: source?.aqiCategoryName ?? '' },
+    } satisfies AirNowAirQualityData
+  })
+}

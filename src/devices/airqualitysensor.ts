@@ -18,6 +18,7 @@ import {
   aqiToConcentration,
   getAqicnError,
   HomeKitAQI,
+  normaliseAirNowRecords,
   normaliseAqicnAqi,
   REQUEST_RATE_LIMIT_CONFIG,
   REQUEST_TIMEOUT_CONFIG,
@@ -543,7 +544,10 @@ export class AirQualitySensor extends deviceBase {
             await this.debugLog(`Data cached. Will reuse for ${this.cacheMaxAge / 1000}s (AQICN updates hourly)`)
           } else {
             // Validate AirNow response structure
-            const airnowResponse = response as AirNowAirQualityDataArray
+            // AirNow's newer endpoint answers with a different shape to the older one,
+            // and a location can be served by one and not the other while they migrate.
+            // Normalise both onto the shape the rest of this file reads (#84).
+            const airnowResponse = normaliseAirNowRecords(response) as AirNowAirQualityDataArray
             if (!Array.isArray(airnowResponse) || airnowResponse.length === 0) {
               for (const message of airNowEmptyResultMessages(airnowResponse, distance)) {
                 await this.errorLog(message)
