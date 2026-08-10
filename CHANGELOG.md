@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file. This projec
 - fix: explain an empty AirNow result as no station in range, not a bad response (#84)
 - fix: accept the newer AirNow response shape as well as the older one (#84) (@horsenoggingit)
 - fix: use the AirNow endpoint that finds a reading per pollutant (#84) (@horsenoggingit)
+- chore(deps): dependency updates
 
 ## v2.2.1 (2026-07-28)
 
