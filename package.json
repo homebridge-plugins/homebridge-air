@@ -2,7 +2,7 @@
   "name": "@homebridge-plugins/homebridge-air",
   "displayName": "Air Quality",
   "type": "module",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "description": "The Air plugin allows you to monitor the current air quality for your location from HomeKit and Siri, via AirNow or AQICN.",
   "author": {
     "name": "donavanbecker",
