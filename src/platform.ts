@@ -9,7 +9,7 @@ import type { AirPlatformConfig, devicesConfig, options } from './settings.js'
 import { readFileSync } from 'node:fs'
 
 import { AirQualitySensor } from './devices/airqualitysensor.js'
-import { hasCoordinates, isCoordinate, PLATFORM_NAME, PLUGIN_NAME, resolveAqicnLocationSegment } from './settings.js'
+import { hasCoordinates, isCoordinate, PLATFORM_NAME, PLUGIN_NAME, resolveAqicnLocationSegment, resolveConfigDeviceName } from './settings.js'
 
 /**
  * HomebridgePlatform
@@ -277,7 +277,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
    * name field puts the station name back without re-adding the device.
    */
   public async resolveDisplayName(device: any, accessory?: PlatformAccessory): Promise<string> {
-    const configDeviceName = device.configDeviceName?.trim()
+    const configDeviceName = resolveConfigDeviceName(device)
     if (configDeviceName) {
       return await this.validateAndCleanDisplayName(configDeviceName, 'device name', configDeviceName)
     }
@@ -301,7 +301,10 @@ export class AirPlatform implements DynamicPlatformPlugin {
       if (!device.hide_device) {
         // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
         existingAccessory.context.device = device
-        existingAccessory.displayName = await this.resolveDisplayName(device, existingAccessory)
+        // updateDisplayName rather than an assignment: the accessory's own
+        // displayName is a mirror, and only this keeps the HAP accessory's copy
+        // - the one the bridge reports - in step with it
+        existingAccessory.updateDisplayName(await this.resolveDisplayName(device, existingAccessory))
         existingAccessory.context.serialNumber = this.generateSerialNumber(device)
         existingAccessory.context.model = device.provider === 'airnow' ? 'AirNow' : device.provider === 'aqicn' ? 'AQICN' : 'Unknown'
         existingAccessory.context.FirmwareRevision = device.firmware ?? await this.getVersion()
@@ -323,11 +326,12 @@ export class AirPlatform implements DynamicPlatformPlugin {
       // store a copy of the device object in the `accessory.context`
       // the `context` property can be used to store any data about the accessory you may need
       accessory.context.device = device
-      accessory.displayName = cleanedDisplayName
       // This accessory is new to HomeKit, so nobody has named it yet and we are
-      // free to adopt the provider's own station name once we have data (#69),
-      // unless the config already names it
-      accessory.context.nameFromProvider = !device.configDeviceName?.trim()
+      // free to adopt the provider's own station name once we have data (#69).
+      // Stays armed even when the config names the device: the config name
+      // outranks the station name anyway, and leaving this set is what lets the
+      // station name be adopted if that name is ever cleared again
+      accessory.context.nameFromProvider = true
       accessory.context.serialNumber = this.generateSerialNumber(device)
       accessory.context.model = device.provider === 'airnow' ? 'AirNow' : device.provider === 'aqicn' ? 'AQICN' : 'Unknown'
       accessory.context.FirmwareRevision = device.firmware ?? await this.getVersion()

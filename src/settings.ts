@@ -119,6 +119,19 @@ export function isCoordinate(value: number | string | undefined | null): boolean
 }
 
 /**
+ * The name the user typed into the config for this device, if any.
+ *
+ * Whitespace is not a name: the field is left empty far more often than it is
+ * filled in, and a stray space must not count as naming the accessory, or it
+ * would stop the station name ever being adopted (#69). Every caller has to
+ * agree on that, hence one place for the rule.
+ */
+export function resolveConfigDeviceName(device: Pick<devicesConfig, 'configDeviceName'>): string | undefined {
+  const name = device.configDeviceName?.trim()
+  return name || undefined
+}
+
+/**
  * Does this device locate itself by coordinates rather than by zip/city?
  *
  * Narrows both coordinates to present, so callers can use them straight away

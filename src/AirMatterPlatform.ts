@@ -164,6 +164,10 @@ export class AirMatterPlatform extends AirPlatform {
 
     if (existingAccessory) {
       await this.infoLog(`Restoring existing Matter accessory from cache: ${displayName}`)
+      // The name is applied on restore as well as on registration, so a Device
+      // Name added or cleared for an accessory that already exists reaches the
+      // accessory rather than only the log line above
+      existingAccessory.displayName = displayName
       // Update context with latest device info
       if (existingAccessory.context) {
         existingAccessory.context.device = device as unknown as Record<string, unknown>

@@ -41,8 +41,9 @@ Homebridge plugin to integrate air quality data into HomeKit
   - The Home app shows the overall air quality; the Eve app shows more of the individual measurements.
 - **Device Name** names an accessory whatever you like, per location, on the settings form or when adding a location from the Location tab:
   - Left empty, a new accessory is named after the city you entered, then after the station the provider reports on once data arrives - so a station id becomes a place name rather than `Station 92323`.
-  - Filling it in wins over both, and applies to accessories that have already been named. Clearing it again hands naming back to the provider.
-  - HomeKit keeps the name it stored when the accessory was added, so rename it in the Home app too if it is already there.
+  - Filling it in wins over both, and applies to accessories that have already been named. Clearing it again hands naming back to the provider, which picks the station name up again on the next refresh.
+  - HomeKit keeps the name it stored when the accessory was added, so rename it in the Home app too if it is already there. The Homebridge log and the accessory's Name follow this setting either way.
+  - Under Matter the station name is never adopted, so the choice there is your Device Name or the city, clamped to Matter's 32 character limit.
 - **Matter** support is available when running Homebridge v2.0+ with Matter enabled:
   - `options.enableMatter: true` explicitly requests Matter. If Matter is unavailable or disabled, the plugin logs a warning and falls back to HAP.
   - `options.preferMatter: true` uses Matter when available and enabled, but silently falls back to HAP otherwise.
