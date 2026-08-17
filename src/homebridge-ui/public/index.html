@@ -47,6 +47,13 @@
   <button id="disabledEnable" type="button" class="btn btn-link p-0 m-0 float-right">Enable</button>
 </div>
 <div id="pageLocation" style="display: none;">
+  <div class="mb-3">
+    <label for="providerField">Provider:</label>
+    <select id="providerField" class="form-control">
+      <option value="airnow">AirNow (USA)</option>
+      <option value="aqicn">AQICN (international)</option>
+    </select>
+  </div>
   <button type="button" class="btn btn-primary mb-3" id="getLocation">Use Current Location</button>
   <div class="mb-2">
     <label for="latitudeField">Latitude:</label>
@@ -362,8 +369,9 @@
             }
 
             // Add a new device to the array
+            const provider = document.getElementById('providerField').value === 'aqicn' ? 'aqicn' : 'airnow';
             config[0].devices.push({
-              provider: 'airnow',
+              provider: provider,
               apiKey: '',
               latitude: latitude,
               longitude: longitude
