@@ -96,7 +96,7 @@
               "type": "string",
               "placeholder": "1.2.8",
               "condition": {
-                "functionBody": "return (model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].zipCode);"
+                "functionBody": "return (model.devices && model.devices[arrayIndices] && (model.devices[arrayIndices].city || (model.devices[arrayIndices].latitude && model.devices[arrayIndices].longitude)));"
               }
             },
             "refreshRate": {
@@ -107,7 +107,7 @@
               "placeholder": 1800,
               "description": "Indicates the number of seconds between polls of the AirNow or AQICN service.",
               "condition": {
-                "functionBody": "return (model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].zipCode);"
+                "functionBody": "return (model.devices && model.devices[arrayIndices] && (model.devices[arrayIndices].city || (model.devices[arrayIndices].latitude && model.devices[arrayIndices].longitude)));"
               }
             },
             "logging": {
@@ -115,7 +115,7 @@
               "type": "string",
               "default": "",
               "condition": {
-                "functionBody": "return (model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].zipCode);"
+                "functionBody": "return (model.devices && model.devices[arrayIndices] && (model.devices[arrayIndices].city || (model.devices[arrayIndices].latitude && model.devices[arrayIndices].longitude)));"
               },
               "oneOf": [
                 {
@@ -150,7 +150,7 @@
               "type": "boolean",
               "description": "Delete this device from the plugin cache.",
               "condition": {
-                "functionBody": "return (model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].zipCode);"
+                "functionBody": "return (model.devices && model.devices[arrayIndices] && (model.devices[arrayIndices].city || (model.devices[arrayIndices].latitude && model.devices[arrayIndices].longitude)));"
               }
             }
           },
