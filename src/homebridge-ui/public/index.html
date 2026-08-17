@@ -25,12 +25,12 @@
 </p>
 <div id="pageIntro" style="display: none">
   <p class="lead text-center">Thank you for installing <strong>homebridge-air</strong></p>
-  <p class="lead text-center">Before continuing:</p>
+  <p class="lead text-center">Before continuing, get an API key from the provider you will use:</p>
   <ol>
-    <li class="mb-3">Login / create an account at <a href="https://docs.airnowapi.org/faq" target="_blank"
-        rel="noreferrer noopener">https://docs.airnowapi.org/faq</a>.</li>
-    <li class="mb-3">Click <strong>Web Services</strong>.</li>
-    <li>Copy Your API Key in the top right.</li>
+    <li class="mb-3"><strong>AirNow</strong> (USA): create an account at <a href="https://docs.airnowapi.org/faq" target="_blank"
+        rel="noreferrer noopener">docs.airnowapi.org/faq</a>, open <strong>Web Services</strong>, and copy the API key.</li>
+    <li class="mb-3"><strong>AQICN</strong> (international): copy a token from <a href="https://aqicn.org/data-platform/token/" target="_blank"
+        rel="noreferrer noopener">aqicn.org/data-platform/token</a>.</li>
   </ol>
   <div class="text-center">
     <button type="button" class="btn btn-primary" id="introLink">Continue &rarr;</button>
@@ -270,8 +270,11 @@
         homebridge.hideSpinner();
       };
 
-      const showLocation = () => {
-        document.getElementById('getLocation').addEventListener('click', () => {
+      // Bind Location-tab buttons once. showLocation() used to do this on every
+      // visit, and menuLocation was also wired twice, so Save could add the same
+      // coordinates more than once.
+      const bindLocationActions = () => {
+        bindClick('getLocation', () => {
           if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition((position) => {
               const latitude = position.coords.latitude;
@@ -306,7 +309,7 @@
           }
         });
 
-        document.getElementById('copyLatitude').addEventListener('click', () => {
+        bindClick('copyLatitude', () => {
           const latitude = document.getElementById('latitudeField').value;
           navigator.clipboard.writeText(latitude).then(() => {
             homebridge.toast.success('Latitude copied to clipboard.', 'Success');
@@ -316,7 +319,7 @@
           });
         });
 
-        document.getElementById('copyLongitude').addEventListener('click', () => {
+        bindClick('copyLongitude', () => {
           const longitude = document.getElementById('longitudeField').value;
           navigator.clipboard.writeText(longitude).then(() => {
             homebridge.toast.success('Longitude copied to clipboard.', 'Success');
@@ -326,7 +329,7 @@
           });
         });
 
-        document.getElementById('saveToConfig').addEventListener('click', async () => {
+        bindClick('saveToConfig', async () => {
           const latitude = parseCoordinate(document.getElementById('latitudeField').value);
           const longitude = parseCoordinate(document.getElementById('longitudeField').value);
 
@@ -376,7 +379,9 @@
             homebridge.hideSpinner();
           }
         });
+      };
 
+      const showLocation = () => {
         homebridge.showSpinner();
         homebridge.hideSchemaForm();
         document.getElementById('menuHome').classList.remove('btn-elegant');
@@ -391,7 +396,7 @@
         document.getElementById('pageSupport').style.display = 'none';
         document.getElementById('pageDevices').style.display = 'none';
         homebridge.hideSpinner();
-      };      document.getElementById('menuLocation').addEventListener('click', showLocation);
+      };
 
       const showSettings = () => {
         homebridge.showSpinner();
@@ -423,6 +428,7 @@
         homebridge.hideSpinner();
       };
 
+      bindLocationActions();
       bindClick('menuHome', () => showSupport());
       bindClick('menuDevices', () => showDevices());
       bindClick('menuLocation', () => showLocation());

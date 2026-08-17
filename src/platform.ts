@@ -9,7 +9,7 @@ import type { AirPlatformConfig, devicesConfig, options } from './settings.js'
 import { readFileSync } from 'node:fs'
 
 import { AirQualitySensor } from './devices/airqualitysensor.js'
-import { PLATFORM_NAME, PLUGIN_NAME, resolveAqicnLocationSegment } from './settings.js'
+import { hasCoordinates, isCoordinate, PLATFORM_NAME, PLUGIN_NAME, resolveAqicnLocationSegment } from './settings.js'
 
 /**
  * HomebridgePlatform
@@ -78,7 +78,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
         await this.verifyConfig()
         await this.debugLog('Config OK')
       } catch (e: any) {
-        await this.errorLog(`Verify Config, Error Message: ${e.message}, Submit Bugs Here: https://bit.ly/homebridge-air-bug-report`)
+        await this.errorLog(`Verify Config, Error Message: ${e.message}, Submit Bugs Here: https://github.com/homebridge-plugins/homebridge-air/issues/new/choose`)
         this.debugErrorLog(`Verify Config, Error: ${e}`)
       }
     })()
@@ -158,8 +158,8 @@ export class AirPlatform implements DynamicPlatformPlugin {
         const provider = (deviceConfig.provider || '').toLowerCase()
         const hasCity = Boolean(deviceConfig.city)
         const hasZipCode = Boolean(deviceConfig.zipCode)
-        const hasLatitude = deviceConfig.latitude !== undefined && deviceConfig.latitude !== null
-        const hasLongitude = deviceConfig.longitude !== undefined && deviceConfig.longitude !== null
+        const hasLatitude = isCoordinate(deviceConfig.latitude)
+        const hasLongitude = isCoordinate(deviceConfig.longitude)
 
         if (!deviceConfig.apiKey) {
           await this.errorLog(`Missing API key for ${provider || 'unknown'} provider`)
@@ -204,11 +204,11 @@ export class AirPlatform implements DynamicPlatformPlugin {
           // locate the station by. Setting it unconditionally made the
           // reverse-geocode fallback for a lat/long device unreachable, because
           // its `!device.zipCode` guard could never be true.
-          if (!device.zipCode && !(device.latitude && device.longitude)) {
+          if (!device.zipCode && !hasCoordinates(device)) {
             device.zipCode = '00000'
           }
           device.provider = device.provider ? device.provider : 'Unknown'
-          if (device.latitude && device.longitude) {
+          if (hasCoordinates(device)) {
             try {
               device.latitude = Number.parseFloat(Number.parseFloat(device.latitude.toString()).toFixed(6))
               device.longitude = Number.parseFloat(Number.parseFloat(device.longitude.toString()).toFixed(6))
@@ -232,7 +232,8 @@ export class AirPlatform implements DynamicPlatformPlugin {
    * registration so the two can never disagree on an accessory's identity.
    */
   public generateAccessoryUUID(device: any): string {
-    const uuidString = (device.latitude && device.longitude) ? (`${device.latitude}` + `${device.longitude}` + `${device.provider}`) : (`${device.zipCode}` + `${device.city}` + `${device.provider}`)
+    const locatedByCoordinates = hasCoordinates(device as devicesConfig)
+    const uuidString = locatedByCoordinates ? (`${device.latitude}` + `${device.longitude}` + `${device.provider}`) : (`${device.zipCode}` + `${device.city}` + `${device.provider}`)
     return this.api.hap.uuid.generate(uuidString)
   }
 

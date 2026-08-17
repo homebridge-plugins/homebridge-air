@@ -321,6 +321,12 @@ describe('airPlatform generateSerialNumber', () => {
     expect(first).not.toBe(second)
   })
 
+  it('should identify a device by its coordinates when one of them is zero', () => {
+    const generate = mockAPI.hap.uuid.generate as any
+    platform.generateAccessoryUUID({ provider: 'airnow', latitude: 51.4779, longitude: 0, zipCode: '00000', city: 'Unknown' })
+    expect(generate).toHaveBeenCalledWith('51.47790airnow')
+  })
+
   it('should fall back to 00000 when an aqicn device has no location at all', () => {
     const serial = platform.generateSerialNumber({ provider: 'aqicn', city: '', zipCode: '00000' })
     expect(serial).toBe('00000')

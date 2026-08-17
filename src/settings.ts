@@ -54,6 +54,8 @@ export const REQUEST_RATE_LIMIT_CONFIG = {
 export interface AirPlatformConfig extends PlatformConfig {
   name?: string
   devices?: devicesConfig[]
+  refreshRate?: number
+  logging?: string
   options?: options
 }
 
@@ -66,7 +68,7 @@ export interface devicesConfig {
   state?: string
   zipCode?: string
   distance?: string
-  firmware: string
+  firmware?: string
   refreshRate?: number
   logging?: string
   hide_device?: boolean
@@ -99,6 +101,33 @@ interface AirNowAirQualityData {
 }
 
 export type AirNowAirQualityDataArray = AirNowAirQualityData[]
+
+/**
+ * Is this a usable coordinate?
+ *
+ * Zero is a real coordinate - the equator and the prime meridian - so a plain
+ * truthiness check would drop a station on either line. Coordinates also reach
+ * us as strings from older UI saves and hand-written configs, which the schema
+ * still accepts, so both spellings have to be understood here.
+ */
+export function isCoordinate(value: number | string | undefined | null): boolean {
+  if (value === undefined || value === null || value === '') {
+    return false
+  }
+  return Number.isFinite(typeof value === 'number' ? value : Number.parseFloat(value))
+}
+
+/**
+ * Does this device locate itself by coordinates rather than by zip/city?
+ *
+ * Narrows both coordinates to present, so callers can use them straight away
+ * exactly as the old `latitude && longitude` checks let them.
+ */
+export function hasCoordinates<T extends Pick<devicesConfig, 'latitude' | 'longitude'>>(
+  device: T,
+): device is T & { latitude: number, longitude: number } {
+  return isCoordinate(device.latitude) && isCoordinate(device.longitude)
+}
 
 /**
  * Build the AQICN location segment for /feed/<segment> requests.
@@ -158,7 +187,7 @@ export function resolveAqicnLocationSegment(device: Pick<devicesConfig, 'city' |
     }
   }
 
-  if (device.latitude && device.longitude) {
+  if (hasCoordinates(device)) {
     return `geo:${device.latitude};${device.longitude}`
   }
 

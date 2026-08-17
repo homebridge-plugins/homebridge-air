@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { AqicnUrl, getAqicnError, HomeKitAQI, normaliseAqicnAqi, REQUEST_RATE_LIMIT_CONFIG, REQUEST_TIMEOUT_CONFIG, resolveAqicnLocationSegment, resolveProviderStationName } from '../settings.js'
+import { AqicnUrl, getAqicnError, hasCoordinates, HomeKitAQI, isCoordinate, normaliseAqicnAqi, REQUEST_RATE_LIMIT_CONFIG, REQUEST_TIMEOUT_CONFIG, resolveAqicnLocationSegment, resolveProviderStationName } from '../settings.js'
 
 describe('homeKitAQI', () => {
   it('should return 0 for undefined AQI', () => {
@@ -84,7 +84,60 @@ describe('rEQUEST_RATE_LIMIT_CONFIG constants', () => {
   })
 })
 
+describe('isCoordinate', () => {
+  it('should accept zero, the equator and the prime meridian', () => {
+    expect(isCoordinate(0)).toBe(true)
+    expect(isCoordinate('0')).toBe(true)
+  })
+
+  it('should accept numbers and numeric strings the schema allows', () => {
+    expect(isCoordinate(47.376887)).toBe(true)
+    expect(isCoordinate(-112.074)).toBe(true)
+    expect(isCoordinate('47.376887')).toBe(true)
+  })
+
+  it('should reject a missing or unusable coordinate', () => {
+    expect(isCoordinate(undefined)).toBe(false)
+    expect(isCoordinate(null)).toBe(false)
+    expect(isCoordinate('')).toBe(false)
+    expect(isCoordinate('nowhere')).toBe(false)
+    expect(isCoordinate(Number.NaN)).toBe(false)
+  })
+})
+
+describe('hasCoordinates', () => {
+  it('should locate a station sitting on the prime meridian', () => {
+    expect(hasCoordinates({ latitude: 51.4779, longitude: 0 })).toBe(true)
+  })
+
+  it('should locate a station sitting on the equator', () => {
+    expect(hasCoordinates({ latitude: 0, longitude: 0 })).toBe(true)
+  })
+
+  it('should still accept coordinates saved as strings', () => {
+    expect(hasCoordinates({ latitude: '47.376887' as any, longitude: '8.541694' as any })).toBe(true)
+  })
+
+  it('should reject a device with only one coordinate', () => {
+    expect(hasCoordinates({ latitude: 47.5, longitude: undefined })).toBe(false)
+    expect(hasCoordinates({ latitude: undefined, longitude: 8.7 })).toBe(false)
+  })
+
+  it('should reject a device with no coordinates', () => {
+    expect(hasCoordinates({ latitude: undefined, longitude: undefined })).toBe(false)
+  })
+})
+
 describe('resolveAqicnLocationSegment', () => {
+  it('should build a geo segment for a station on the prime meridian', () => {
+    const segment = resolveAqicnLocationSegment({
+      city: undefined,
+      latitude: 51.4779,
+      longitude: 0,
+    })
+    expect(segment).toBe('geo:51.4779;0')
+  })
+
   it('should prefer explicit station paths over coordinates', () => {
     const segment = resolveAqicnLocationSegment({
       city: '/station/@92323',

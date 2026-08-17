@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file. This projec
 
 ### Changed
 
+- fix: replace the dead bit.ly bug-report link with the GitHub issue form (#91) (@tbaur)
+- fix(ui): stop describing the plugin as AirNow and zip-code only (#92) (@tbaur)
+- fix: align config types with the schema for refreshRate, logging and firmware (#90) (@tbaur)
+- fix(ui): bind Location tab actions once (#88) (@tbaur)
+- fix(schema): show per-device settings for city or coordinate locations (#89) (@tbaur)
 - fix(schema): accept numeric lat/long and drop the API key email widget
 
 ## v2.2.3 (2026-08-13)
