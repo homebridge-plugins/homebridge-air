@@ -4,8 +4,8 @@
   "singular": true,
   "customUi": true,
   "customUiPath": "./dist/homebridge-ui",
-  "headerDisplay": "<p align='center'><img width='250px' src='https://raw.githubusercontent.com/homebridge-plugins/homebridge-air/latest/branding/Homebridge_x_Air.png'></p>\n\nThe **Homebridge Air** plugin allows you monitor the current AirQuality for your Zip Code from HomeKit and Siri.",
-  "footerDisplay": "Your AirNow apiKey was linked. Please raise any issues on our [project page](https://github.com/homebridge-plugins/homebridge-air/issues).\n\nIf you would like to have other features, please open a [feature request](https://github.com/homebridge-plugins/homebridge-air/issues/new/choose).",
+  "headerDisplay": "<p align='center'><img width='250px' src='https://raw.githubusercontent.com/homebridge-plugins/homebridge-air/latest/branding/Homebridge_x_Air.png'></p>\n\nThe **Homebridge Air** plugin allows you to monitor air quality for your location from HomeKit and Siri.",
+  "footerDisplay": "Please raise any issues on our [project page](https://github.com/homebridge-plugins/homebridge-air/issues).\n\nIf you would like to have other features, please open a [feature request](https://github.com/homebridge-plugins/homebridge-air/issues/new/choose).",
   "schema": {
     "type": "object",
     "properties": {
@@ -96,7 +96,7 @@
               "type": "string",
               "placeholder": "1.2.8",
               "condition": {
-                "functionBody": "return (model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].zipCode);"
+                "functionBody": "return (model.devices && model.devices[arrayIndices] && (model.devices[arrayIndices].city || (model.devices[arrayIndices].latitude && model.devices[arrayIndices].longitude)));"
               }
             },
             "refreshRate": {
@@ -107,7 +107,7 @@
               "placeholder": 1800,
               "description": "Indicates the number of seconds between polls of the AirNow or AQICN service.",
               "condition": {
-                "functionBody": "return (model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].zipCode);"
+                "functionBody": "return (model.devices && model.devices[arrayIndices] && (model.devices[arrayIndices].city || (model.devices[arrayIndices].latitude && model.devices[arrayIndices].longitude)));"
               }
             },
             "logging": {
@@ -115,7 +115,7 @@
               "type": "string",
               "default": "",
               "condition": {
-                "functionBody": "return (model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].zipCode);"
+                "functionBody": "return (model.devices && model.devices[arrayIndices] && (model.devices[arrayIndices].city || (model.devices[arrayIndices].latitude && model.devices[arrayIndices].longitude)));"
               },
               "oneOf": [
                 {
@@ -150,7 +150,7 @@
               "type": "boolean",
               "description": "Delete this device from the plugin cache.",
               "condition": {
-                "functionBody": "return (model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].zipCode);"
+                "functionBody": "return (model.devices && model.devices[arrayIndices] && (model.devices[arrayIndices].city || (model.devices[arrayIndices].latitude && model.devices[arrayIndices].longitude)));"
               }
             }
           },
