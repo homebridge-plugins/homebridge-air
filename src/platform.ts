@@ -78,7 +78,7 @@ export class AirPlatform implements DynamicPlatformPlugin {
         await this.verifyConfig()
         await this.debugLog('Config OK')
       } catch (e: any) {
-        await this.errorLog(`Verify Config, Error Message: ${e.message}, Submit Bugs Here: https://bit.ly/homebridge-air-bug-report`)
+        await this.errorLog(`Verify Config, Error Message: ${e.message}, Submit Bugs Here: https://github.com/homebridge-plugins/homebridge-air/issues/new/choose`)
         this.debugErrorLog(`Verify Config, Error: ${e}`)
       }
     })()
