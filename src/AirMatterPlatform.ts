@@ -10,7 +10,7 @@ import { devices } from 'homebridge'
 
 import { AirQualitySensorMatter } from './devices/airqualitysensormatter.js'
 import { AirPlatform } from './platform.js'
-import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js'
+import { hasCoordinates, PLATFORM_NAME, PLUGIN_NAME } from './settings.js'
 
 /**
  * Map a HomeKit AQI level (1-5) to a Matter AirQuality enum value.
@@ -108,11 +108,11 @@ export class AirMatterPlatform extends AirPlatform {
           // locate the station by. Setting it unconditionally made the
           // reverse-geocode fallback for a lat/long device unreachable, because
           // its `!device.zipCode` guard could never be true.
-          if (!device.zipCode && !(device.latitude && device.longitude)) {
+          if (!device.zipCode && !hasCoordinates(device)) {
             device.zipCode = '00000'
           }
           device.provider = device.provider ? device.provider : 'Unknown'
-          if (device.latitude && device.longitude) {
+          if (hasCoordinates(device)) {
             try {
               device.latitude = Number.parseFloat(Number.parseFloat(device.latitude.toString()).toFixed(6))
               device.longitude = Number.parseFloat(Number.parseFloat(device.longitude.toString()).toFixed(6))
@@ -134,7 +134,7 @@ export class AirMatterPlatform extends AirPlatform {
    * start its polling loop.
    */
   public async createMatterAirQualitySensor(device: devicesConfig): Promise<void> {
-    const uuidString = (device.latitude && device.longitude)
+    const uuidString = hasCoordinates(device)
       ? (`${device.latitude}` + `${device.longitude}` + `${device.provider}`)
       : (`${device.zipCode}` + `${device.city}` + `${device.provider}`)
     const uuid = this.api.hap.uuid.generate(uuidString)

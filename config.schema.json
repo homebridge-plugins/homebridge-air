@@ -43,10 +43,7 @@
             },
             "apiKey": {
               "title": "API Key",
-              "type": "string",
-              "x-schema-form": {
-                "type": "email"
-              }
+              "type": "string"
             },
             "city": {
               "title": "City",
@@ -58,14 +55,22 @@
             },
             "latitude": {
               "title": "Latitude",
-              "type": "string",
+              "type": [
+                "number",
+                "string"
+              ],
+              "description": "Decimal degrees. Numbers or numeric strings are both accepted.",
               "condition": {
                 "functionBody": "return !(model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].state && model.devices[arrayIndices].zipCode);"
               }
             },
             "longitude": {
               "title": "Longitude",
-              "type": "string",
+              "type": [
+                "number",
+                "string"
+              ],
+              "description": "Decimal degrees. Numbers or numeric strings are both accepted.",
               "condition": {
                 "functionBody": "return !(model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].state && model.devices[arrayIndices].zipCode);"
               }
@@ -74,14 +79,14 @@
               "title": "State",
               "type": "string",
               "condition": {
-                "functionBody": "return !(model.devices && model.devices[arrayIndices].latitude && model.devices[arrayIndices].longitude);"
+                "functionBody": "const device = model.devices && model.devices[arrayIndices]; const isSet = v => v !== undefined && v !== null && v !== '' && !Number.isNaN(Number(v)); return !(device && isSet(device.latitude) && isSet(device.longitude));"
               }
             },
             "zipCode": {
               "title": "Zip Code",
               "type": "string",
               "condition": {
-                "functionBody": "return !(model.devices && model.devices[arrayIndices].latitude && model.devices[arrayIndices].longitude);"
+                "functionBody": "const device = model.devices && model.devices[arrayIndices]; const isSet = v => v !== undefined && v !== null && v !== '' && !Number.isNaN(Number(v)); return !(device && isSet(device.latitude) && isSet(device.longitude));"
               }
             },
             "distance": {
@@ -96,7 +101,7 @@
               "type": "string",
               "placeholder": "1.2.8",
               "condition": {
-                "functionBody": "return (model.devices && model.devices[arrayIndices] && (model.devices[arrayIndices].city || (model.devices[arrayIndices].latitude && model.devices[arrayIndices].longitude)));"
+                "functionBody": "const device = model.devices && model.devices[arrayIndices]; const isSet = v => v !== undefined && v !== null && v !== '' && !Number.isNaN(Number(v)); return !!(device && (device.city || (isSet(device.latitude) && isSet(device.longitude))));"
               }
             },
             "refreshRate": {
@@ -107,7 +112,7 @@
               "placeholder": 1800,
               "description": "Indicates the number of seconds between polls of the AirNow or AQICN service.",
               "condition": {
-                "functionBody": "return (model.devices && model.devices[arrayIndices] && (model.devices[arrayIndices].city || (model.devices[arrayIndices].latitude && model.devices[arrayIndices].longitude)));"
+                "functionBody": "const device = model.devices && model.devices[arrayIndices]; const isSet = v => v !== undefined && v !== null && v !== '' && !Number.isNaN(Number(v)); return !!(device && (device.city || (isSet(device.latitude) && isSet(device.longitude))));"
               }
             },
             "logging": {
@@ -115,7 +120,7 @@
               "type": "string",
               "default": "",
               "condition": {
-                "functionBody": "return (model.devices && model.devices[arrayIndices] && (model.devices[arrayIndices].city || (model.devices[arrayIndices].latitude && model.devices[arrayIndices].longitude)));"
+                "functionBody": "const device = model.devices && model.devices[arrayIndices]; const isSet = v => v !== undefined && v !== null && v !== '' && !Number.isNaN(Number(v)); return !!(device && (device.city || (isSet(device.latitude) && isSet(device.longitude))));"
               },
               "oneOf": [
                 {
@@ -150,7 +155,7 @@
               "type": "boolean",
               "description": "Delete this device from the plugin cache.",
               "condition": {
-                "functionBody": "return (model.devices && model.devices[arrayIndices] && (model.devices[arrayIndices].city || (model.devices[arrayIndices].latitude && model.devices[arrayIndices].longitude)));"
+                "functionBody": "const device = model.devices && model.devices[arrayIndices]; const isSet = v => v !== undefined && v !== null && v !== '' && !Number.isNaN(Number(v)); return !!(device && (device.city || (isSet(device.latitude) && isSet(device.longitude))));"
               }
             }
           },

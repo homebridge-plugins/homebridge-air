@@ -17,6 +17,7 @@ import {
   AqicnUrl,
   aqiToConcentration,
   getAqicnError,
+  hasCoordinates,
   HomeKitAQI,
   normaliseAirNowRecords,
   normaliseAqicnAqi,
@@ -373,7 +374,7 @@ export class AirQualitySensor extends deviceBase {
       // https://docs.airnowapi.org/CurrentObservationsByLatLon/docs
       // Support flexible AQICN URL patterns: geo coordinates, city names, and full URL paths
       const AqicnCurrentObservationBy = resolveAqicnLocationSegment(this.device)
-      const AirNowCurrentObservationByValue = this.device.latitude && this.device.longitude ? `latitude=${this.device.latitude}&longitude=${this.device.longitude}` : `zipCode=${this.device.zipCode}`
+      const AirNowCurrentObservationByValue = hasCoordinates(this.device) ? `latitude=${this.device.latitude}&longitude=${this.device.longitude}` : `zipCode=${this.device.zipCode}`
       // Use correct format as per official AirNow API docs
       const providerUrls = {
         // AirNow's newer endpoint. It finds the closest reading for each pollutant
@@ -401,7 +402,7 @@ export class AirQualitySensor extends deviceBase {
             await this.warnLog(`API returned redirect (${statusCode}). Location: ${location || 'not provided'}`)
 
             // If using lat/lon with AirNow, try reverse geocoding to get zip code as fallback
-            if (this.device.provider === 'airnow' && this.device.latitude && this.device.longitude) {
+            if (this.device.provider === 'airnow' && hasCoordinates(this.device)) {
               await this.infoLog('Attempting reverse geocoding to find zip code as fallback...')
               const geoData = await this.reverseGeocodeToZipCode(this.device.latitude, this.device.longitude)
 
@@ -454,7 +455,7 @@ export class AirQualitySensor extends deviceBase {
 
           if (!responseText || responseText.trim().length === 0) {
             // Try reverse geocoding fallback for empty responses too
-            if (this.device.provider === 'airnow' && this.device.latitude && this.device.longitude && !this.device.zipCode) {
+            if (this.device.provider === 'airnow' && hasCoordinates(this.device) && !this.device.zipCode) {
               await this.infoLog('Empty response - attempting reverse geocoding fallback...')
               const geoData = await this.reverseGeocodeToZipCode(this.device.latitude, this.device.longitude)
 

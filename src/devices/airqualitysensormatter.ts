@@ -13,6 +13,7 @@ import {
   AirNowUrl,
   AqicnUrl,
   getAqicnError,
+  hasCoordinates,
   HomeKitAQI,
   normaliseAqicnAqi,
   REQUEST_RATE_LIMIT_CONFIG,
@@ -156,7 +157,7 @@ export class AirQualitySensorMatter {
   private buildUrl(): string | undefined {
     const aqicnBy = resolveAqicnLocationSegment(this.device)
 
-    const airNowByValue = this.device.latitude && this.device.longitude
+    const airNowByValue = hasCoordinates(this.device)
       ? `latitude=${this.device.latitude}&longitude=${this.device.longitude}`
       : `zipCode=${this.device.zipCode}`
 
