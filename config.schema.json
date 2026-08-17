@@ -45,6 +45,15 @@
               "title": "API Key",
               "type": "string"
             },
+            "configDeviceName": {
+              "title": "Device Name",
+              "type": "string",
+              "placeholder": "Kelowna",
+              "description": "Name this accessory yourself. Leave empty to be named after the city you enter below, or after the station the provider reports on.",
+              "condition": {
+                "functionBody": "return (model.devices && (model.devices[arrayIndices].provider || model.devices[arrayIndices].apiKey));"
+              }
+            },
             "city": {
               "title": "City",
               "type": "string",
@@ -239,13 +248,14 @@
       "key": "devices",
       "notitle": false,
       "type": "tabarray",
-      "title": "{{ value.city || 'New Location' }}",
+      "title": "{{ value.configDeviceName || value.city || 'New Location' }}",
       "expandable": true,
       "expanded": false,
       "orderable": false,
       "items": [
         "devices[].provider",
         "devices[].apiKey",
+        "devices[].configDeviceName",
         "devices[].city",
         "devices[].latitude",
         "devices[].longitude",

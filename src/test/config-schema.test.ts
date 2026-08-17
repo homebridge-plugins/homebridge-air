@@ -14,6 +14,7 @@ interface JsonSchema {
 
 const schemaFile = JSON.parse(readFileSync(new URL('../../config.schema.json', import.meta.url), 'utf8')) as {
   schema: JsonSchema
+  layout?: { key?: string, title?: string, items?: string[] }[]
 }
 
 function jsonType(value: unknown): string {
@@ -182,6 +183,28 @@ describe('config.schema.json', () => {
     const device = { provider: 'airnow', apiKey: 'key', city: 'Phoenix' }
     expect(isVisible(deviceProperties.state, device)).toBe(true)
     expect(isVisible(deviceProperties.zipCode, device)).toBe(true)
+  })
+
+  it('offers the device name as soon as a provider is chosen', () => {
+    expect(isVisible(deviceProperties.configDeviceName, { provider: 'aqicn' })).toBe(true)
+  })
+
+  it('shows the device name on the location tab and in its title', () => {
+    const devicesTab = schemaFile.layout?.find(entry => entry.key === 'devices')
+    expect(devicesTab?.items).toContain('devices[].configDeviceName')
+    expect(devicesTab?.title).toContain('configDeviceName')
+  })
+
+  it('validates a device that names itself', () => {
+    expect(validate(schemaFile.schema, {
+      name: 'Air',
+      devices: [{
+        provider: 'aqicn',
+        apiKey: '1234567890abcdef',
+        configDeviceName: 'Kelowna',
+        city: 'Kelowna',
+      }],
+    })).toEqual([])
   })
 
   it('rejects a device that is missing the required API key', () => {

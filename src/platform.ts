@@ -9,7 +9,7 @@ import type { AirPlatformConfig, devicesConfig, options } from './settings.js'
 import { readFileSync } from 'node:fs'
 
 import { AirQualitySensor } from './devices/airqualitysensor.js'
-import { hasCoordinates, isCoordinate, PLATFORM_NAME, PLUGIN_NAME, resolveAqicnLocationSegment } from './settings.js'
+import { hasCoordinates, isCoordinate, PLATFORM_NAME, PLUGIN_NAME, resolveAqicnLocationSegment, resolveConfigDeviceName } from './settings.js'
 
 /**
  * HomebridgePlatform
@@ -265,15 +265,23 @@ export class AirPlatform implements DynamicPlatformPlugin {
   }
 
   /**
-   * Work out what a restored accessory should be called.
+   * Work out what an accessory should be called.
    *
-   * Once an accessory has adopted the provider's station name we keep using
-   * it, otherwise every restart would rename it back to the id from the
-   * config. Accessories that never adopted one are named as they always were
-   * (#69).
+   * A name the user typed into the config wins outright, so an accessory can
+   * be called 'Kelowna' however the station names itself. Failing that, once
+   * an accessory has adopted the provider's station name we keep using it,
+   * otherwise every restart would rename it back to the id from the config.
+   * Accessories with neither are named as they always were (#69).
+   *
+   * `providerName` is left in the context rather than cleared, so emptying the
+   * name field puts the station name back without re-adding the device.
    */
-  public async resolveDisplayName(device: any, accessory: PlatformAccessory): Promise<string> {
-    const providerName = accessory.context.providerName
+  public async resolveDisplayName(device: any, accessory?: PlatformAccessory): Promise<string> {
+    const configDeviceName = resolveConfigDeviceName(device)
+    if (configDeviceName) {
+      return await this.validateAndCleanDisplayName(configDeviceName, 'device name', configDeviceName)
+    }
+    const providerName = accessory?.context.providerName
     if (typeof providerName === 'string' && providerName) {
       return await this.validateAndCleanDisplayName(providerName, 'station name', providerName)
     }
@@ -293,7 +301,10 @@ export class AirPlatform implements DynamicPlatformPlugin {
       if (!device.hide_device) {
         // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
         existingAccessory.context.device = device
-        existingAccessory.displayName = await this.resolveDisplayName(device, existingAccessory)
+        // updateDisplayName rather than an assignment: the accessory's own
+        // displayName is a mirror, and only this keeps the HAP accessory's copy
+        // - the one the bridge reports - in step with it
+        existingAccessory.updateDisplayName(await this.resolveDisplayName(device, existingAccessory))
         existingAccessory.context.serialNumber = this.generateSerialNumber(device)
         existingAccessory.context.model = device.provider === 'airnow' ? 'AirNow' : device.provider === 'aqicn' ? 'AQICN' : 'Unknown'
         existingAccessory.context.FirmwareRevision = device.firmware ?? await this.getVersion()
@@ -309,15 +320,17 @@ export class AirPlatform implements DynamicPlatformPlugin {
       }
     } else if (!device.hide_device && !existingAccessory) {
       // create a new accessory
-      const cleanedDisplayName = await this.validateAndCleanDisplayName(device.city, 'city', device.city, device.provider)
+      const cleanedDisplayName = await this.resolveDisplayName(device)
       const accessory = new this.api.platformAccessory(cleanedDisplayName, uuid)
 
       // store a copy of the device object in the `accessory.context`
       // the `context` property can be used to store any data about the accessory you may need
       accessory.context.device = device
-      accessory.displayName = cleanedDisplayName
       // This accessory is new to HomeKit, so nobody has named it yet and we are
-      // free to adopt the provider's own station name once we have data (#69)
+      // free to adopt the provider's own station name once we have data (#69).
+      // Stays armed even when the config names the device: the config name
+      // outranks the station name anyway, and leaving this set is what lets the
+      // station name be adopted if that name is ever cleared again
       accessory.context.nameFromProvider = true
       accessory.context.serialNumber = this.generateSerialNumber(device)
       accessory.context.model = device.provider === 'airnow' ? 'AirNow' : device.provider === 'aqicn' ? 'AQICN' : 'Unknown'

@@ -363,4 +363,38 @@ describe('airPlatform resolveDisplayName', () => {
 
     expect(await platform.resolveDisplayName(device, accessory)).toBe('Winterthur')
   })
+
+  it('should prefer the name from the config over an adopted station name', async () => {
+    const accessory = { context: { providerName: 'Kelowna KLO Road British Comlumbia' } } as any
+    const device = { provider: 'aqicn', city: 'Kelowna', configDeviceName: 'Kelowna' }
+
+    expect(await platform.resolveDisplayName(device, accessory)).toBe('Kelowna')
+  })
+
+  it('should prefer the name from the config over the city', async () => {
+    const accessory = { context: {} } as any
+    const device = { provider: 'airnow', city: 'Winterthur', configDeviceName: 'Upstairs Air' }
+
+    expect(await platform.resolveDisplayName(device, accessory)).toBe('Upstairs Air')
+  })
+
+  it('should ignore a name that is only whitespace', async () => {
+    const accessory = { context: {} } as any
+    const device = { provider: 'airnow', city: 'Winterthur', configDeviceName: '   ' }
+
+    expect(await platform.resolveDisplayName(device, accessory)).toBe('Winterthur')
+  })
+
+  it('should clean invalid characters out of the name from the config', async () => {
+    const accessory = { context: {} } as any
+    const device = { provider: 'airnow', city: 'Winterthur', configDeviceName: 'Up/Stairs' }
+
+    expect(await platform.resolveDisplayName(device, accessory)).toBe('UpStairs')
+  })
+
+  it('should name a brand new accessory without any context', async () => {
+    const device = { provider: 'aqicn', city: 'Kelowna', configDeviceName: 'Kelowna' }
+
+    expect(await platform.resolveDisplayName(device)).toBe('Kelowna')
+  })
 })

@@ -62,6 +62,7 @@ export interface AirPlatformConfig extends PlatformConfig {
 export interface devicesConfig {
   provider: string
   apiKey?: string
+  configDeviceName?: string
   latitude?: number
   longitude?: number
   city?: string
@@ -115,6 +116,19 @@ export function isCoordinate(value: number | string | undefined | null): boolean
     return false
   }
   return Number.isFinite(typeof value === 'number' ? value : Number.parseFloat(value))
+}
+
+/**
+ * The name the user typed into the config for this device, if any.
+ *
+ * Whitespace is not a name: the field is left empty far more often than it is
+ * filled in, and a stray space must not count as naming the accessory, or it
+ * would stop the station name ever being adopted (#69). Every caller has to
+ * agree on that, hence one place for the rule.
+ */
+export function resolveConfigDeviceName(device: Pick<devicesConfig, 'configDeviceName'>): string | undefined {
+  const name = device.configDeviceName?.trim()
+  return name || undefined
 }
 
 /**

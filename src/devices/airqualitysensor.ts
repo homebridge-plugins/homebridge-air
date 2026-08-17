@@ -24,6 +24,7 @@ import {
   REQUEST_RATE_LIMIT_CONFIG,
   REQUEST_TIMEOUT_CONFIG,
   resolveAqicnLocationSegment,
+  resolveConfigDeviceName,
   resolveProviderStationName,
 } from '../settings.js'
 import { airNowEmptyResultMessages, safeTimerMs } from '../utils.js'
@@ -252,10 +253,19 @@ export class AirQualitySensor extends deviceBase {
    * This only ever runs for accessories the plugin has just created. Anything
    * already in HomeKit keeps its current name, because that name was the
    * user's decision. If the provider gives us no name we leave the flag set so
-   * the next refresh can try again.
+   * the next refresh can try again, and the same goes for a device the config
+   * names itself, so that name can be cleared again later.
    */
   async applyProviderStationName(): Promise<void> {
     if (!this.accessory.context.nameFromProvider) {
+      return
+    }
+
+    // A name in the config outranks the station's own, so leave the accessory
+    // as the platform named it. The flag stays armed on purpose: clearing that
+    // name later has to be able to hand naming back to the provider, which it
+    // cannot do once this has been disarmed
+    if (resolveConfigDeviceName(this.device)) {
       return
     }
 
@@ -272,7 +282,7 @@ export class AirQualitySensor extends deviceBase {
 
     await this.infoLog(`Naming accessory after its station: '${this.accessory.displayName}' -> '${cleanName}'`)
     this.accessory.context.providerName = cleanName
-    this.accessory.displayName = cleanName
+    this.accessory.updateDisplayName(cleanName)
     this.AirQualitySensor.Name = cleanName
     this.AirQualitySensor.Service.updateCharacteristic(this.hap.Characteristic.Name, cleanName)
     this.accessory
