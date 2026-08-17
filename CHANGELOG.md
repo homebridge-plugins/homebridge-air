@@ -6,8 +6,9 @@ All notable changes to this project will be documented in this file. This projec
 
 ### Changed
 
-- fix: replace the dead bit.ly bug-report link with the GitHub issue form
-- fix(ui): stop describing the plugin as AirNow and zip-code only
+- fix: replace the dead bit.ly bug-report link with the GitHub issue form (#91) (@tbaur)
+- fix(ui): stop describing the plugin as AirNow and zip-code only (#92) (@tbaur)
+- fix: align config types with the schema for refreshRate, logging and firmware (#90) (@tbaur)
 
 ## v2.2.3 (2026-08-13)
 
