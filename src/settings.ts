@@ -54,6 +54,8 @@ export const REQUEST_RATE_LIMIT_CONFIG = {
 export interface AirPlatformConfig extends PlatformConfig {
   name?: string
   devices?: devicesConfig[]
+  refreshRate?: number
+  logging?: string
   options?: options
 }
 
@@ -66,7 +68,7 @@ export interface devicesConfig {
   state?: string
   zipCode?: string
   distance?: string
-  firmware: string
+  firmware?: string
   refreshRate?: number
   logging?: string
   hide_device?: boolean
