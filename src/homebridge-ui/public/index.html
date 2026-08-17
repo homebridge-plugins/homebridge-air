@@ -170,6 +170,13 @@
 
       const primaryConfig = ensurePrimaryConfig();
 
+      const parseCoordinate = (value) => {
+        if (value === undefined || value === null || value === '') {
+          return Number.NaN;
+        }
+        return Number.parseFloat(Number.parseFloat(String(value)).toFixed(6));
+      };
+
       const bindClick = (id, handler) => {
         const element = document.getElementById(id);
         if (!element) {
@@ -320,10 +327,10 @@
         });
 
         document.getElementById('saveToConfig').addEventListener('click', async () => {
-          const latitude = document.getElementById('latitudeField').value;
-          const longitude = document.getElementById('longitudeField').value;
+          const latitude = parseCoordinate(document.getElementById('latitudeField').value);
+          const longitude = parseCoordinate(document.getElementById('longitudeField').value);
 
-          if (!latitude || !longitude) {
+          if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
             homebridge.toast.error('Please enter or fetch both latitude and longitude before saving.', 'Error');
             return;
           }
@@ -331,7 +338,7 @@
           try {
             homebridge.showSpinner();
             const config = await homebridge.getPluginConfig();
-            
+
             // Initialize devices array if it doesn't exist
             if (!config[0]) {
               config[0] = { name: 'Air', devices: [] };
@@ -341,8 +348,8 @@
             }
 
             // Check if a device with these exact coordinates already exists
-            const existingDevice = config[0].devices.find(device => 
-              device.latitude === latitude && device.longitude === longitude
+            const existingDevice = config[0].devices.find(device =>
+              parseCoordinate(device.latitude) === latitude && parseCoordinate(device.longitude) === longitude
             );
 
             if (existingDevice) {

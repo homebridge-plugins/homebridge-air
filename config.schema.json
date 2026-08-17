@@ -43,10 +43,7 @@
             },
             "apiKey": {
               "title": "API Key",
-              "type": "string",
-              "x-schema-form": {
-                "type": "email"
-              }
+              "type": "string"
             },
             "city": {
               "title": "City",
@@ -58,14 +55,22 @@
             },
             "latitude": {
               "title": "Latitude",
-              "type": "string",
+              "type": [
+                "number",
+                "string"
+              ],
+              "description": "Decimal degrees. Numbers or numeric strings are both accepted.",
               "condition": {
                 "functionBody": "return !(model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].state && model.devices[arrayIndices].zipCode);"
               }
             },
             "longitude": {
               "title": "Longitude",
-              "type": "string",
+              "type": [
+                "number",
+                "string"
+              ],
+              "description": "Decimal degrees. Numbers or numeric strings are both accepted.",
               "condition": {
                 "functionBody": "return !(model.devices && model.devices[arrayIndices].city && model.devices[arrayIndices].state && model.devices[arrayIndices].zipCode);"
               }
