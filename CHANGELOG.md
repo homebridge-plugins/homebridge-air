@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. This projec
 - fix: align config types with the schema for refreshRate, logging and firmware (#90) (@tbaur)
 - fix(ui): bind Location tab actions once (#88) (@tbaur)
 - fix(schema): show per-device settings for city or coordinate locations (#89) (@tbaur)
+- fix(schema): accept numeric lat/long and drop the API key email widget (#87) (@tbaur)
 - fix(ui): let the Location tab save AirNow or AQICN (#93) (@tbaur)
 
 ## v2.2.3 (2026-08-13)
