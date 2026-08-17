@@ -189,6 +189,12 @@ describe('config.schema.json', () => {
     expect(isVisible(deviceProperties.configDeviceName, { provider: 'aqicn' })).toBe(true)
   })
 
+  it('leaves the device name field empty rather than suggesting a place', () => {
+    // A greyed out place name reads as the name this location already has,
+    // which is misleading on every location that is not that place
+    expect(deviceProperties.configDeviceName).not.toHaveProperty('placeholder')
+  })
+
   it('shows the device name on the location tab and in its title', () => {
     const devicesTab = schemaFile.layout?.find(entry => entry.key === 'devices')
     expect(devicesTab?.items).toContain('devices[].configDeviceName')

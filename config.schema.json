@@ -48,7 +48,6 @@
             "configDeviceName": {
               "title": "Device Name",
               "type": "string",
-              "placeholder": "Kelowna",
               "description": "Name this accessory yourself. Leave empty to be named after the city you enter below, or after the station the provider reports on.",
               "condition": {
                 "functionBody": "return (model.devices && (model.devices[arrayIndices].provider || model.devices[arrayIndices].apiKey));"

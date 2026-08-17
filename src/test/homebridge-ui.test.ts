@@ -10,6 +10,11 @@ describe('location tab', () => {
     expect(page).toMatch(/<label for="deviceNameField">Device Name:<\/label>/)
   })
 
+  it('starts the name box empty rather than suggesting a place', () => {
+    // A greyed out place name reads as a value the location already has
+    expect(page).toMatch(/<input[^>]*id="deviceNameField"(?![^>]*placeholder)[^>]*>/)
+  })
+
   it('saves the name it was given', () => {
     expect(page).toMatch(/device\.configDeviceName\s*=\s*configDeviceName/)
   })
