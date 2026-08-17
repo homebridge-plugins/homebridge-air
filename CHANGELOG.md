@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. This projec
 ### Changed
 
 - fix: replace the dead bit.ly bug-report link with the GitHub issue form
+- fix(ui): stop describing the plugin as AirNow and zip-code only
 
 ## v2.2.3 (2026-08-13)
 
