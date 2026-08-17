@@ -9,6 +9,7 @@ interface JsonSchema {
   required?: string[] | boolean
   properties?: Record<string, JsonSchema>
   items?: JsonSchema
+  condition?: { functionBody?: string }
 }
 
 const schemaFile = JSON.parse(readFileSync(new URL('../../config.schema.json', import.meta.url), 'utf8')) as {
@@ -94,6 +95,19 @@ function scanLegacyRequired(schema: JsonSchema, path = 'schema'): string[] {
   return hits
 }
 
+/**
+ * Run a property's `condition` the way the Homebridge UI does, so the tests
+ * exercise the real expression rather than a paraphrase of it.
+ */
+function isVisible(property: JsonSchema, device: Record<string, unknown>): boolean {
+  const body = property.condition?.functionBody
+  if (!body) {
+    return true
+  }
+  // eslint-disable-next-line no-new-func
+  return Boolean(new Function('model', 'arrayIndices', body)({ devices: [device] }, 0))
+}
+
 describe('config.schema.json', () => {
   const deviceProperties = schemaFile.schema.properties!.devices.items!.properties!
 
@@ -149,6 +163,25 @@ describe('config.schema.json', () => {
         longitude: '8.541694',
       }],
     })).toEqual([])
+  })
+
+  it('keeps the per-device settings visible for a station on the prime meridian', () => {
+    const device = { provider: 'airnow', apiKey: 'key', latitude: 51.4779, longitude: 0 }
+    for (const field of ['firmware', 'refreshRate', 'logging', 'hide_device']) {
+      expect(isVisible(deviceProperties[field], device)).toBe(true)
+    }
+  })
+
+  it('hides state and zip code for a station on the prime meridian', () => {
+    const device = { provider: 'airnow', apiKey: 'key', latitude: 51.4779, longitude: 0 }
+    expect(isVisible(deviceProperties.state, device)).toBe(false)
+    expect(isVisible(deviceProperties.zipCode, device)).toBe(false)
+  })
+
+  it('still asks for state and zip code when a device has no coordinates', () => {
+    const device = { provider: 'airnow', apiKey: 'key', city: 'Phoenix' }
+    expect(isVisible(deviceProperties.state, device)).toBe(true)
+    expect(isVisible(deviceProperties.zipCode, device)).toBe(true)
   })
 
   it('rejects a device that is missing the required API key', () => {
