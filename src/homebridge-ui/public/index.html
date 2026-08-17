@@ -263,8 +263,11 @@
         homebridge.hideSpinner();
       };
 
-      const showLocation = () => {
-        document.getElementById('getLocation').addEventListener('click', () => {
+      // Bind Location-tab buttons once. showLocation() used to do this on every
+      // visit, and menuLocation was also wired twice, so Save could add the same
+      // coordinates more than once.
+      const bindLocationActions = () => {
+        bindClick('getLocation', () => {
           if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition((position) => {
               const latitude = position.coords.latitude;
@@ -299,7 +302,7 @@
           }
         });
 
-        document.getElementById('copyLatitude').addEventListener('click', () => {
+        bindClick('copyLatitude', () => {
           const latitude = document.getElementById('latitudeField').value;
           navigator.clipboard.writeText(latitude).then(() => {
             homebridge.toast.success('Latitude copied to clipboard.', 'Success');
@@ -309,7 +312,7 @@
           });
         });
 
-        document.getElementById('copyLongitude').addEventListener('click', () => {
+        bindClick('copyLongitude', () => {
           const longitude = document.getElementById('longitudeField').value;
           navigator.clipboard.writeText(longitude).then(() => {
             homebridge.toast.success('Longitude copied to clipboard.', 'Success');
@@ -319,7 +322,7 @@
           });
         });
 
-        document.getElementById('saveToConfig').addEventListener('click', async () => {
+        bindClick('saveToConfig', async () => {
           const latitude = document.getElementById('latitudeField').value;
           const longitude = document.getElementById('longitudeField').value;
 
@@ -331,7 +334,7 @@
           try {
             homebridge.showSpinner();
             const config = await homebridge.getPluginConfig();
-            
+
             // Initialize devices array if it doesn't exist
             if (!config[0]) {
               config[0] = { name: 'Air', devices: [] };
@@ -341,7 +344,7 @@
             }
 
             // Check if a device with these exact coordinates already exists
-            const existingDevice = config[0].devices.find(device => 
+            const existingDevice = config[0].devices.find(device =>
               device.latitude === latitude && device.longitude === longitude
             );
 
@@ -369,7 +372,9 @@
             homebridge.hideSpinner();
           }
         });
+      };
 
+      const showLocation = () => {
         homebridge.showSpinner();
         homebridge.hideSchemaForm();
         document.getElementById('menuHome').classList.remove('btn-elegant');
@@ -384,7 +389,7 @@
         document.getElementById('pageSupport').style.display = 'none';
         document.getElementById('pageDevices').style.display = 'none';
         homebridge.hideSpinner();
-      };      document.getElementById('menuLocation').addEventListener('click', showLocation);
+      };
 
       const showSettings = () => {
         homebridge.showSpinner();
@@ -416,6 +421,7 @@
         homebridge.hideSpinner();
       };
 
+      bindLocationActions();
       bindClick('menuHome', () => showSupport());
       bindClick('menuDevices', () => showDevices());
       bindClick('menuLocation', () => showLocation());
