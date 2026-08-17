@@ -259,6 +259,13 @@ export class AirQualitySensor extends deviceBase {
       return
     }
 
+    // A name added to the config after the accessory was created outranks the
+    // station's own, and stops this from running again
+    if (this.device.configDeviceName?.trim()) {
+      this.accessory.context.nameFromProvider = false
+      return
+    }
+
     const stationName = resolveProviderStationName(this.device.provider, this.deviceStatus)
     if (!stationName) {
       return

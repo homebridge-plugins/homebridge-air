@@ -152,12 +152,10 @@ export class AirMatterPlatform extends AirPlatform {
       return
     }
 
-    const displayName = this.clampMatterDisplayName(await this.validateAndCleanDisplayName(
-      device.city ?? 'Unknown',
-      'city',
-      device.city ?? 'Unknown',
-      device.provider,
-    ))
+    const displayName = this.clampMatterDisplayName(await this.resolveDisplayName({
+      ...device,
+      city: device.city ?? 'Unknown',
+    }))
 
     const manufacturer = device.provider === 'airnow' ? 'AirNow' : device.provider === 'aqicn' ? 'AQICN' : 'Unknown'
     const firmwareRevision = device.firmware ?? await this.getVersion()

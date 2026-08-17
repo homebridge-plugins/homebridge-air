@@ -62,6 +62,7 @@ export interface AirPlatformConfig extends PlatformConfig {
 export interface devicesConfig {
   provider: string
   apiKey?: string
+  configDeviceName?: string
   latitude?: number
   longitude?: number
   city?: string

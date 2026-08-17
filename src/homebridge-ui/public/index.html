@@ -54,6 +54,11 @@
       <option value="aqicn">AQICN (international)</option>
     </select>
   </div>
+  <div class="mb-3">
+    <label for="deviceNameField">Device Name:</label>
+    <input type="text" id="deviceNameField" name="configDeviceName" class="form-control" placeholder="Kelowna">
+    <small class="form-text text-muted">Optional. Leave empty to be named after the station the provider reports on.</small>
+  </div>
   <button type="button" class="btn btn-primary mb-3" id="getLocation">Use Current Location</button>
   <div class="mb-2">
     <label for="latitudeField">Latitude:</label>
@@ -370,15 +375,25 @@
 
             // Add a new device to the array
             const provider = document.getElementById('providerField').value === 'aqicn' ? 'aqicn' : 'airnow';
-            config[0].devices.push({
+            const configDeviceName = document.getElementById('deviceNameField').value.trim();
+            const device = {
               provider: provider,
               apiKey: '',
               latitude: latitude,
               longitude: longitude
-            });
+            };
+            // Only write the name when there is one, so an untouched field
+            // leaves naming to the provider rather than saving an empty string
+            if (configDeviceName) {
+              device.configDeviceName = configDeviceName;
+            }
+            config[0].devices.push(device);
 
             await homebridge.updatePluginConfig(config);
             await homebridge.savePluginConfig();
+            // Empty the name, so it cannot be reused by mistake on the next
+            // location saved from this tab
+            document.getElementById('deviceNameField').value = '';
             homebridge.toast.success('Location added to config successfully!', 'Success');
           } catch (error) {
             console.error('Error saving to config:', error);
