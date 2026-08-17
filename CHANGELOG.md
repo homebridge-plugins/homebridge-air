@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file. This projec
 - fix(schema): accept numeric lat/long and drop the API key email widget (#87) (@tbaur)
 - fix(ui): let the Location tab save AirNow or AQICN (#93) (@tbaur)
 - feat: name an accessory yourself with the new Device Name setting (#94) (@tbaur)
-- fix(ui): drop the example place name from the Device Name field
+- fix(ui): drop the example place name from the Device Name field (#95) (@tbaur)
 
 ## v2.2.3 (2026-08-13)
 
