@@ -10,6 +10,7 @@ interface JsonSchema {
   properties?: Record<string, JsonSchema>
   items?: JsonSchema
   condition?: { functionBody?: string }
+  default?: unknown
 }
 
 const schemaFile = JSON.parse(readFileSync(new URL('../../config.schema.json', import.meta.url), 'utf8')) as {
@@ -58,7 +59,10 @@ function validate(schema: JsonSchema | undefined, data: unknown, path = '$'): st
 
   if (Array.isArray(schema.required) && data && typeof data === 'object' && !Array.isArray(data)) {
     for (const key of schema.required) {
-      if (!Object.hasOwn(data, key)) {
+      // A required field that declares a default (like the logging level) is
+      // only marked required so the ui does not offer a phantom unset option;
+      // the form fills the default in, so an absent key is valid in practice.
+      if (!Object.hasOwn(data, key) && schema.properties?.[key]?.default === undefined) {
         errors.push(`${path}: missing required "${key}"`)
       }
     }

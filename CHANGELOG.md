@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## v2.3.1 (Pending Release)
+
+### Changed
+
+- fix(schema): require the plugin logging level to drop the duplicate none entry (#96)
+
 ## v2.3.0 (2026-08-18)
 
 ### Changed

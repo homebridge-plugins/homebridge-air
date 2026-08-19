@@ -239,7 +239,8 @@
       }
     },
     "required": [
-      "name"
+      "name",
+      "logging"
     ]
   },
   "layout": [
