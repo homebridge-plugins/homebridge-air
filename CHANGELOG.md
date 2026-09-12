@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/)
 
+## v2.3.2 (Pending Release)
+
+### Changed
+
+- fix: stop logging provider URLs that include the API key (@tbaur)
+
 ## v2.3.1 (2026-10-18)
 
 ### Changed
