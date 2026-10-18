@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. This projec
 ### Changed
 
 - fix(schema): require the plugin logging level to drop the duplicate none entry (#96)
+- chore(deps): dependency updates
 
 ## v2.3.0 (2026-08-18)
 
