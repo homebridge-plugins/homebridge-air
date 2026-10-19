@@ -208,12 +208,12 @@
       "logging": {
         "title": "Plugin Logging Level",
         "type": "string",
-        "default": "",
+        "default": "default",
         "oneOf": [
           {
-            "title": "Default (same as Standard)",
+            "title": "Default (follows the Homebridge debug setting)",
             "enum": [
-              ""
+              "default"
             ]
           },
           {
@@ -235,7 +235,7 @@
             ]
           }
         ],
-        "description": "None turns off all messages from this plugin. Standard shows normal activity, warnings and errors. Debug adds detailed messages, and is what to use when reporting a problem. Default behaves the same as Standard."
+        "description": "None turns off all messages from this plugin. Standard shows normal activity, warnings and errors. Debug adds detailed messages, and is what to use when reporting a problem. Default behaves like Standard, and also shows the detailed messages when Homebridge itself is in debug mode."
       }
     },
     "required": [

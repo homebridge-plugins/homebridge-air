@@ -129,6 +129,19 @@ describe('a default install, from the settings it actually works out', () => {
     expect(host.platformLogging).toBe('debugMode')
   })
 
+  it('treats the settings form\'s "default" choice exactly like no setting at all', async () => {
+    // The form saves "default" for the Default choice, as a required field
+    // with an empty default always failed its validation. It must still mean
+    // "follow Homebridge's debug setting", not Standard
+    for (const config of [{}, { logging: '' }, { logging: 'default' }, { options: { logging: 'default' } }]) {
+      const host: any = Object.create(AirPlatform.prototype)
+      host.log = makeLog()
+      host.config = config
+      await host.getPlatformLogSettings()
+      expect(host.platformLogging).toBe('debugMode')
+    }
+  })
+
   it('prints nothing visible on a normal launch, whatever it resolved to', async () => {
     const { host, log } = makeHost()
 

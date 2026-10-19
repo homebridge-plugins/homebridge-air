@@ -59,10 +59,7 @@ function validate(schema: JsonSchema | undefined, data: unknown, path = '$'): st
 
   if (Array.isArray(schema.required) && data && typeof data === 'object' && !Array.isArray(data)) {
     for (const key of schema.required) {
-      // A required field that declares a default (like the logging level) is
-      // only marked required so the ui does not offer a phantom unset option;
-      // the form fills the default in, so an absent key is valid in practice.
-      if (!Object.hasOwn(data, key) && schema.properties?.[key]?.default === undefined) {
+      if (!Object.hasOwn(data, key)) {
         errors.push(`${path}: missing required "${key}"`)
       }
     }
@@ -82,6 +79,35 @@ function validate(schema: JsonSchema | undefined, data: unknown, path = '$'): st
   }
 
   return errors
+}
+
+/**
+ * Shape a config the way the Homebridge UI does before it validates. The UI
+ * fills in schema defaults (`setSchemaDefaults: true`) and then drops empty
+ * strings (`returnEmptyFields: false`), so a required field whose default is
+ * an empty string is missing by the time it is checked.
+ */
+function asSeenByUi(schema: JsonSchema | undefined, data: unknown): unknown {
+  if (Array.isArray(data)) {
+    return data.map(item => asSeenByUi(schema?.items, item))
+  }
+  if (!data || typeof data !== 'object') {
+    return data
+  }
+  const shaped: Record<string, unknown> = { ...(data as Record<string, unknown>) }
+  for (const [key, sub] of Object.entries(schema?.properties ?? {})) {
+    const value = Object.hasOwn(shaped, key) ? shaped[key] : sub.default
+    if (value === undefined || value === '') {
+      delete shaped[key]
+    } else {
+      shaped[key] = asSeenByUi(sub, value)
+    }
+  }
+  return shaped
+}
+
+function validateAsUi(data: unknown): string[] {
+  return validate(schemaFile.schema, asSeenByUi(schemaFile.schema, data))
 }
 
 function scanLegacyRequired(schema: JsonSchema, path = 'schema'): string[] {
@@ -133,7 +159,7 @@ describe('config.schema.json', () => {
   })
 
   it('validates a zip/city config that omits optional logging', () => {
-    expect(validate(schemaFile.schema, {
+    expect(validateAsUi({
       name: 'Air',
       platform: 'Air',
       devices: [{
@@ -147,7 +173,7 @@ describe('config.schema.json', () => {
   })
 
   it('validates coordinates stored as numbers', () => {
-    expect(validate(schemaFile.schema, {
+    expect(validateAsUi({
       name: 'Air',
       devices: [{
         provider: 'airnow',
@@ -159,7 +185,7 @@ describe('config.schema.json', () => {
   })
 
   it('validates coordinates stored as strings from older UI saves', () => {
-    expect(validate(schemaFile.schema, {
+    expect(validateAsUi({
       name: 'Air',
       devices: [{
         provider: 'airnow',
@@ -206,7 +232,7 @@ describe('config.schema.json', () => {
   })
 
   it('validates a device that names itself', () => {
-    expect(validate(schemaFile.schema, {
+    expect(validateAsUi({
       name: 'Air',
       devices: [{
         provider: 'aqicn',
@@ -217,8 +243,31 @@ describe('config.schema.json', () => {
     })).toEqual([])
   })
 
+  it('gives every required field with a default a value the ui keeps', () => {
+    const requiredWithEmptyDefault = (schema: JsonSchema, path: string): string[] => {
+      const own = (Array.isArray(schema.required) ? schema.required : [])
+        .filter(key => schema.properties?.[key]?.default === '')
+        .map(key => `${path}.${key}`)
+      const nested = Object.entries(schema.properties ?? {})
+        .flatMap(([key, sub]) => requiredWithEmptyDefault(sub.items ?? sub, `${path}.${key}`))
+      return [...own, ...nested]
+    }
+    expect(requiredWithEmptyDefault(schemaFile.schema, '$')).toEqual([])
+  })
+
+  it('validates a config that leaves the plugin logging level at its default', () => {
+    expect(validateAsUi({
+      name: 'Air',
+      devices: [{ provider: 'aqicn', apiKey: 'test-token', city: 'station/@1' }],
+    })).toEqual([])
+  })
+
+  it('reports a config with an empty plugin logging level the way the ui does', () => {
+    expect(validateAsUi({ name: 'Air', logging: '' })).toContain('$: missing required "logging"')
+  })
+
   it('rejects a device that is missing the required API key', () => {
-    expect(validate(schemaFile.schema, {
+    expect(validateAsUi({
       name: 'Air',
       devices: [{
         provider: 'airnow',
