@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ### Changed
 
-- ci: update github actions to their latest versions
+- ci: update github actions to their latest versions (#104)
 - fix(schema): stop the plugin logging default failing ui validation (@tbaur)
 
 ## v2.3.2 (2026-10-18)
