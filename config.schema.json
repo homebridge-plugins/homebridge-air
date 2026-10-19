@@ -208,14 +208,8 @@
       "logging": {
         "title": "Plugin Logging Level",
         "type": "string",
-        "default": "",
+        "default": "standard",
         "oneOf": [
-          {
-            "title": "Default (same as Standard)",
-            "enum": [
-              ""
-            ]
-          },
           {
             "title": "None",
             "enum": [
@@ -235,7 +229,7 @@
             ]
           }
         ],
-        "description": "None turns off all messages from this plugin. Standard shows normal activity, warnings and errors. Debug adds detailed messages, and is what to use when reporting a problem. Default behaves the same as Standard."
+        "description": "None turns off all messages from this plugin. Standard shows normal activity, warnings and errors. Debug adds detailed messages, and is what to use when reporting a problem."
       }
     },
     "required": [
