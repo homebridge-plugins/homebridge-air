@@ -28,8 +28,11 @@ function makeLog(): Logging {
   return log
 }
 
+const AIR_QUALITY_SENSOR_TYPE = { name: 'AirQualitySensor' }
+
 function makePlatform() {
   const matter = {
+    deviceTypes: { AirQualitySensor: AIR_QUALITY_SENSOR_TYPE },
     registerPlatformAccessories: vi.fn(),
     updatePlatformAccessories: vi.fn(),
     unregisterPlatformAccessories: vi.fn(),
@@ -60,6 +63,14 @@ describe('matter accessory naming', () => {
 
     expect(matter.registerPlatformAccessories).toHaveBeenCalled()
     expect(platform.matterAccessories.get('test-uuid')?.displayName).toBe('Kelowna')
+  })
+
+  it('registers a new accessory with the device type from the Matter API', async () => {
+    const { platform } = makePlatform()
+
+    await platform.createMatterAirQualitySensor({ provider: 'aqicn', city: 'station/@1' })
+
+    expect(platform.matterAccessories.get('test-uuid')?.deviceType).toBe(AIR_QUALITY_SENSOR_TYPE)
   })
 
   it('renames an accessory it has already registered', async () => {

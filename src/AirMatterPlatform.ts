@@ -6,8 +6,6 @@ import type { API, Logging, MatterAccessory, PlatformAccessory } from 'homebridg
 
 import type { AirPlatformConfig, devicesConfig } from './settings.js'
 
-import { devices } from 'homebridge'
-
 import { AirQualitySensorMatter } from './devices/airqualitysensormatter.js'
 import { AirPlatform } from './platform.js'
 import { hasCoordinates, PLATFORM_NAME, PLUGIN_NAME } from './settings.js'
@@ -177,12 +175,21 @@ export class AirMatterPlatform extends AirPlatform {
       }
       await this.api.matter?.updatePlatformAccessories([existingAccessory])
     } else {
+      // Take the device type from the API. A value import from 'homebridge'
+      // loads the whole Matter stack when the plugin loads, even on HAP-only
+      // bridges.
+      const deviceType = this.api.matter?.deviceTypes.AirQualitySensor
+      if (!deviceType) {
+        await this.errorLog(`Cannot add Matter accessory ${displayName}: the Homebridge Matter API is not loaded`)
+        return
+      }
+
       await this.infoLog(`Adding new Matter accessory: ${displayName}`)
 
       const accessory: MatterAccessory = {
         UUID: uuid,
         displayName,
-        deviceType: devices.AirQualitySensorDevice,
+        deviceType,
         serialNumber: this.generateSerialNumber(device),
         manufacturer,
         model: manufacturer,

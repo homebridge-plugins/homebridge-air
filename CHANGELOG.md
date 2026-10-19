@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. This projec
 ### Changed
 
 - ci: update github actions to their latest versions
+- fix: stop loading the Matter stack on bridges that only use HAP (@tbaur)
 
 ## v2.3.2 (2026-10-18)
 
