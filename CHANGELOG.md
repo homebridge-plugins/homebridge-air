@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file. This projec
 - ci: update github actions to their latest versions (#104)
 - fix: stop loading the Matter stack on bridges that only use HAP (@tbaur)
 - fix(schema): stop the plugin logging default failing ui validation (@tbaur)
+- chore(deps): dependency updates
 
 ## v2.3.2 (2026-10-18)
 
