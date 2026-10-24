@@ -20,9 +20,13 @@ function pluginSourceFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const path = join(dir, entry.name)
     if (entry.isDirectory()) {
-      return entry.name === 'test' ? [] : pluginSourceFiles(path)
+      return entry.name === 'test'
+        ? []
+        : pluginSourceFiles(path)
     }
-    return entry.name.endsWith('.ts') ? [path] : []
+    return entry.name.endsWith('.ts')
+      ? [path]
+      : []
   })
 }
 

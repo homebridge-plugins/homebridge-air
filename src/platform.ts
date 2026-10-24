@@ -166,7 +166,9 @@ export class AirPlatform implements DynamicPlatformPlugin {
         }
 
         if (hasLatitude !== hasLongitude) {
-          const missing = !hasLatitude ? 'Latitude' : 'Longitude'
+          const missing = !hasLatitude
+            ? 'Latitude'
+            : 'Longitude'
           await this.errorLog(`Missing your ${missing}`)
         }
 
@@ -233,7 +235,9 @@ export class AirPlatform implements DynamicPlatformPlugin {
    */
   public generateAccessoryUUID(device: any): string {
     const locatedByCoordinates = hasCoordinates(device as devicesConfig)
-    const uuidString = locatedByCoordinates ? (`${device.latitude}` + `${device.longitude}` + `${device.provider}`) : (`${device.zipCode}` + `${device.city}` + `${device.provider}`)
+    const uuidString = locatedByCoordinates
+      ? (`${device.latitude}` + `${device.longitude}` + `${device.provider}`)
+      : (`${device.zipCode}` + `${device.city}` + `${device.provider}`)
     return this.api.hap.uuid.generate(uuidString)
   }
 
@@ -306,7 +310,11 @@ export class AirPlatform implements DynamicPlatformPlugin {
         // - the one the bridge reports - in step with it
         existingAccessory.updateDisplayName(await this.resolveDisplayName(device, existingAccessory))
         existingAccessory.context.serialNumber = this.generateSerialNumber(device)
-        existingAccessory.context.model = device.provider === 'airnow' ? 'AirNow' : device.provider === 'aqicn' ? 'AQICN' : 'Unknown'
+        existingAccessory.context.model = device.provider === 'airnow'
+          ? 'AirNow'
+          : device.provider === 'aqicn'
+            ? 'AQICN'
+            : 'Unknown'
         existingAccessory.context.FirmwareRevision = device.firmware ?? await this.getVersion()
         this.api.updatePlatformAccessories([existingAccessory])
         // Restore accessory
@@ -333,7 +341,11 @@ export class AirPlatform implements DynamicPlatformPlugin {
       // station name be adopted if that name is ever cleared again
       accessory.context.nameFromProvider = true
       accessory.context.serialNumber = this.generateSerialNumber(device)
-      accessory.context.model = device.provider === 'airnow' ? 'AirNow' : device.provider === 'aqicn' ? 'AQICN' : 'Unknown'
+      accessory.context.model = device.provider === 'airnow'
+        ? 'AirNow'
+        : device.provider === 'aqicn'
+          ? 'AQICN'
+          : 'Unknown'
       accessory.context.FirmwareRevision = device.firmware ?? await this.getVersion()
       // the accessory does not yet exist, so we need to create it
       await this.infoLog(`Adding new accessory: ${device.city}`)
@@ -376,14 +388,18 @@ export class AirPlatform implements DynamicPlatformPlugin {
     this.platformLogging = (configLogging === 'debug' || configLogging === 'standard' || configLogging === 'none')
       ? configLogging
       : 'debugMode'
-    const loggingSource = this.config.logging ? 'Platform Config (root)' : this.config.options?.logging ? 'Platform Config (options)' : 'Default'
+    const loggingSource = this.config.logging
+      ? 'Platform Config (root)'
+      : this.config.options?.logging ? 'Platform Config (options)' : 'Default'
     await this.debugLog(`Using ${loggingSource} Logging: ${this.platformLogging}`)
   }
 
   async getPlatformRateSettings() {
     // RefreshRate - check both root level and options
     this.platformRefreshRate = this.config.refreshRate ?? this.config.options?.refreshRate ?? undefined
-    const refreshRateSource = this.config.refreshRate ? 'Platform Config (root)' : this.config.options?.refreshRate ? 'Platform Config (options)' : 'Not Set'
+    const refreshRateSource = this.config.refreshRate
+      ? 'Platform Config (root)'
+      : this.config.options?.refreshRate ? 'Platform Config (options)' : 'Not Set'
     await this.debugLog(`Using ${refreshRateSource} refreshRate: ${this.platformRefreshRate}`)
   }
 

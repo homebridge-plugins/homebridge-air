@@ -323,7 +323,13 @@ describe('airPlatform generateSerialNumber', () => {
 
   it('should identify a device by its coordinates when one of them is zero', () => {
     const generate = mockAPI.hap.uuid.generate as any
-    platform.generateAccessoryUUID({ provider: 'airnow', latitude: 51.4779, longitude: 0, zipCode: '00000', city: 'Unknown' })
+    platform.generateAccessoryUUID({
+      provider: 'airnow',
+      latitude: 51.4779,
+      longitude: 0,
+      zipCode: '00000',
+      city: 'Unknown',
+    })
     expect(generate).toHaveBeenCalledWith('51.47790airnow')
   })
 
@@ -342,7 +348,9 @@ describe('airPlatform resolveDisplayName', () => {
   })
 
   it('should keep using an adopted station name across restarts (#69)', async () => {
-    const accessory = { context: { providerName: 'Kirchackerstrasse' } } as any
+    const accessory = {
+      context: { providerName: 'Kirchackerstrasse' },
+    } as any
     const device = { provider: 'aqicn', city: 'https://aqicn.org/station/@92323/' }
 
     expect(await platform.resolveDisplayName(device, accessory)).toBe('Kirchackerstrasse')
@@ -365,7 +373,9 @@ describe('airPlatform resolveDisplayName', () => {
   })
 
   it('should prefer the name from the config over an adopted station name', async () => {
-    const accessory = { context: { providerName: 'Kelowna KLO Road British Comlumbia' } } as any
+    const accessory = {
+      context: { providerName: 'Kelowna KLO Road British Comlumbia' },
+    } as any
     const device = { provider: 'aqicn', city: 'Kelowna', configDeviceName: 'Kelowna' }
 
     expect(await platform.resolveDisplayName(device, accessory)).toBe('Kelowna')

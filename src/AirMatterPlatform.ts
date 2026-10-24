@@ -155,7 +155,11 @@ export class AirMatterPlatform extends AirPlatform {
       city: device.city ?? 'Unknown',
     }))
 
-    const manufacturer = device.provider === 'airnow' ? 'AirNow' : device.provider === 'aqicn' ? 'AQICN' : 'Unknown'
+    const manufacturer = device.provider === 'airnow'
+      ? 'AirNow'
+      : device.provider === 'aqicn'
+        ? 'AQICN'
+        : 'Unknown'
     const firmwareRevision = device.firmware ?? await this.getVersion()
 
     const existingAccessory = this.matterAccessories.get(uuid)

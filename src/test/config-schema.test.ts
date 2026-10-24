@@ -29,7 +29,9 @@ function jsonType(value: unknown): string {
 }
 
 function allowsType(schema: JsonSchema, actual: string): boolean {
-  const types = Array.isArray(schema.type) ? schema.type : [schema.type]
+  const types = Array.isArray(schema.type)
+    ? schema.type
+    : [schema.type]
   return types.includes(actual)
 }
 
@@ -96,7 +98,9 @@ function asSeenByUi(schema: JsonSchema | undefined, data: unknown): unknown {
   }
   const shaped: Record<string, unknown> = { ...(data as Record<string, unknown>) }
   for (const [key, sub] of Object.entries(schema?.properties ?? {})) {
-    const value = Object.hasOwn(shaped, key) ? shaped[key] : sub.default
+    const value = Object.hasOwn(shaped, key)
+      ? shaped[key]
+      : sub.default
     if (value === undefined || value === '') {
       delete shaped[key]
     } else {
@@ -136,7 +140,9 @@ function isVisible(property: JsonSchema, device: Record<string, unknown>): boole
     return true
   }
   // eslint-disable-next-line no-new-func
-  return Boolean(new Function('model', 'arrayIndices', body)({ devices: [device] }, 0))
+  return Boolean(new Function('model', 'arrayIndices', body)({
+    devices: [device],
+  }, 0))
 }
 
 describe('config.schema.json', () => {
@@ -162,49 +168,70 @@ describe('config.schema.json', () => {
     expect(validateAsUi({
       name: 'Air',
       platform: 'Air',
-      devices: [{
-        provider: 'airnow',
-        apiKey: '12345678-1234-1234-1234-123456789abc',
-        city: 'Phoenix',
-        state: 'AZ',
-        zipCode: '85001',
-      }],
+      devices: [
+        {
+          provider: 'airnow',
+          apiKey: '12345678-1234-1234-1234-123456789abc',
+          city: 'Phoenix',
+          state: 'AZ',
+          zipCode: '85001',
+        },
+      ],
     })).toEqual([])
   })
 
   it('validates coordinates stored as numbers', () => {
     expect(validateAsUi({
       name: 'Air',
-      devices: [{
-        provider: 'airnow',
-        apiKey: '12345678-1234-1234-1234-123456789abc',
-        latitude: 33.4484,
-        longitude: -112.074,
-      }],
+      devices: [
+        {
+          provider: 'airnow',
+          apiKey: '12345678-1234-1234-1234-123456789abc',
+          latitude: 33.4484,
+          longitude: -112.074,
+        },
+      ],
     })).toEqual([])
   })
 
   it('validates coordinates stored as strings from older UI saves', () => {
     expect(validateAsUi({
       name: 'Air',
-      devices: [{
-        provider: 'airnow',
-        apiKey: '12345678-1234-1234-1234-123456789abc',
-        latitude: '47.376887',
-        longitude: '8.541694',
-      }],
+      devices: [
+        {
+          provider: 'airnow',
+          apiKey: '12345678-1234-1234-1234-123456789abc',
+          latitude: '47.376887',
+          longitude: '8.541694',
+        },
+      ],
     })).toEqual([])
   })
 
   it('keeps the per-device settings visible for a station on the prime meridian', () => {
-    const device = { provider: 'airnow', apiKey: 'key', latitude: 51.4779, longitude: 0 }
-    for (const field of ['firmware', 'refreshRate', 'logging', 'hide_device']) {
+    const device = {
+      provider: 'airnow',
+      apiKey: 'key',
+      latitude: 51.4779,
+      longitude: 0,
+    }
+    for (const field of [
+      'firmware',
+      'refreshRate',
+      'logging',
+      'hide_device',
+    ]) {
       expect(isVisible(deviceProperties[field], device)).toBe(true)
     }
   })
 
   it('hides state and zip code for a station on the prime meridian', () => {
-    const device = { provider: 'airnow', apiKey: 'key', latitude: 51.4779, longitude: 0 }
+    const device = {
+      provider: 'airnow',
+      apiKey: 'key',
+      latitude: 51.4779,
+      longitude: 0,
+    }
     expect(isVisible(deviceProperties.state, device)).toBe(false)
     expect(isVisible(deviceProperties.zipCode, device)).toBe(false)
   })
@@ -234,23 +261,30 @@ describe('config.schema.json', () => {
   it('validates a device that names itself', () => {
     expect(validateAsUi({
       name: 'Air',
-      devices: [{
-        provider: 'aqicn',
-        apiKey: '1234567890abcdef',
-        configDeviceName: 'Kelowna',
-        city: 'Kelowna',
-      }],
+      devices: [
+        {
+          provider: 'aqicn',
+          apiKey: '1234567890abcdef',
+          configDeviceName: 'Kelowna',
+          city: 'Kelowna',
+        },
+      ],
     })).toEqual([])
   })
 
   it('gives every required field with a default a value the ui keeps', () => {
     const requiredWithEmptyDefault = (schema: JsonSchema, path: string): string[] => {
-      const own = (Array.isArray(schema.required) ? schema.required : [])
+      const own = (Array.isArray(schema.required)
+        ? schema.required
+        : [])
         .filter(key => schema.properties?.[key]?.default === '')
         .map(key => `${path}.${key}`)
       const nested = Object.entries(schema.properties ?? {})
         .flatMap(([key, sub]) => requiredWithEmptyDefault(sub.items ?? sub, `${path}.${key}`))
-      return [...own, ...nested]
+      return [
+        ...own,
+        ...nested,
+      ]
     }
     expect(requiredWithEmptyDefault(schemaFile.schema, '$')).toEqual([])
   })
@@ -258,7 +292,9 @@ describe('config.schema.json', () => {
   it('validates a config that leaves the plugin logging level at its default', () => {
     expect(validateAsUi({
       name: 'Air',
-      devices: [{ provider: 'aqicn', apiKey: 'test-token', city: 'station/@1' }],
+      devices: [
+        { provider: 'aqicn', apiKey: 'test-token', city: 'station/@1' },
+      ],
     })).toEqual([])
   })
 
@@ -269,9 +305,11 @@ describe('config.schema.json', () => {
   it('rejects a device that is missing the required API key', () => {
     expect(validateAsUi({
       name: 'Air',
-      devices: [{
-        provider: 'airnow',
-      }],
+      devices: [
+        {
+          provider: 'airnow',
+        },
+      ],
     })).toContain('$.devices[0]: missing required "apiKey"')
   })
 })

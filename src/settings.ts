@@ -115,7 +115,9 @@ export function isCoordinate(value: number | string | undefined | null): boolean
   if (value === undefined || value === null || value === '') {
     return false
   }
-  return Number.isFinite(typeof value === 'number' ? value : Number.parseFloat(value))
+  return Number.isFinite(typeof value === 'number'
+    ? value
+    : Number.parseFloat(value))
 }
 
 /**
@@ -222,7 +224,9 @@ export function getAqicnError(response: unknown): string | null {
   }
   const outer = response as { status?: string, msg?: string, data?: unknown }
   if (outer.status && outer.status !== 'ok') {
-    return typeof outer.data === 'string' ? outer.data : (outer.msg ?? outer.status)
+    return typeof outer.data === 'string'
+      ? outer.data
+      : (outer.msg ?? outer.status)
   }
   const data = outer.data as { status?: string, msg?: string } | undefined
   if (data && data.status === 'error') {
@@ -243,15 +247,26 @@ export function normaliseAqicnAqi(data: AqicnData['data'] | undefined): number |
   if (!data) {
     return undefined
   }
-  const direct = typeof data.aqi === 'number' ? data.aqi : Number.parseFloat(String(data.aqi))
+  const direct = typeof data.aqi === 'number'
+    ? data.aqi
+    : Number.parseFloat(String(data.aqi))
   if (Number.isFinite(direct)) {
     return direct
   }
   const iaqi = data.iaqi as Record<string, { v?: number }> | undefined
-  const subIndices = ['pm25', 'pm10', 'o3', 'no2', 'so2', 'co']
+  const subIndices = [
+    'pm25',
+    'pm10',
+    'o3',
+    'no2',
+    'so2',
+    'co',
+  ]
     .map(pollutant => iaqi?.[pollutant]?.v)
     .filter((v): v is number => typeof v === 'number' && Number.isFinite(v))
-  return subIndices.length > 0 ? Math.max(...subIndices) : undefined
+  return subIndices.length > 0
+    ? Math.max(...subIndices)
+    : undefined
 }
 
 export interface AqicnData {
@@ -338,7 +353,9 @@ export interface AqicnData {
  * ReportingArea. Returns undefined when the provider gives us nothing usable.
  */
 export function resolveProviderStationName(provider: string | undefined, status: unknown): string | undefined {
-  const clean = (value: unknown): string | undefined => (typeof value === 'string' && value.trim() ? value.trim() : undefined)
+  const clean = (value: unknown): string | undefined => (typeof value === 'string' && value.trim()
+    ? value.trim()
+    : undefined)
 
   if (provider === 'aqicn') {
     const name = clean((status as AqicnData['data'] | undefined)?.city?.name)
@@ -359,7 +376,9 @@ export function resolveProviderStationName(provider: string | undefined, status:
   if (provider === 'airnow') {
     // AirNow returns one record per pollutant, all for the same reporting area
     const records = status as AirNowAirQualityDataArray | undefined
-    return Array.isArray(records) ? clean(records[0]?.ReportingArea) : undefined
+    return Array.isArray(records)
+      ? clean(records[0]?.ReportingArea)
+      : undefined
   }
 
   return undefined
@@ -576,7 +595,9 @@ export function normaliseAirNowRecords(response: unknown): AirNowAirQualityDataA
     }
 
     const source = record as AirNowZipLatLongRecord
-    const parameter = typeof source?.parameterName === 'string' ? source.parameterName : ''
+    const parameter = typeof source?.parameterName === 'string'
+      ? source.parameterName
+      : ''
 
     return {
       DateObserved: source?.dateObserved ?? '',

@@ -34,10 +34,18 @@ describe('aqicnData interface', () => {
         },
         forecast: {
           daily: {
-            pm25: [{ v: 40 }],
-            pm10: [{ v: 50 }],
-            o3: [{ v: 30 }],
-            uvi: [{ v: 3 }],
+            pm25: [
+              { v: 40 },
+            ],
+            pm10: [
+              { v: 50 },
+            ],
+            o3: [
+              { v: 30 },
+            ],
+            uvi: [
+              { v: 3 },
+            ],
           },
         },
       },
@@ -81,10 +89,18 @@ describe('aqicnData interface', () => {
         },
         forecast: {
           daily: {
-            pm25: [{ v: 40 }],
-            pm10: [{ v: 50 }],
-            o3: [{ v: 30 }],
-            uvi: [{ v: 3 }],
+            pm25: [
+              { v: 40 },
+            ],
+            pm10: [
+              { v: 50 },
+            ],
+            o3: [
+              { v: 30 },
+            ],
+            uvi: [
+              { v: 3 },
+            ],
           },
         },
       },
@@ -137,16 +153,31 @@ describe('aqicnData interface', () => {
       },
       forecast: {
         daily: {
-          pm25: [{ v: 40 }],
-          pm10: [{ v: 50 }],
-          o3: [{ v: 30 }],
-          uvi: [{ v: 3 }],
+          pm25: [
+            { v: 40 },
+          ],
+          pm10: [
+            { v: 50 },
+          ],
+          o3: [
+            { v: 30 },
+          ],
+          uvi: [
+            { v: 3 },
+          ],
         },
       },
     }
 
     // Simulate the parsing logic from airqualitysensor.ts
-    const pollutants = ['o3', 'no2', 'so2', 'pm25', 'pm10', 'co']
+    const pollutants = [
+      'o3',
+      'no2',
+      'so2',
+      'pm25',
+      'pm10',
+      'co',
+    ]
     const parsedValues: Record<string, number | undefined> = {}
 
     pollutants.forEach((pollutant) => {
@@ -241,10 +272,18 @@ describe('aqicnData interface', () => {
         },
         forecast: {
           daily: {
-            o3: [{ v: 8 }],
-            pm10: [{ v: 4 }],
-            pm25: [{ v: 9 }],
-            uvi: [{ v: 0 }],
+            o3: [
+              { v: 8 },
+            ],
+            pm10: [
+              { v: 4 },
+            ],
+            pm25: [
+              { v: 9 },
+            ],
+            uvi: [
+              { v: 0 },
+            ],
           },
         },
       },
@@ -261,7 +300,14 @@ describe('aqicnData interface', () => {
     expect(realWorldResponse.data.iaqi.p?.v).toBe(1016)
 
     // Test that pollutant parsing logic works with this structure
-    const pollutants = ['o3', 'no2', 'so2', 'pm25', 'pm10', 'co']
+    const pollutants = [
+      'o3',
+      'no2',
+      'so2',
+      'pm25',
+      'pm10',
+      'co',
+    ]
     const parsedValues: Record<string, number | undefined> = {}
 
     pollutants.forEach((pollutant) => {

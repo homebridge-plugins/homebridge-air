@@ -84,7 +84,14 @@ describe('aQI Bug Fix for Issue #39', () => {
     expect(mainAirQuality).toBe(1)
 
     // Individual pollutants should be used for their specific characteristics
-    const pollutants = ['o3', 'no2', 'so2', 'pm25', 'pm10', 'co']
+    const pollutants = [
+      'o3',
+      'no2',
+      'so2',
+      'pm25',
+      'pm10',
+      'co',
+    ]
     const densityValues: Record<string, number> = {}
     let pollutantCount = 0
 

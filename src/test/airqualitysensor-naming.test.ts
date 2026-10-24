@@ -11,7 +11,9 @@ function sensorStub(device: Record<string, unknown>, displayName: string) {
   const accessory = {
     displayName,
     context: { nameFromProvider: true } as Record<string, unknown>,
-    getService: vi.fn().mockReturnValue({ updateCharacteristic: vi.fn().mockReturnThis() }),
+    getService: vi.fn().mockReturnValue({
+      updateCharacteristic: vi.fn().mockReturnThis(),
+    }),
     updateDisplayName: vi.fn((name: string) => {
       accessory.displayName = name
     }),
@@ -20,14 +22,25 @@ function sensorStub(device: Record<string, unknown>, displayName: string) {
   return {
     accessory,
     device,
-    deviceStatus: { city: { name: 'Kelowna KLO Road, British Comlumbia, Canada' } },
-    platform: { validateAndCleanDisplayName: vi.fn(async (_displayName: string, _name: string, value: string) => value) },
-    AirQualitySensor: { Name: displayName, Service: { updateCharacteristic: vi.fn() } },
+    deviceStatus: {
+      city: { name: 'Kelowna KLO Road, British Comlumbia, Canada' },
+    },
+    platform: {
+      validateAndCleanDisplayName: vi.fn(async (_displayName: string, _name: string, value: string) => value),
+    },
+    AirQualitySensor: {
+      Name: displayName,
+      Service: {
+        updateCharacteristic: vi.fn(),
+      },
+    },
     hap: {
       Characteristic: { Name: 'Name', ConfiguredName: 'ConfiguredName' },
       Service: { AccessoryInformation: 'AccessoryInformation' },
     },
-    api: { updatePlatformAccessories: vi.fn() },
+    api: {
+      updatePlatformAccessories: vi.fn(),
+    },
     infoLog: vi.fn(),
   }
 }

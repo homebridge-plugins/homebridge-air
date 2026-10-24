@@ -167,7 +167,19 @@ describe('resolveAqicnLocationSegment', () => {
 })
 
 describe('normaliseAqicnAqi', () => {
-  const base = { idx: 1, time: { s: '', tz: '' }, city: { name: '', geo: [0, 0] as [number, number], url: '' }, attributions: [], forecast: { daily: { pm25: [], pm10: [], o3: [], uvi: [] } } }
+  const base = {
+    idx: 1,
+    time: { s: '', tz: '' },
+    city: {
+      name: '',
+      geo: [0, 0] as [number, number],
+      url: '',
+    },
+    attributions: [],
+    forecast: {
+      daily: { pm25: [], pm10: [], o3: [], uvi: [] },
+    },
+  }
 
   it('should return a numeric aqi unchanged', () => {
     expect(normaliseAqicnAqi({ ...base, aqi: 77, iaqi: {} })).toBe(77)
@@ -182,11 +194,25 @@ describe('normaliseAqicnAqi', () => {
   })
 
   it('should fall back to the highest pollutant sub-index when aqi is a dash', () => {
-    expect(normaliseAqicnAqi({ ...base, aqi: '-', iaqi: { pm25: { v: 61 }, pm10: { v: 17 } } })).toBe(61)
+    expect(normaliseAqicnAqi({
+      ...base,
+      aqi: '-',
+      iaqi: {
+        pm25: { v: 61 },
+        pm10: { v: 17 },
+      },
+    })).toBe(61)
   })
 
   it('should fall back to the highest pollutant sub-index when aqi is missing', () => {
-    expect(normaliseAqicnAqi({ ...base, aqi: undefined as any, iaqi: { pm10: { v: 23 }, o3: { v: 12 } } })).toBe(23)
+    expect(normaliseAqicnAqi({
+      ...base,
+      aqi: undefined as any,
+      iaqi: {
+        pm10: { v: 23 },
+        o3: { v: 12 },
+      },
+    })).toBe(23)
   })
 
   it('should return undefined when neither aqi nor pollutants are usable', () => {
@@ -197,7 +223,10 @@ describe('normaliseAqicnAqi', () => {
 
 describe('getAqicnError', () => {
   it('should return null for a healthy response', () => {
-    expect(getAqicnError({ status: 'ok', data: { aqi: 77, iaqi: {} } })).toBeNull()
+    expect(getAqicnError({
+      status: 'ok',
+      data: { aqi: 77, iaqi: {} },
+    })).toBeNull()
   })
 
   it('should report a top-level error with a string data reason', () => {
@@ -205,11 +234,17 @@ describe('getAqicnError', () => {
   })
 
   it('should report an error nested inside data under an ok status (#7)', () => {
-    expect(getAqicnError({ status: 'ok', data: { status: 'error', msg: 'Unknown ID' } })).toBe('Unknown ID')
+    expect(getAqicnError({
+      status: 'ok',
+      data: { status: 'error', msg: 'Unknown ID' },
+    })).toBe('Unknown ID')
   })
 
   it('should fall back to a generic reason when a nested error has no message', () => {
-    expect(getAqicnError({ status: 'ok', data: { status: 'error' } })).toBe('unknown station')
+    expect(getAqicnError({
+      status: 'ok',
+      data: { status: 'error' },
+    })).toBe('unknown station')
   })
 
   it('should treat a non-object response as an empty response', () => {
@@ -220,47 +255,70 @@ describe('getAqicnError', () => {
 
 describe('resolveProviderStationName', () => {
   it('should use city.name for aqicn (#69)', () => {
-    const status = { aqi: 25, city: { name: 'Kirchackerstrasse' } }
+    const status = {
+      aqi: 25,
+      city: { name: 'Kirchackerstrasse' },
+    }
     expect(resolveProviderStationName('aqicn', status)).toBe('Kirchackerstrasse')
   })
 
   it('should trim surrounding whitespace', () => {
-    expect(resolveProviderStationName('aqicn', { city: { name: '  Urodzajna  ' } })).toBe('Urodzajna')
+    expect(resolveProviderStationName('aqicn', {
+      city: { name: '  Urodzajna  ' },
+    })).toBe('Urodzajna')
   })
 
   it('should drop the country from place-country names (#74)', () => {
-    expect(resolveProviderStationName('aqicn', { city: { name: 'Tanikon, Switzerland' } })).toBe('Tanikon')
+    expect(resolveProviderStationName('aqicn', {
+      city: { name: 'Tanikon, Switzerland' },
+    })).toBe('Tanikon')
   })
 
   it('should keep the city but drop the country from street-city-country names (#74)', () => {
-    expect(resolveProviderStationName('aqicn', { city: { name: 'Kirchackerstrasse, Winterthur, Switzerland' } })).toBe('Kirchackerstrasse Winterthur')
+    expect(resolveProviderStationName('aqicn', {
+      city: { name: 'Kirchackerstrasse, Winterthur, Switzerland' },
+    })).toBe('Kirchackerstrasse Winterthur')
   })
 
   it('should handle stray commas and empty segments (#74)', () => {
-    expect(resolveProviderStationName('aqicn', { city: { name: 'Tanikon,, Switzerland' } })).toBe('Tanikon')
-    expect(resolveProviderStationName('aqicn', { city: { name: ',' } })).toBeUndefined()
+    expect(resolveProviderStationName('aqicn', {
+      city: { name: 'Tanikon,, Switzerland' },
+    })).toBe('Tanikon')
+    expect(resolveProviderStationName('aqicn', {
+      city: { name: ',' },
+    })).toBeUndefined()
   })
 
   it('should return undefined when aqicn omits a usable name', () => {
-    expect(resolveProviderStationName('aqicn', { city: { name: '' } })).toBeUndefined()
+    expect(resolveProviderStationName('aqicn', {
+      city: { name: '' },
+    })).toBeUndefined()
     expect(resolveProviderStationName('aqicn', { city: {} })).toBeUndefined()
     expect(resolveProviderStationName('aqicn', {})).toBeUndefined()
     expect(resolveProviderStationName('aqicn', undefined)).toBeUndefined()
   })
 
   it('should use ReportingArea for airnow (#69)', () => {
-    const status = [{ ReportingArea: 'Winterthur', StateCode: 'ZH', AQI: 12 }]
+    const status = [
+      { ReportingArea: 'Winterthur', StateCode: 'ZH', AQI: 12 },
+    ]
     expect(resolveProviderStationName('airnow', status)).toBe('Winterthur')
   })
 
   it('should return undefined when airnow gives no records or no area', () => {
     expect(resolveProviderStationName('airnow', [])).toBeUndefined()
-    expect(resolveProviderStationName('airnow', [{ AQI: 12 }])).toBeUndefined()
+    expect(resolveProviderStationName('airnow', [
+      { AQI: 12 },
+    ])).toBeUndefined()
     expect(resolveProviderStationName('airnow', undefined)).toBeUndefined()
   })
 
   it('should return undefined for an unknown provider', () => {
-    expect(resolveProviderStationName('somethingelse', { city: { name: 'Nope' } })).toBeUndefined()
-    expect(resolveProviderStationName(undefined, { city: { name: 'Nope' } })).toBeUndefined()
+    expect(resolveProviderStationName('somethingelse', {
+      city: { name: 'Nope' },
+    })).toBeUndefined()
+    expect(resolveProviderStationName(undefined, {
+      city: { name: 'Nope' },
+    })).toBeUndefined()
   })
 })

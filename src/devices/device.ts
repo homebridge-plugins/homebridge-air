@@ -58,14 +58,18 @@ export abstract class deviceBase {
 
   async getDeviceLogSettings(device: devicesConfig): Promise<void> {
     this.deviceLogging = device.logging ?? this.platform.platformLogging ?? 'standard'
-    const logging = device.logging ? 'Device Config' : this.platform.platformLogging ? 'Platform Config' : 'Default'
+    const logging = device.logging
+      ? 'Device Config'
+      : this.platform.platformLogging ? 'Platform Config' : 'Default'
     await this.debugLog(`Using ${logging} Logging: ${this.deviceLogging}`)
   }
 
   async getDeviceRateSettings(device: devicesConfig): Promise<void> {
     // refreshRate
     this.deviceRefreshRate = device.refreshRate ?? this.platform.platformRefreshRate ?? 3600
-    const refreshRate = device.refreshRate ? 'Device Config' : this.platform.platformRefreshRate ? 'Platform Config' : 'Default'
+    const refreshRate = device.refreshRate
+      ? 'Device Config'
+      : this.platform.platformRefreshRate ? 'Platform Config' : 'Default'
     await this.debugLog(`Using ${refreshRate} refreshRate: ${this.deviceRefreshRate}`)
     // updateRate and pushRate used to be parsed and echoed back here, which made
     // them look accepted. Nothing ever read the resulting values - the only timer

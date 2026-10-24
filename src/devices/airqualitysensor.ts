@@ -131,7 +131,9 @@ export class AirQualitySensor extends deviceBase {
   async parseStatus() {
     try {
       const provider = this.device.provider
-      const status = provider === 'airnow' ? this.deviceStatus[0] : this.deviceStatus
+      const status = provider === 'airnow'
+        ? this.deviceStatus[0]
+        : this.deviceStatus
 
       // Clear previous pollutant availability tracking at the start
       this.availablePollutants.clear()
@@ -158,7 +160,16 @@ export class AirQualitySensor extends deviceBase {
         }
 
         // Process individual pollutants for their specific density characteristics
-        const pollutants = provider === 'airnow' ? ['O3', 'PM2.5', 'PM10'] : ['o3', 'no2', 'so2', 'pm25', 'pm10', 'co']
+        const pollutants = provider === 'airnow'
+          ? ['O3', 'PM2.5', 'PM10']
+          : [
+              'o3',
+              'no2',
+              'so2',
+              'pm25',
+              'pm10',
+              'co',
+            ]
         let pollutantCount = 0
 
         // AirNow publishes an index per pollutant and defines the overall AQI as
@@ -169,15 +180,21 @@ export class AirQualitySensor extends deviceBase {
         let airNowWorstAqi = -1
 
         for (const pollutant of pollutants) {
-          const param = provider === 'airnow' ? this.deviceStatus.find((p: { ParameterName: string }) => p.ParameterName === pollutant) : this.deviceStatus.iaqi[pollutant]?.v
+          const param = provider === 'airnow'
+            ? this.deviceStatus.find((p: { ParameterName: string }) => p.ParameterName === pollutant)
+            : this.deviceStatus.iaqi[pollutant]?.v
           if (param !== undefined) {
-            const aqi = provider === 'airnow' ? Number.parseFloat(param.AQI.toString()) : Number.parseFloat(param.toString())
+            const aqi = provider === 'airnow'
+              ? Number.parseFloat(param.AQI.toString())
+              : Number.parseFloat(param.toString())
             if (!Number.isNaN(aqi)) {
               pollutantCount++
 
               // Both providers give us an AQI sub-index, never a concentration,
               // so convert before writing to a density characteristic (#77).
-              const key = pollutant.toLowerCase() === 'pm2.5' ? 'pm25' : pollutant.toLowerCase() as Pollutant
+              const key = pollutant.toLowerCase() === 'pm2.5'
+                ? 'pm25'
+                : pollutant.toLowerCase() as Pollutant
               const concentration = aqiToConcentration(key, aqi, provider)
               await this.debugLog(`${provider} ${pollutant} AQI: ${aqi} -> ${concentration ?? 'no concentration'}`)
 
@@ -231,7 +248,9 @@ export class AirQualitySensor extends deviceBase {
         }
 
         if (pollutantCount === 0) {
-          this.warnLog(`${provider} No pollutant data found in response. Available iaqi keys: ${provider === 'aqicn' ? JSON.stringify(Object.keys(this.deviceStatus.iaqi || {})) : 'N/A'}`)
+          this.warnLog(`${provider} No pollutant data found in response. Available iaqi keys: ${provider === 'aqicn'
+            ? JSON.stringify(Object.keys(this.deviceStatus.iaqi || {}))
+            : 'N/A'}`)
         } else {
           this.infoLog(`${provider} air quality AQI is: ${this.AirQualitySensor.AirQuality} (${pollutantCount} pollutants found)`)
         }
@@ -384,7 +403,9 @@ export class AirQualitySensor extends deviceBase {
       // https://docs.airnowapi.org/CurrentObservationsByLatLon/docs
       // Support flexible AQICN URL patterns: geo coordinates, city names, and full URL paths
       const AqicnCurrentObservationBy = resolveAqicnLocationSegment(this.device)
-      const AirNowCurrentObservationByValue = hasCoordinates(this.device) ? `latitude=${this.device.latitude}&longitude=${this.device.longitude}` : `zipCode=${this.device.zipCode}`
+      const AirNowCurrentObservationByValue = hasCoordinates(this.device)
+        ? `latitude=${this.device.latitude}&longitude=${this.device.longitude}`
+        : `zipCode=${this.device.zipCode}`
       // Use correct format as per official AirNow API docs
       const providerUrls = {
         // AirNow's newer endpoint. It finds the closest reading for each pollutant
@@ -515,7 +536,9 @@ export class AirQualitySensor extends deviceBase {
         await this.debugLog(`response: ${JSON.stringify(response)}`)
 
         if (statusCode !== 200) {
-          const errorMessage = `${this.device.provider === 'airnow' ? 'AirNow' : 'World Air Quality Index'} API returned status ${statusCode}`
+          const errorMessage = `${this.device.provider === 'airnow'
+            ? 'AirNow'
+            : 'World Air Quality Index'} API returned status ${statusCode}`
           await this.errorLog(`${errorMessage} for provider %s.`, this.device.provider)
           this.AirQualitySensor.StatusFault = this.hap.Characteristic.StatusFault.GENERAL_FAULT
           await this.debugLog(`Error response: ${JSON.stringify(response)}`)

@@ -17,7 +17,14 @@ describe('airQualitySensor pollutant tracking', () => {
 
     // Simulate the pollutant parsing logic from the AirQualitySensor class
     const availablePollutants = new Set<string>()
-    const pollutants = ['o3', 'no2', 'so2', 'pm25', 'pm10', 'co']
+    const pollutants = [
+      'o3',
+      'no2',
+      'so2',
+      'pm25',
+      'pm10',
+      'co',
+    ]
 
     pollutants.forEach((pollutant) => {
       const param = mockDeviceStatus.iaqi[pollutant as keyof typeof mockDeviceStatus.iaqi]?.v
@@ -73,7 +80,14 @@ describe('airQualitySensor pollutant tracking', () => {
 
     // Simulate the pollutant parsing logic from the AirQualitySensor class
     const availablePollutants = new Set<string>()
-    const pollutants = ['o3', 'no2', 'so2', 'pm25', 'pm10', 'co']
+    const pollutants = [
+      'o3',
+      'no2',
+      'so2',
+      'pm25',
+      'pm10',
+      'co',
+    ]
 
     pollutants.forEach((pollutant) => {
       const param = mockDeviceStatus.iaqi[pollutant as keyof typeof mockDeviceStatus.iaqi]?.v
@@ -170,7 +184,14 @@ describe('airQualitySensor pollutant tracking', () => {
 
     // Simulate the pollutant parsing logic from the AirQualitySensor class
     const availablePollutants = new Set<string>()
-    const pollutants = ['o3', 'no2', 'so2', 'pm25', 'pm10', 'co']
+    const pollutants = [
+      'o3',
+      'no2',
+      'so2',
+      'pm25',
+      'pm10',
+      'co',
+    ]
 
     pollutants.forEach((pollutant) => {
       const param = mockDeviceStatus.iaqi[pollutant as keyof typeof mockDeviceStatus.iaqi]?.v

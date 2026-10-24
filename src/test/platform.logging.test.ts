@@ -117,7 +117,11 @@ describe('a default install, from the settings it actually works out', () => {
     const log = makeLog()
     const host: any = Object.create(AirPlatform.prototype)
     host.log = log
-    host.config = { options: configLogging ? { logging: configLogging } : {} }
+    host.config = {
+      options: configLogging
+        ? { logging: configLogging }
+        : {},
+    }
     return { host, log }
   }
 
@@ -133,7 +137,14 @@ describe('a default install, from the settings it actually works out', () => {
     // The form saves "default" for the Default choice, as a required field
     // with an empty default always failed its validation. It must still mean
     // "follow Homebridge's debug setting", not Standard
-    for (const config of [{}, { logging: '' }, { logging: 'default' }, { options: { logging: 'default' } }]) {
+    for (const config of [
+      {},
+      { logging: '' },
+      { logging: 'default' },
+      {
+        options: { logging: 'default' },
+      },
+    ]) {
       const host: any = Object.create(AirPlatform.prototype)
       host.log = makeLog()
       host.config = config

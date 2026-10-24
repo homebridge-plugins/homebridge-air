@@ -16,7 +16,12 @@ const schemaFile = JSON.parse(readFileSync(new URL('../../config.schema.json', i
 
 describe('per-device settings visibility', () => {
   const deviceProperties = schemaFile.schema.properties.devices.items.properties
-  const fields = ['firmware', 'refreshRate', 'logging', 'hide_device'] as const
+  const fields = [
+    'firmware',
+    'refreshRate',
+    'logging',
+    'hide_device',
+  ] as const
 
   it('shows firmware, refresh rate, logging and hide_device for city or coordinates, not only zip+city', () => {
     for (const field of fields) {

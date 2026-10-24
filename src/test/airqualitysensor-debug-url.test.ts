@@ -46,14 +46,20 @@ describe('provider request URL logging', () => {
       errorLog: vi.fn(record),
       successLog: vi.fn(record),
       executeApiRequestWithFallback: vi.fn(async () => ({
-        body: { text: async () => '[]' },
+        body: {
+          text: async () => '[]',
+        },
         statusCode: 200,
         headers: {},
       })),
       parseStatus: vi.fn(),
       updateHomeKitCharacteristics: vi.fn(),
       AirQualitySensor: { StatusFault: 0 },
-      hap: { Characteristic: { StatusFault: { GENERAL_FAULT: 1 } } },
+      hap: {
+        Characteristic: {
+          StatusFault: { GENERAL_FAULT: 1 },
+        },
+      },
     }
 
     await AirQualitySensor.prototype.refreshStatus.call(sensor as any)

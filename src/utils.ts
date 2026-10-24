@@ -45,8 +45,10 @@ export function createPlatformProxy(
       if (enableMatter && (!matterAvailable || !matterEnabled)) {
         log.warn(
           'homebridge-air: Matter was requested via enableMatter but Matter is '
-          + `${!matterAvailable ? 'not available in this version of Homebridge' : 'not enabled in Homebridge settings'}. `
-          + 'Falling back to HAP.',
+          + `${!matterAvailable
+            ? 'not available in this version of Homebridge'
+            : 'not enabled in Homebridge settings'}. `
+            + 'Falling back to HAP.',
         )
       }
 

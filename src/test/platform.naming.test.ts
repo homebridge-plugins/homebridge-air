@@ -49,7 +49,11 @@ function makeLog(): Logging {
  */
 function makePlatform() {
   const api = {
-    hap: { uuid: { generate: vi.fn().mockReturnValue('test-uuid') } },
+    hap: {
+      uuid: {
+        generate: vi.fn().mockReturnValue('test-uuid'),
+      },
+    },
     platformAccessory: FakeAccessory,
     registerPlatformAccessories: vi.fn(),
     updatePlatformAccessories: vi.fn(),
@@ -60,7 +64,9 @@ function makePlatform() {
   platform.api = api
   platform.log = makeLog()
   platform.platformLogging = 'standard'
-  platform.config = { options: { allowInvalidCharacters: false } }
+  platform.config = {
+    options: { allowInvalidCharacters: false },
+  }
   platform.accessories = []
 
   return { platform, api }

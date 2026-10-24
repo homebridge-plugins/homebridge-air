@@ -39,7 +39,11 @@ function makePlatform() {
   }
 
   const api = {
-    hap: { uuid: { generate: vi.fn().mockReturnValue('test-uuid') } },
+    hap: {
+      uuid: {
+        generate: vi.fn().mockReturnValue('test-uuid'),
+      },
+    },
     isMatterAvailable: () => true,
     isMatterEnabled: () => true,
     matter,
