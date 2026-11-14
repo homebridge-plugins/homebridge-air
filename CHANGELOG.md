@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file. This projec
 - ci: update github actions to their latest versions (#104)
 - fix: stop loading the Matter stack on bridges that only use HAP (@tbaur)
 - fix(schema): stop the plugin logging default failing ui validation (@tbaur)
+- chore(deps): dependency updates
 - chore: leave CLAUDE.md out of the published package
 - ci: publish releases with node.js v26, the current lts
 
