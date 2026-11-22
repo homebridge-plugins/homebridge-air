@@ -13,8 +13,8 @@ All notable changes to this project will be documented in this file. This projec
 ### Changed
 
 - ci: update github actions to their latest versions (#104)
-- fix: stop loading the Matter stack on bridges that only use HAP (@tbaur)
-- fix(schema): stop the plugin logging default failing ui validation (@tbaur)
+- fix: stop loading the Matter stack on bridges that only use HAP (#105) (@tbaur)
+- fix(schema): stop the plugin logging default failing ui validation (#106) (@tbaur)
 - chore(deps): dependency updates
 - chore: leave CLAUDE.md out of the published package
 - ci: publish releases with node.js v26, the current lts
@@ -23,7 +23,7 @@ All notable changes to this project will be documented in this file. This projec
 
 ### Changed
 
-- fix: stop logging provider URLs that include the API key (@tbaur)
+- fix: stop logging provider URLs that include the API key (#103) (@tbaur)
 
 ## v2.3.1 (2026-10-18)
 
